@@ -1,0 +1,2 @@
+- Always use UK English rather than US English when generating documentation or code snippets. For example, organisation rather than organisation.
+- Use context7 MCP to get up-to-date library and package documentation when necessary.
