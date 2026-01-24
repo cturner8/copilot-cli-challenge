@@ -3,10 +3,15 @@
 {
 	"name": "ghcp",
 	// Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
-	"image": "mcr.microsoft.com/devcontainers/base:noble",
+	"image": "mcr.microsoft.com/devcontainers/go:1.25-bookworm",
+
 	"features": {
 		"ghcr.io/devcontainers/features/copilot-cli:1": {}
 	},
+
+	"mounts": [
+		"source=github-copilot-config,target=/home/vscode/.copilot,type=volume"
+	],
 
 	// Features to add to the dev container. More info: https://containers.dev/features.
 	// "features": {},
@@ -15,7 +20,7 @@
 	// "forwardPorts": [],
 
 	// Use 'postCreateCommand' to run commands after the container is created.
-	// "postCreateCommand": "uname -a",
+	"postCreateCommand": "sudo chown vscode:vscode -R /home/vscode/.copilot",
 
 	// Configure tool-specific properties.
 	// "customizations": {},
