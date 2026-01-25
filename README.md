@@ -6,5 +6,5 @@ The project utilises custom copilot agents from the [awesome-copilot](https://gi
 - Context7 Expert
 - Critical Thinking
 - Devils Advocate
-- Expert React frontend engineer
 - Gilfoyle
+- Go MCP Server Development Expert (revised slightly to be a generic go agent, see [](./.github/agents/go-expert.agent.md))
