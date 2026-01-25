@@ -8,6 +8,7 @@ import (
 
 	"cturner8/binmate/internal/cli/install"
 	"cturner8/binmate/internal/cli/root"
+	"cturner8/binmate/internal/core/config"
 )
 
 var rootCmd = root.NewCommand()
@@ -20,5 +21,7 @@ func Execute() {
 }
 
 func init() {
-	rootCmd.AddCommand(install.NewCommand())
+	config := config.ReadConfig()
+
+	rootCmd.AddCommand(install.NewCommand(config))
 }
