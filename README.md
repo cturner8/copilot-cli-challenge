@@ -15,6 +15,7 @@ The project utilises custom copilot agents from the [awesome-copilot](https://gi
 
 This project utilised the following GitHub Copilot models:
 
+- Claude Opus 4.5
 - Claude Sonnet 4.5
 - Claude Haiku 4.5
 - OpenAI GPT 5.1 Codex Max (xhigh reasoning mode)
