@@ -1,4 +1,4 @@
-package root
+package tui
 
 type model struct {
 }
