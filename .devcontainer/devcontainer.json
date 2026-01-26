@@ -13,6 +13,10 @@
 		"source=github-copilot-config,target=/home/vscode/.copilot,type=volume"
 	],
 
+	"remoteEnv": {
+		"BINMATE_CONFIG_PATH": "${containerWorkspaceFolder}/config.json"
+	},
+
 	// Features to add to the dev container. More info: https://containers.dev/features.
 	// "features": {},
 
