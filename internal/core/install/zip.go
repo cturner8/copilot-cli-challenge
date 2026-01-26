@@ -10,29 +10,29 @@ import (
 )
 
 // ExtractZip extracts the given ZIP archive into destDir using only the Go standard library.
-func extractZip(srcZip string, destDir string) error {
+func extractZip(srcZip string, destDir string) (string, error) {
 	if destDir == "" {
-		return fmt.Errorf("destination directory is required")
+		return "", fmt.Errorf("destination directory is required")
 	}
 
 	destDir = filepath.Clean(destDir)
 	if err := os.MkdirAll(destDir, 0o755); err != nil {
-		return fmt.Errorf("create destination: %w", err)
+		return "", fmt.Errorf("create destination: %w", err)
 	}
 
 	r, err := zip.OpenReader(srcZip)
 	if err != nil {
-		return fmt.Errorf("open zip: %w", err)
+		return "", fmt.Errorf("open zip: %w", err)
 	}
 	defer r.Close()
 
 	for _, f := range r.File {
 		if err := extractZipEntry(f, destDir); err != nil {
-			return err
+			return "", err
 		}
 	}
 
-	return nil
+	return destDir, nil
 }
 
 func extractZipEntry(f *zip.File, destDir string) error {
