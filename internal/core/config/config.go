@@ -1,11 +1,14 @@
 package config
 
 type Binary struct {
-	Id          string `mapstructure:"id"`
-	Name        string `mapstructure:"name"`
-	Provider    string `mapstructure:"provider"`
-	InstallPath string `mapstructure:"installPath"`
-	Format      string `mapstructure:"format"`
+	Id           string `mapstructure:"id"`
+	Name         string `mapstructure:"name"`
+	Provider     string `mapstructure:"provider"`
+	Path         string `mapstructure:"path"`
+	InstallPath  string `mapstructure:"installPath"`
+	Format       string `mapstructure:"format"`
+	AssetRegex   string `mapstructure:"assetRegex"`
+	ReleaseRegex string `mapstructure:"releaseRegex"`
 }
 
 type Config struct {
