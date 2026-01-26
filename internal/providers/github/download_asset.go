@@ -8,26 +8,24 @@ import (
 	"path/filepath"
 )
 
-func DownloadAsset(path string, version string, assetName string) (string, error) {
-	url := fmt.Sprintf("https://github.com/%s/releases/download/%s/%s", path, version, assetName)
-
-	resp, err := http.Get(url)
+func DownloadAsset(url string, assetName string) (string, error) {
+	response, err := http.Get(url)
 	if err != nil {
 		return "", fmt.Errorf("download asset: %w", err)
 	}
-	defer resp.Body.Close()
+	defer response.Body.Close()
 
-	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("download asset: unexpected status %s", resp.Status)
+	if response.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("download asset: unexpected status %s", response.Status)
 	}
 
-	destPath := filepath.Join(os.TempDir(), assetName)
+	destPath := filepath.Join(os.TempDir(), "binmate", assetName)
 	tmp, err := os.CreateTemp(os.TempDir(), assetName+".*")
 	if err != nil {
 		return "", fmt.Errorf("create temp file: %w", err)
 	}
 
-	if _, err := io.Copy(tmp, resp.Body); err != nil {
+	if _, err := io.Copy(tmp, response.Body); err != nil {
 		tmp.Close()
 		os.Remove(tmp.Name())
 		return "", fmt.Errorf("write asset: %w", err)
