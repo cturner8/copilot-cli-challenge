@@ -21,6 +21,10 @@ func Execute() {
 }
 
 func init() {
+	// set global flags
+	// TODO: use this to override config path
+	rootCmd.PersistentFlags().String("config", "", "(optional) path to the config file to use")
+
 	config := config.ReadConfig()
 
 	rootCmd.AddCommand(install.NewCommand(config))
