@@ -1,7 +1,9 @@
 package config
 
 import (
+	"fmt"
 	"log"
+	"os"
 
 	"github.com/spf13/viper"
 )
@@ -11,13 +13,21 @@ func ReadConfig() Config {
 
 	v.SetConfigName("config")
 
+	configPath, configPathSet := os.LookupEnv("BINMATE_CONFIG_PATH")
+
 	// set defaults
 	v.SetDefault("version", 1)
 	v.SetDefault("binaries", []Binary{})
 
-	// Add search paths to find the file
-	v.AddConfigPath("/etc/binmate/")
-	v.AddConfigPath("$HOME/.binmate")
+	homeDir, _ := os.UserHomeDir()
+
+	if configPathSet {
+		v.SetConfigFile(configPath)
+	} else {
+		// Add search paths to find the file
+		v.AddConfigPath("/etc/binmate/")
+		v.AddConfigPath(fmt.Sprintf("%s/.binmate", homeDir))
+	}
 
 	// Find and read the config file
 	err := v.ReadInConfig()
