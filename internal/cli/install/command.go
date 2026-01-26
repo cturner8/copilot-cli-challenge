@@ -1,7 +1,6 @@
 package install
 
 import (
-	"fmt"
 	"log"
 
 	"github.com/spf13/cobra"
@@ -11,7 +10,7 @@ import (
 	"cturner8/binmate/internal/providers/github"
 )
 
-func NewCommand(config config.Config) *cobra.Command {
+func NewCommand(c config.Config) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "install",
 		Short:   "Install a new binary version",
@@ -27,23 +26,35 @@ func NewCommand(config config.Config) *cobra.Command {
 				log.Panicf("version is required")
 			}
 
-			fmt.Printf("installing binary: %s version: %s", binary, version)
+			log.Printf("installing binary: %s version: %s", binary, version)
 
-			downloadPath, err := github.DownloadAsset(binary, version, "bun-linux-aarch64.zip")
+			binaryConfig, err := config.GetBinary(binary, c.Binaries)
+			if err != nil {
+				log.Panicf("unable to find requested binary config")
+			}
+
+			assetName, downloadUrl, err := github.FetchReleaseAsset(binaryConfig, version)
+			if err != nil {
+				log.Panicf("fetch failed: %s", err)
+			}
+
+			downloadPath, err := github.DownloadAsset(downloadUrl, assetName)
 			if err != nil {
 				log.Panicf("download failed: %s", err)
 			}
 
-			if err := install.ExtractAsset(downloadPath, fmt.Sprintf("/tmp/binmate/%s", binary)); err != nil {
+			destPath, err := install.ExtractAsset(downloadPath, binaryConfig.Id, version)
+			if err != nil {
 				log.Panicf("error extracting asset: %s", err)
 			}
 
-			fmt.Printf("\ndownloaded binary: %s version: %s", binary, version)
+			log.Printf("downloaded binary: %s version: %s", binary, version)
+			log.Printf(destPath)
 		},
 	}
 
 	cmd.Flags().String("binary", "", "binary to be installed")
-	cmd.Flags().String("version", "", "version of the binary to be installed")
+	cmd.Flags().String("version", "latest", "version of the binary to be installed")
 
 	return cmd
 }
