@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "binaries": [ 
+    { 
+      "id": "ghcp", 
+      "name": "copilot", 
+      "provider": "github",
+      "path": "github/copilot-cli",
+      "format": ".tar.gz"
+    },
+    {
+      "id": "bun", 
+      "name": "bun", 
+      "provider": "github",
+      "path": "oven-sh/bun",
+      "format": ".zip",
+      "releaseRegex": "bun-"
+    }
+  ]
+}
