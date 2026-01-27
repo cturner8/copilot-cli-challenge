@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/github/copilot-cli-challenge/schema.json",
+  "title": "binmate Configuration",
+  "description": "Configuration schema for binmate CLI",
+  "type": "object",
+  "required": ["version", "binaries"],
+  "properties": {
+    "$schema": {
+        "type": "string"
+    },
+    "version": {
+      "type": "integer",
+      "description": "Configuration schema version",
+      "minimum": 1
+    },
+    "binaries": {
+      "type": "array",
+      "description": "List of binaries to install and manage",
+      "items": {
+        "$ref": "#/definitions/binary"
+      },
+      "minItems": 1
+    }
+  },
+  "definitions": {
+    "binary": {
+      "type": "object",
+      "required": ["id", "name", "provider", "path", "format"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the binary",
+          "pattern": "^[a-zA-Z0-9_-]+$",
+          "minLength": 1
+        },
+        "name": {
+          "type": "string",
+          "description": "Display name of the binary",
+          "minLength": 1
+        },
+        "provider": {
+          "type": "string",
+          "description": "Source provider for the binary",
+          "enum": ["github"]
+        },
+        "path": {
+          "type": "string",
+          "description": "Provider-specific path (e.g., owner/repo for GitHub)",
+          "pattern": "^[^/]+/[^/]+$"
+        },
+        "format": {
+          "type": "string",
+          "description": "Archive format of the release",
+          "enum": [".tar.gz", ".zip"]
+        },
+        "releaseRegex": {
+          "type": "string",
+          "description": "Optional regex pattern to filter release assets"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}
