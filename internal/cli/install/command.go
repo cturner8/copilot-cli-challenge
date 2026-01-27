@@ -7,6 +7,7 @@ import (
 
 	"cturner8/binmate/internal/core/config"
 	"cturner8/binmate/internal/core/install"
+	v "cturner8/binmate/internal/core/version"
 	"cturner8/binmate/internal/providers/github"
 )
 
@@ -50,7 +51,7 @@ func NewCommand(c config.Config) *cobra.Command {
 
 			resolvedVersion := version
 			if version == "latest" {
-				resolvedVersion = release.Name
+				resolvedVersion = release.TagName
 			}
 
 			destPath, err := install.ExtractAsset(downloadPath, binaryConfig, resolvedVersion)
@@ -58,7 +59,13 @@ func NewCommand(c config.Config) *cobra.Command {
 				log.Panicf("error extracting asset: %s", err)
 			}
 
-			log.Printf("downloaded binary: %s version: %s to %s", binary, resolvedVersion, destPath)
+			installPath, err := v.SetActiveVersion(destPath, binaryConfig.InstallPath, binaryConfig.Name)
+			if err != nil {
+				log.Panicf("error setting active version: %s", err)
+			}
+
+			log.Printf("downloaded binary: %s version: %s", binary, resolvedVersion)
+			log.Printf("install path: %s", installPath)
 		},
 	}
 
