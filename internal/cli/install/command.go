@@ -33,23 +33,37 @@ func NewCommand(c config.Config) *cobra.Command {
 				log.Panicf("unable to find requested binary config")
 			}
 
-			assetName, downloadUrl, err := github.FetchReleaseAsset(binaryConfig, version)
+			if binaryConfig.Provider != "github" {
+				log.Panicf("only github provider is currently supported")
+
+			}
+
+			release, asset, err := github.FetchReleaseAsset(binaryConfig, version)
 			if err != nil {
 				log.Panicf("fetch failed: %s", err)
 			}
 
-			downloadPath, err := github.DownloadAsset(downloadUrl, assetName)
+			downloadPath, err := github.DownloadAsset(asset.BrowserDownloadUrl, asset.Name)
 			if err != nil {
 				log.Panicf("download failed: %s", err)
 			}
 
-			destPath, err := install.ExtractAsset(downloadPath, binaryConfig.Id, version)
+			resolvedVersion := version
+			if version == "latest" {
+				resolvedVersion = release.Name
+			}
+
+			destPath, err := install.ExtractAsset(downloadPath, binaryConfig.Id, resolvedVersion, binaryConfig.Format)
 			if err != nil {
 				log.Panicf("error extracting asset: %s", err)
 			}
+			// TODO: remove
+			if destPath == "" {
+				log.Panicf("empty destination path")
 
-			log.Printf("downloaded binary: %s version: %s", binary, version)
-			log.Printf(destPath)
+			}
+
+			log.Printf("downloaded binary: %s version: %s", binary, resolvedVersion)
 		},
 	}
 
