@@ -6,13 +6,17 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-	"strings"
 )
 
-// ExtractZip extracts the given ZIP archive into destDir using only the Go standard library.
-func extractZip(srcZip string, destDir string) (string, error) {
+// extractZip extracts the specified binary from a ZIP archive into destDir.
+// It searches for the binary by name within the archive (including subdirectories)
+// and extracts only that file to destDir/binaryName.
+func extractZip(srcZip string, destDir string, binaryName string) (string, error) {
 	if destDir == "" {
 		return "", fmt.Errorf("destination directory is required")
+	}
+	if binaryName == "" {
+		return "", fmt.Errorf("binary name is required")
 	}
 
 	destDir = filepath.Clean(destDir)
@@ -26,41 +30,25 @@ func extractZip(srcZip string, destDir string) (string, error) {
 	}
 	defer r.Close()
 
+	// Search for the binary in the archive
 	for _, f := range r.File {
-		if err := extractZipEntry(f, destDir); err != nil {
-			return "", err
+		// Check if this is the binary we're looking for (could be in subdirectories like bin/gh)
+		if filepath.Base(f.Name) == binaryName && !f.FileInfo().IsDir() {
+			targetPath := filepath.Join(destDir, binaryName)
+			if err := extractZipBinary(f, targetPath); err != nil {
+				return "", err
+			}
+			return targetPath, nil
 		}
 	}
 
-	return destDir, nil
+	return "", fmt.Errorf("binary %s not found in archive", binaryName)
 }
 
-func extractZipEntry(f *zip.File, destDir string) error {
-	cleanName := filepath.Clean(f.Name)
-	if filepath.IsAbs(cleanName) {
-		return fmt.Errorf("absolute paths are not allowed in archive: %s", f.Name)
-	}
-
-	targetPath := filepath.Join(destDir, cleanName)
-	destDirWithSep := destDir + string(os.PathSeparator)
-	if targetPath != destDir && !strings.HasPrefix(targetPath, destDirWithSep) {
-		return fmt.Errorf("illegal path traversal in archive entry: %s", f.Name)
-	}
-
+func extractZipBinary(f *zip.File, targetPath string) error {
 	// We disallow symlinks to avoid unexpected filesystem writes.
 	if f.Mode()&os.ModeSymlink != 0 {
 		return fmt.Errorf("symlinks are not supported in archive: %s", f.Name)
-	}
-
-	if f.FileInfo().IsDir() {
-		if err := os.MkdirAll(targetPath, f.Mode().Perm()); err != nil {
-			return fmt.Errorf("create dir %s: %w", targetPath, err)
-		}
-		return nil
-	}
-
-	if err := os.MkdirAll(filepath.Dir(targetPath), 0o755); err != nil {
-		return fmt.Errorf("create parent dirs for %s: %w", targetPath, err)
 	}
 
 	reader, err := f.Open()
@@ -70,8 +58,8 @@ func extractZipEntry(f *zip.File, destDir string) error {
 	defer reader.Close()
 
 	mode := f.Mode()
-	if mode == 0 {
-		mode = 0o644
+	if mode == 0 || mode.Perm() == 0 {
+		mode = 0o755 // Binaries should be executable
 	}
 
 	dst, err := os.OpenFile(targetPath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, mode.Perm())
