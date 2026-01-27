@@ -7,6 +7,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"strings"
 )
 
 type ReleaseAsset struct {
@@ -24,7 +25,7 @@ type Release struct {
 	Assets  []ReleaseAsset `json:"assets"`
 }
 
-func FetchReleaseAsset(binary config.Binary, version string) (string, string, error) {
+func FetchReleaseAsset(binary config.Binary, version string) (Release, ReleaseAsset, error) {
 	if binary.Path == "" {
 		log.Panicln("path is required for binary config")
 	}
@@ -33,6 +34,7 @@ func FetchReleaseAsset(binary config.Binary, version string) (string, string, er
 	url := fmt.Sprintf("https://api.github.com/repos/%s/releases/latest", binary.Path)
 	if version != "latest" {
 		tag := version
+		// TODO: handle as actual regex expression?
 		if binary.ReleaseRegex != "" {
 			tag = binary.ReleaseRegex + version
 		}
@@ -42,26 +44,31 @@ func FetchReleaseAsset(binary config.Binary, version string) (string, string, er
 
 	response, err := http.Get(url)
 	if err != nil {
-		return "", "", fmt.Errorf("download asset: %w", err)
+		return Release{}, ReleaseAsset{}, fmt.Errorf("download asset: %w", err)
 	}
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
-		return "", "", fmt.Errorf("download asset: unexpected status %s", response.Status)
+		return Release{}, ReleaseAsset{}, fmt.Errorf("download asset: unexpected status %s", response.Status)
+	}
+
+	contentType := response.Header.Get("content-type")
+	if !strings.Contains(contentType, "application/json") {
+		return Release{}, ReleaseAsset{}, fmt.Errorf("invalid release response content: %s", contentType)
 	}
 
 	body, err := io.ReadAll(response.Body)
 	if err != nil {
-		return "", "", fmt.Errorf("failed to read body: %w", err)
+		return Release{}, ReleaseAsset{}, fmt.Errorf("failed to read body: %w", err)
 	}
 
 	var release Release
 	if err := json.Unmarshal(body, &release); err != nil {
-		return "", "", fmt.Errorf("failed to parse JSON: %w", err)
+		return Release{}, ReleaseAsset{}, fmt.Errorf("failed to parse JSON: %w", err)
 	}
 
 	if len(release.Assets) == 0 {
-		return "", "", fmt.Errorf("failed to find requested binary, no release assets")
+		return Release{}, ReleaseAsset{}, fmt.Errorf("failed to find requested binary, no release assets")
 	}
 
 	// Create filter based on binary config
@@ -72,14 +79,14 @@ func FetchReleaseAsset(binary config.Binary, version string) (string, string, er
 	// Filter assets based on platform, architecture, and format
 	filteredAssets, err := FilterAssets(release.Assets, filter)
 	if err != nil {
-		return "", "", fmt.Errorf("no matching assets found: %w", err)
+		return Release{}, ReleaseAsset{}, fmt.Errorf("no matching assets found: %w", err)
 	}
 
 	// Select the best asset from filtered results
 	selectedAsset, err := SelectBestAsset(filteredAssets)
 	if err != nil {
-		return "", "", fmt.Errorf("failed to select asset: %w", err)
+		return Release{}, ReleaseAsset{}, fmt.Errorf("failed to select asset: %w", err)
 	}
 
-	return selectedAsset.Name, selectedAsset.BrowserDownloadUrl, nil
+	return release, selectedAsset, nil
 }
