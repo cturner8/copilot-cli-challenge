@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 )
 
-func ExtractAsset(srcPath string, id string, version string, format string) (string, error) {
+func ExtractAsset(srcPath string, id string, version string, format string, binaryName string) (string, error) {
 	cacheDir, err := os.UserCacheDir()
 	if err != nil {
 		return "", fmt.Errorf("unable to locate asset cache dir")
@@ -17,11 +17,11 @@ func ExtractAsset(srcPath string, id string, version string, format string) (str
 	switch format {
 	case ".zip":
 		{
-			return extractZip(srcPath, destDir)
+			return extractZip(srcPath, destDir, binaryName)
 		}
 	case ".tar.gz":
 		{
-			return extractTar(srcPath, destDir)
+			return extractTar(srcPath, destDir, binaryName)
 		}
 	}
 
