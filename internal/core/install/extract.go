@@ -1,18 +1,29 @@
 package install
 
 import (
-	"log"
+	"fmt"
 	"os"
 	"path/filepath"
 )
 
-func ExtractAsset(srcPath string, id string, version string) (string, error) {
+func ExtractAsset(srcPath string, id string, version string, format string) (string, error) {
 	cacheDir, err := os.UserCacheDir()
 	if err != nil {
-		log.Panicf("unable to locate asset cache dir")
+		return "", fmt.Errorf("unable to locate asset cache dir")
 	}
 
-	destDir := filepath.Join(cacheDir, "binmate", id, version)
-	// TODO: check file type
-	return extractZip(srcPath, destDir)
+	destDir := filepath.Join(cacheDir, ".binmate", id, version)
+
+	switch format {
+	case ".zip":
+		{
+			return extractZip(srcPath, destDir)
+		}
+	case ".tar.gz":
+		{
+			return extractTar(srcPath, destDir)
+		}
+	}
+
+	return "", fmt.Errorf("unsupported asset format: %s", format)
 }
