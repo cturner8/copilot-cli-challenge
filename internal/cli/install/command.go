@@ -53,17 +53,12 @@ func NewCommand(c config.Config) *cobra.Command {
 				resolvedVersion = release.Name
 			}
 
-			destPath, err := install.ExtractAsset(downloadPath, binaryConfig.Id, resolvedVersion, binaryConfig.Format)
+			destPath, err := install.ExtractAsset(downloadPath, binaryConfig, resolvedVersion)
 			if err != nil {
 				log.Panicf("error extracting asset: %s", err)
 			}
-			// TODO: remove
-			if destPath == "" {
-				log.Panicf("empty destination path")
 
-			}
-
-			log.Printf("downloaded binary: %s version: %s", binary, resolvedVersion)
+			log.Printf("downloaded binary: %s version: %s to %s", binary, resolvedVersion, destPath)
 		},
 	}
 
