@@ -23,6 +23,27 @@
       "path": "oven-sh/bun",
       "format": ".zip",
       "releaseRegex": "bun-"
+    },
+    { 
+      "id": "fzf", 
+      "name": "fzf", 
+      "provider": "github",
+      "path": "junegunn/fzf",
+      "format": ".tar.gz"
+    },
+    { 
+      "id": "z", 
+      "name": "zoxide", 
+      "provider": "github",
+      "path": "ajeetdsouza/zoxide",
+      "format": ".tar.gz"
+    },
+    { 
+      "id": "batcat", 
+      "name": "bat", 
+      "provider": "github",
+      "path": "sharkdp/bat",
+      "format": ".tar.gz"
     }
   ]
 }
