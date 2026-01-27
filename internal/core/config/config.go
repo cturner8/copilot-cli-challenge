@@ -1,8 +1,10 @@
 package config
 
 type Binary struct {
-	Id           string `mapstructure:"id"`
-	Name         string `mapstructure:"name"`
+	Id   string `mapstructure:"id"`
+	Name string `mapstructure:"name"`
+	// TODO: implement as override of bin name, if provided
+	Alias        string `mapstructure:"alias"`
 	Provider     string `mapstructure:"provider"`
 	Path         string `mapstructure:"path"`
 	InstallPath  string `mapstructure:"installPath"`
