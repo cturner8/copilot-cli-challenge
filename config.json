@@ -8,6 +8,13 @@
       "path": "github/copilot-cli",
       "format": ".tar.gz"
     },
+    { 
+      "id": "gh", 
+      "name": "gh", 
+      "provider": "github",
+      "path": "cli/cli",
+      "format": ".tar.gz"
+    },
     {
       "id": "bun", 
       "name": "bun", 
