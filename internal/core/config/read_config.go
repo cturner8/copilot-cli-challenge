@@ -19,7 +19,7 @@ func ReadConfig() Config {
 	v.SetDefault("version", 1)
 	v.SetDefault("binaries", []Binary{})
 
-	homeDir, _ := os.UserHomeDir()
+	homeDir, _ := os.UserConfigDir()
 
 	if configPathSet {
 		v.SetConfigFile(configPath)
