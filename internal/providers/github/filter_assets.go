@@ -10,11 +10,11 @@ import (
 
 // AssetFilter represents criteria for filtering release assets
 type AssetFilter struct {
-	OS           string // e.g., "linux", "darwin", "windows"
-	Arch         string // e.g., "amd64", "arm64"
-	Extension    string // e.g., ".tar.gz", ".zip"
-	Prefix       string // optional prefix to match
-	AssetRegex   string // optional regex pattern from config
+	OS         string // e.g., "linux", "darwin", "windows"
+	Arch       string // e.g., "amd64", "arm64"
+	Extension  string // e.g., ".tar.gz", ".zip"
+	Prefix     string // optional prefix to match
+	AssetRegex string // optional regex pattern from config
 }
 
 // NewAssetFilter creates a filter with current platform defaults
@@ -82,12 +82,12 @@ func filterByRegex(assets []ReleaseAsset, pattern string) ([]ReleaseAsset, error
 // filterByOS filters assets by operating system
 func filterByOS(assets []ReleaseAsset, os string) []ReleaseAsset {
 	filtered := make([]ReleaseAsset, 0, len(assets))
-	
+
 	// Common OS name variations in release asset names
 	osPatterns := map[string][]string{
 		"linux":   {"linux"},
 		"darwin":  {"darwin", "macos", "osx"},
-		"windows": {"windows"},
+		"windows": {"windows", "win"},
 	}
 
 	patterns, exists := osPatterns[os]
@@ -100,6 +100,10 @@ func filterByOS(assets []ReleaseAsset, os string) []ReleaseAsset {
 		for _, pattern := range patterns {
 			// Use case-insensitive matching
 			if strings.Contains(nameLower, strings.ToLower(pattern)) {
+				// edge case to prevent "win" matching on "darwin"
+				if pattern == "win" && strings.Contains(nameLower, "darwin") {
+					continue
+				}
 				filtered = append(filtered, asset)
 				break
 			}
@@ -112,7 +116,7 @@ func filterByOS(assets []ReleaseAsset, os string) []ReleaseAsset {
 // filterByArch filters assets by architecture
 func filterByArch(assets []ReleaseAsset, arch string) []ReleaseAsset {
 	filtered := make([]ReleaseAsset, 0, len(assets))
-	
+
 	// Common architecture name variations
 	archPatterns := map[string][]string{
 		"amd64": {"amd64", "x86_64", "x64"},
@@ -142,7 +146,7 @@ func filterByArch(assets []ReleaseAsset, arch string) []ReleaseAsset {
 // filterByExtension filters assets by file extension
 func filterByExtension(assets []ReleaseAsset, ext string) []ReleaseAsset {
 	filtered := make([]ReleaseAsset, 0, len(assets))
-	
+
 	// Ensure extension starts with a dot
 	if !strings.HasPrefix(ext, ".") {
 		ext = "." + ext
@@ -155,7 +159,7 @@ func filterByExtension(assets []ReleaseAsset, ext string) []ReleaseAsset {
 			filtered = append(filtered, asset)
 			continue
 		}
-		
+
 		// Also check standard extension
 		if filepath.Ext(assetName) == ext {
 			filtered = append(filtered, asset)
@@ -168,7 +172,7 @@ func filterByExtension(assets []ReleaseAsset, ext string) []ReleaseAsset {
 // filterByPrefix filters assets by filename prefix
 func filterByPrefix(assets []ReleaseAsset, prefix string) []ReleaseAsset {
 	filtered := make([]ReleaseAsset, 0, len(assets))
-	
+
 	for _, asset := range assets {
 		if strings.HasPrefix(asset.Name, prefix) {
 			filtered = append(filtered, asset)
@@ -191,7 +195,7 @@ func SelectBestAsset(assets []ReleaseAsset) (ReleaseAsset, error) {
 
 	// Prefer certain extensions in order
 	preferredExts := []string{".tar.gz", ".tgz", ".zip", ".tar.xz", ".tar.bz2"}
-	
+
 	for _, ext := range preferredExts {
 		for _, asset := range assets {
 			if strings.HasSuffix(asset.Name, ext) {
