@@ -11,7 +11,10 @@ import (
 	"cturner8/binmate/internal/providers/github"
 )
 
-func NewCommand(c config.Config) *cobra.Command {
+// Package variable will be set by cmd package
+var Config *config.Config
+
+func NewCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "install",
 		Short:   "Install a new binary version",
@@ -29,7 +32,7 @@ func NewCommand(c config.Config) *cobra.Command {
 
 			log.Printf("installing binary: %s version: %s", binary, version)
 
-			binaryConfig, err := config.GetBinary(binary, c.Binaries)
+			binaryConfig, err := config.GetBinary(binary, Config.Binaries)
 			if err != nil {
 				log.Panicf("unable to find requested binary config")
 			}
