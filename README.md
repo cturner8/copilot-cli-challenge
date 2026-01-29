@@ -9,7 +9,8 @@ The project utilises custom copilot agents from the [awesome-copilot](https://gi
 - Critical Thinking
 - Devils Advocate
 - Gilfoyle
-- Go MCP Server Development Expert (revised slightly to be a generic go agent, see [](./.github/agents/go-expert.agent.md))
+- Go MCP Server Development Expert (revised slightly to be a generic go agent, see [go-expert.agent.md](./.github/agents/go-expert.agent.md))
+- SQLite Database Administrator (revised from PostgreSQL Database Administrator agent, see [sqlite-dba.agent.md](./.github/agents/sqlite-dba.agent.md))
 
 ## Models
 
