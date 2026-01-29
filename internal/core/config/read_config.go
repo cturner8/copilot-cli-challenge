@@ -25,7 +25,6 @@ func ReadConfig() Config {
 		v.SetConfigFile(configPath)
 	} else {
 		// Add search paths to find the file
-		v.AddConfigPath("/etc/binmate/")
 		v.AddConfigPath(fmt.Sprintf("%s/.binmate", homeDir))
 	}
 
