@@ -1,7 +1,6 @@
 ---
 description: "Design and work with SQLite databases."
 name: "SQLite Database Administrator"
-tools: ["codebase", "edit/editFiles", "githubRepo", "runCommands", "database"]
 ---
 
 # SQLite Database designer and administrator
