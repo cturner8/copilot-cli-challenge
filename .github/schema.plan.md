@@ -28,8 +28,8 @@ Tracks binary definitions (synced from user `config.json`).
 
 ```sql
 CREATE TABLE binaries (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,                    
-    user_id TEXT,                           -- aligns with user provided id, e.g., 'ghcp', 'gh', 'bun'
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id TEXT UNIQUE,                    -- aligns with user provided id, e.g., 'ghcp', 'gh', 'bun'
     name TEXT NOT NULL,                     -- e.g., 'copilot', 'gh'
     alias TEXT,                             -- optional override for bin name
     provider TEXT NOT NULL,                 -- 'github' (extensible for future providers)
@@ -80,7 +80,6 @@ CREATE TABLE installations (
 );
 
 CREATE INDEX idx_installations_binary_id ON installations(binary_id);
-CREATE INDEX idx_installations_version ON installations(binary_id, version);
 CREATE INDEX idx_installations_installed_at ON installations(installed_at);
 CREATE INDEX idx_installations_binary_installed ON installations(binary_id, installed_at DESC);
 ```
