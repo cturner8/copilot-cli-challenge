@@ -33,9 +33,7 @@
 	"remoteUser": "vscode",
 	"customizations": {
 		"vscode": {
-			"extensions": [
-				"qwtel.sqlite-viewer"
-			]
+			"extensions": []
 		}
 	}
 }
