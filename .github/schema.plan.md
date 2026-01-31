@@ -469,14 +469,14 @@ VALUES (1, strftime('%s', 'now'), 'Initial schema');
   - [ ] Call `binaries_repository.SyncFromConfig()` after reading config.json
   - [ ] Handle added/updated/removed binaries
 - [ ] **Update installation flow**
-  - [ ] Modify `internal/cli/install/command.go` to use database
-  - [ ] Log operation start before download
-  - [ ] Moved cached downloads from `/tmp` folder to `os.UserCacheDir`
+  - [x] Modify `internal/cli/install/command.go` to use database
+  - [x] Log operation start before download
+  - [x] Moved cached downloads from `/tmp` folder to `os.UserCacheDir`
   - [ ] Record cached download after successful download
-  - [ ] Record installation after successful extraction
-  - [ ] Update install path from `os.UserCacheDir` to `$HOME/.local/share/.binmate/versions/`. Implement OS aware path resolution strategy to overcome go limitation of lack of support for local share directory in `os` module.
-  - [ ] Set active version after successful symlink
-  - [ ] Log operation success/failure
+  - [x] Record installation after successful extraction
+  - [x] Update install path from `os.UserCacheDir` to `$HOME/.local/share/.binmate/versions/`. Implement OS aware path resolution strategy to overcome go limitation of lack of support for local share directory in `os` module.
+  - [x] Set active version after successful symlink
+  - [x] Log operation success/failure
 - [ ] **Update version management**
   - [ ] Modify `internal/core/version/set_active_version.go` to use database
   - [ ] Update versions table when switching versions
