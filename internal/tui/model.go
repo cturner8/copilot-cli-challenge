@@ -4,6 +4,8 @@ import (
 	"cturner8/binmate/internal/core/config"
 	"cturner8/binmate/internal/database"
 	"cturner8/binmate/internal/database/repository"
+
+	"github.com/charmbracelet/bubbles/textinput"
 )
 
 type model struct {
@@ -23,10 +25,12 @@ type model struct {
 	selectedBinary *database.Binary
 	installations  []*database.Installation
 
-	// Add binary view state
-	urlInput      string
+	// Add binary view state - URL input
+	urlTextInput textinput.Model
+
+	// Add binary view state - Form
 	parsedBinary  *parsedBinaryConfig
-	formFields    map[string]string
+	formInputs    []textinput.Model
 	focusedField  int
 
 	// Error state
@@ -48,11 +52,18 @@ type parsedBinaryConfig struct {
 }
 
 func initialModel(dbService *repository.Service, cfg *config.Config) model {
+	// Create URL text input
+	urlInput := textinput.New()
+	urlInput.Placeholder = "https://github.com/owner/repo/releases/download/v1.0.0/binary.tar.gz"
+	urlInput.CharLimit = 256
+	urlInput.Width = 80
+
 	return model{
-		dbService:   dbService,
-		config:      cfg,
-		currentView: viewBinariesList,
-		loading:     true,
-		formFields:  make(map[string]string),
+		dbService:    dbService,
+		config:       cfg,
+		currentView:  viewBinariesList,
+		loading:      true,
+		urlTextInput: urlInput,
+		formInputs:   []textinput.Model{},
 	}
 }
