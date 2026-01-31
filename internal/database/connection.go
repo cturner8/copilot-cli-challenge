@@ -70,9 +70,9 @@ func GetDefaultDBPath() (string, error) {
 		return "", fmt.Errorf("failed to get home directory: %w", err)
 	}
 
-	// Use $HOME/.local/share/.binmate/user.db
+	// Use $HOME/.local/share/binmate/user.db
 	// TODO: make os aware, dont use .local/share on windows
-	dbPath := filepath.Join(homeDir, ".local", "share", ".binmate", "user.db")
+	dbPath := filepath.Join(homeDir, ".local", "share", "binmate", "user.db")
 	return dbPath, nil
 }
 
