@@ -23,6 +23,7 @@ CREATE TABLE IF NOT EXISTS binaries (
     format TEXT NOT NULL,
     asset_regex TEXT,
     release_regex TEXT,
+    config_digest TEXT NOT NULL DEFAULT '',
     created_at INTEGER NOT NULL,
     updated_at INTEGER NOT NULL,
     config_version INTEGER NOT NULL DEFAULT 1

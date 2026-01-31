@@ -12,6 +12,7 @@ type Binary struct {
 	Format        string
 	AssetRegex    *string
 	ReleaseRegex  *string
+	ConfigDigest  string // Digest of config fields for change detection (e.g., "sha256:abc123...")
 	CreatedAt     int64
 	UpdatedAt     int64
 	ConfigVersion int
