@@ -120,6 +120,10 @@
 - Run tests with `go test ./...`
 - Write tests for new provider logic and core business functions
 
+### Building
+
+- When running a test build to verify changes, write to the `/tmp` directory rather than the repository root directory
+
 ### Version Management
 
 - Binaries are installed to versioned directories
