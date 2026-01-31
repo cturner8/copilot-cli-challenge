@@ -56,6 +56,8 @@ func init() {
 		dbService = repository.NewService(db)
 
 		// Set package variables for commands
+		root.Config = &cfg
+		root.DBService = dbService
 		install.Config = &cfg
 		install.DBService = dbService
 		sync.Config = &cfg

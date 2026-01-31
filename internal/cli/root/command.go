@@ -5,7 +5,15 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"cturner8/binmate/internal/core/config"
+	"cturner8/binmate/internal/database/repository"
 	"cturner8/binmate/internal/tui"
+)
+
+// Package variables will be set by cmd package
+var (
+	Config    *config.Config
+	DBService *repository.Service
 )
 
 func NewCommand() *cobra.Command {
@@ -16,7 +24,12 @@ func NewCommand() *cobra.Command {
 		SilenceUsage:  true,
 		SilenceErrors: false,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			p := tui.InitProgram()
+			// Sync config to database before launching TUI
+			if err := config.SyncToDatabase(*Config, DBService); err != nil {
+				return fmt.Errorf("sync error: %w", err)
+			}
+
+			p := tui.InitProgram(DBService, Config)
 			if _, err := p.Run(); err != nil {
 				return fmt.Errorf("TUI error: %w", err)
 			}
