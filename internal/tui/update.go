@@ -12,6 +12,11 @@ import (
 	"cturner8/binmate/internal/database/repository"
 )
 
+const (
+	// ConfigVersionManual indicates a binary was added manually via TUI, not from config file
+	ConfigVersionManual = 0
+)
+
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case binariesLoadedMsg:
@@ -343,7 +348,7 @@ func saveBinary(m model) tea.Cmd {
 			ProviderPath:  path,
 			Format:        format,
 			ConfigDigest:  configDigest,
-			ConfigVersion: 0, // Not from config file
+			ConfigVersion: ConfigVersionManual, // Not from config file
 		}
 
 		// Set optional fields

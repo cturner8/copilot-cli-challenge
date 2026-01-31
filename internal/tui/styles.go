@@ -3,7 +3,7 @@ package tui
 import "github.com/charmbracelet/lipgloss"
 
 var (
-	// Colour scheme
+	// Color scheme
 	primaryColor   = lipgloss.Color("#7C3AED")  // Purple
 	secondaryColor = lipgloss.Color("#A78BFA")  // Light purple
 	accentColor    = lipgloss.Color("#10B981")  // Green

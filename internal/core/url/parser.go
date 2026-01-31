@@ -7,6 +7,12 @@ import (
 	"strings"
 )
 
+const (
+	// minGitHubReleasePathSegments is the minimum number of path segments required for a valid GitHub release URL
+	// Format: owner/repo/releases/download/version/asset-name
+	minGitHubReleasePathSegments = 6
+)
+
 // ParsedGitHubRelease represents a parsed GitHub release URL
 type ParsedGitHubRelease struct {
 	Owner     string
@@ -34,8 +40,8 @@ func ParseGitHubReleaseURL(rawURL string) (*ParsedGitHubRelease, error) {
 	pathSegments := strings.Split(strings.Trim(parsedURL.Path, "/"), "/")
 
 	// Expected format: owner/repo/releases/download/version/asset-name
-	if len(pathSegments) < 6 {
-		return nil, fmt.Errorf("invalid GitHub release URL format: expected at least 6 path segments, got %d", len(pathSegments))
+	if len(pathSegments) < minGitHubReleasePathSegments {
+		return nil, fmt.Errorf("invalid GitHub release URL format: expected at least %d path segments, got %d", minGitHubReleasePathSegments, len(pathSegments))
 	}
 
 	// Validate the URL structure
