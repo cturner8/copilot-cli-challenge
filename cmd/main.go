@@ -13,6 +13,7 @@ import (
 	"cturner8/binmate/internal/core/config"
 	"cturner8/binmate/internal/database"
 	"cturner8/binmate/internal/database/repository"
+
 	"github.com/spf13/cobra"
 )
 
@@ -61,6 +62,7 @@ func init() {
 
 		// Set package variables for commands
 		install.Config = &cfg
+		install.DBService = dbService
 		sync.Config = &cfg
 		sync.DBService = dbService
 	}
