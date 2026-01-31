@@ -1,6 +1,7 @@
 package sync
 
 import (
+	"fmt"
 	"log"
 	"time"
 
@@ -18,31 +19,35 @@ var (
 
 func NewCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "sync",
-		Short: "Sync the local configuration file with the database.",
-		Run: func(cmd *cobra.Command, args []string) {
+		Use:           "sync",
+		Short:         "Sync the local configuration file with the database.",
+		SilenceUsage:  true,
+		SilenceErrors: false,
+		RunE: func(cmd *cobra.Command, args []string) error {
 			start := time.Now()
 
 			id, err := DBService.Logs.LogStart("sync", "", "", "start sync process")
 			if err != nil {
-				log.Fatalf("sync start error: %s", err)
+				return fmt.Errorf("sync start error: %w", err)
 			}
 
 			// Access package variables set by cmd
 			if DBService == nil {
-				msg := "Database service not initialized"
-				log.Fatal(msg)
+				msg := "database service not initialised"
 				DBService.Logs.LogFailure(id, msg, int64(time.Since(start)))
+				return fmt.Errorf(msg)
 			}
 
-			err = config.SyncToDatabase(*Config, DBService)
-			if err != nil {
-				log.Fatalf("Error syncing to database: %v", err)
+			if err := config.SyncToDatabase(*Config, DBService); err != nil {
+				msg := "error syncing to database"
+				DBService.Logs.LogFailure(id, msg, int64(time.Since(start)))
+				return fmt.Errorf("%s: %w", msg, err)
 			}
 
 			log.Println("Sync complete")
 
 			DBService.Logs.LogSuccess(id, int64(time.Since(start)))
+			return nil
 		},
 	}
 
