@@ -7,6 +7,11 @@ import (
 	"cturner8/binmate/internal/database/repository"
 )
 
+const (
+	// noActiveVersion is the display value when a binary has no active version
+	noActiveVersion = "none"
+)
+
 // BinaryWithMetadata represents a binary with additional metadata
 type BinaryWithMetadata struct {
 	Binary         *database.Binary
@@ -18,11 +23,12 @@ type BinaryWithMetadata struct {
 // getBinariesWithMetadata fetches all binaries with their metadata using a single query with joins
 func getBinariesWithMetadata(dbService *repository.Service) ([]BinaryWithMetadata, error) {
 	// Use a single query with joins to get all data at once
+	// Note: This query returns one row per binary (LEFT JOINs with versions ensure uniqueness)
 	query := `
 		SELECT 
 			b.id, b.user_id, b.name, b.alias, b.provider, b.provider_path, b.install_path,
 			b.format, b.asset_regex, b.release_regex, b.config_digest, b.created_at, b.updated_at, b.config_version,
-			COALESCE(i.version, 'none') as active_version,
+			COALESCE(i.version, ?) as active_version,
 			COALESCE(install_count.count, 0) as install_count,
 			i.id as installation_id, i.installed_path, i.source_url, i.file_size,
 			i.checksum, i.checksum_algorithm, i.installed_at
@@ -37,7 +43,7 @@ func getBinariesWithMetadata(dbService *repository.Service) ([]BinaryWithMetadat
 		ORDER BY b.name
 	`
 
-	rows, err := dbService.DB.Query(query)
+	rows, err := dbService.DB.Query(query, noActiveVersion)
 	if err != nil {
 		return nil, fmt.Errorf("failed to query binaries with metadata: %w", err)
 	}

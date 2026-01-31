@@ -25,15 +25,14 @@ var (
 type tabDefinition struct {
 	view  viewState
 	label string
-	key   string
 }
 
 // availableTabs returns the list of tabs available in the main views
 var availableTabs = []tabDefinition{
-	{viewBinariesList, "📦 Binaries", ""},
-	{viewDownloads, "📥 Downloads", ""},
-	{viewConfiguration, "⚙️  Config", ""},
-	{viewHelp, "❓ Help", ""},
+	{viewBinariesList, "📦 Binaries"},
+	{viewDownloads, "📥 Downloads"},
+	{viewConfiguration, "⚙️  Config"},
+	{viewHelp, "❓ Help"},
 }
 
 // renderTabs renders the tab bar
