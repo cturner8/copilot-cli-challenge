@@ -197,13 +197,32 @@ func SelectBestAsset(assets []ReleaseAsset) (ReleaseAsset, error) {
 	preferredExts := []string{".tar.gz", ".tgz", ".zip", ".tar.xz", ".tar.bz2"}
 
 	for _, ext := range preferredExts {
+		var matching []ReleaseAsset
 		for _, asset := range assets {
 			if strings.HasSuffix(asset.Name, ext) {
-				return asset, nil
+				matching = append(matching, asset)
 			}
+		}
+		
+		if len(matching) > 0 {
+			// Sort by name length to prefer simpler names
+			// (assets without additional suffixes come first)
+			best := matching[0]
+			for _, asset := range matching[1:] {
+				if len(asset.Name) < len(best.Name) {
+					best = asset
+				}
+			}
+			return best, nil
 		}
 	}
 
-	// If no preferred extension found, return the first one
-	return assets[0], nil
+	// If no preferred extension found, return the shortest name
+	best := assets[0]
+	for _, asset := range assets[1:] {
+		if len(asset.Name) < len(best.Name) {
+			best = asset
+		}
+	}
+	return best, nil
 }

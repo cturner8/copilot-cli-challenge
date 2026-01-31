@@ -268,3 +268,19 @@ func TestNewAssetFilter(t *testing.T) {
 		t.Error("NewAssetFilter() Arch should not be empty")
 	}
 }
+
+func TestFilterMostRelevant(t *testing.T) {
+	result, err := SelectBestAsset([]ReleaseAsset{
+		{Id: 1, Name: "app-baseline-profile.tar.gz"},
+		{Id: 2, Name: "app-profile.tar.gz"},
+		{Id: 3, Name: "app.tar.gz"},
+	})
+
+	if err != nil {
+		t.Errorf("unexpected error selecting asset: %s", err)
+	}
+
+	if result.Name != "app.tar.gz" {
+		t.Errorf("did not select expected asset")
+	}
+}
