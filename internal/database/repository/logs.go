@@ -54,6 +54,21 @@ func (r *LogsRepository) LogStart(opType, entityType, entityID, message string) 
 }
 
 // LogSuccess updates a log entry as successful
+func (r *LogsRepository) LogEntity(id int64, entityType, entityID string) error {
+	_, err := r.db.Exec(`
+UPDATE logs 
+SET entity_type = ?, entity_id = ?
+WHERE id = ?
+`, entityType, entityID)
+
+	if err != nil {
+		return fmt.Errorf("failed to log entity: %w", err)
+	}
+
+	return nil
+}
+
+// LogSuccess updates a log entry as successful
 func (r *LogsRepository) LogSuccess(id int64, durationMs int64) error {
 	_, err := r.db.Exec(`
 UPDATE logs 
