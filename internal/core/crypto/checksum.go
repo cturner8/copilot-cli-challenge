@@ -9,6 +9,18 @@ import (
 	"strings"
 )
 
+// ComputeDigest computes a SHA256 digest for a set of strings
+// Returns digest in format "sha256:checksum"
+func ComputeDigest(fields ...string) string {
+	h := sha256.New()
+	for _, field := range fields {
+		h.Write([]byte(field))
+		h.Write([]byte{0}) // Null separator between fields
+	}
+	checksum := hex.EncodeToString(h.Sum(nil))
+	return fmt.Sprintf("sha256:%s", checksum)
+}
+
 // ComputeSHA256 computes the SHA256 checksum of a file
 func ComputeSHA256(filePath string) (string, error) {
 	f, err := os.Open(filePath)
