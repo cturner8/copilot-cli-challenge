@@ -24,30 +24,23 @@ var (
 )
 
 func NewCommand() *cobra.Command {
+	var (
+		binary  string
+		version string
+	)
+
 	cmd := &cobra.Command{
-		Use:     "install",
-		Short:   "Install a new binary version",
-		Aliases: []string{"i", "add"},
-		Run: func(cmd *cobra.Command, args []string) {
+		Use:           "install",
+		Short:         "Install a new binary version",
+		Aliases:       []string{"i", "add"},
+		SilenceUsage:  true,  // Don't show usage on runtime errors
+		SilenceErrors: false, // Still print errors
+		RunE: func(cmd *cobra.Command, args []string) error {
 			start := time.Now()
 
 			id, err := DBService.Logs.LogStart("install", "", "", "start install process")
 			if err != nil {
-				log.Fatalf("sync start error: %s", err)
-			}
-
-			binary, err := cmd.Flags().GetString("binary")
-			if err != nil || binary == "" {
-				msg := "binary is required"
-				log.Panic(msg)
-				DBService.Logs.LogFailure(id, msg, int64(time.Since(start)))
-			}
-
-			version, err := cmd.Flags().GetString("version")
-			if err != nil || version == "" {
-				msg := "version is required"
-				log.Panic(msg)
-				DBService.Logs.LogFailure(id, msg, int64(time.Since(start)))
+				return fmt.Errorf("sync start error: %w", err)
 			}
 
 			log.Printf("installing binary: %s version: %s", binary, version)
@@ -55,39 +48,38 @@ func NewCommand() *cobra.Command {
 			DBService.Logs.LogEntity(id, binary, version)
 
 			binaryConfig, err := DBService.Binaries.GetByUserID(binary)
-
 			if err != nil {
 				msg := "unable to find requested binary config"
-				log.Panic(msg)
 				DBService.Logs.LogFailure(id, msg, int64(time.Since(start)))
+				return fmt.Errorf("%s: %w", msg, err)
 			}
 
 			if binaryConfig.Provider != "github" {
 				msg := "only github provider is currently supported"
-				log.Panic(msg)
 				DBService.Logs.LogFailure(id, msg, int64(time.Since(start)))
+				return fmt.Errorf("%s", msg)
 			}
 
 			release, asset, err := github.FetchReleaseAsset(binaryConfig, version)
 			if err != nil {
 				msg := "fetch failed"
-				log.Panic(msg, err)
 				DBService.Logs.LogFailure(id, msg, int64(time.Since(start)))
+				return fmt.Errorf("%s: %w", msg, err)
 			}
 
 			downloadPath, err := github.DownloadAsset(asset.BrowserDownloadUrl, asset.Name)
 			if err != nil {
 				msg := "download failed"
-				log.Panic(msg, err)
 				DBService.Logs.LogFailure(id, msg, int64(time.Since(start)))
+				return fmt.Errorf("%s: %w", msg, err)
 			}
 
 			// Verify downloaded archive checksum if digest is provided
 			if asset.Digest != "" {
 				if err := crypto.VerifyDigest(downloadPath, asset.Digest); err != nil {
 					msg := fmt.Sprintf("checksum verification failed: %v", err)
-					log.Panic(msg)
 					DBService.Logs.LogFailure(id, msg, int64(time.Since(start)))
+					return fmt.Errorf("%s", msg)
 				}
 				log.Printf("✓ archive checksum verified")
 			}
@@ -100,24 +92,24 @@ func NewCommand() *cobra.Command {
 			destPath, err := install.ExtractAsset(downloadPath, binaryConfig, resolvedVersion)
 			if err != nil {
 				msg := "error extracting asset"
-				log.Panic(msg, err)
 				DBService.Logs.LogFailure(id, msg, int64(time.Since(start)))
+				return fmt.Errorf("%s: %w", msg, err)
 			}
 
 			// Compute checksum of extracted binary
 			binaryChecksum, err := crypto.ComputeSHA256(destPath)
 			if err != nil {
 				msg := fmt.Sprintf("failed to compute binary checksum: %v", err)
-				log.Panic(msg)
 				DBService.Logs.LogFailure(id, msg, int64(time.Since(start)))
+				return fmt.Errorf("%s", msg)
 			}
 
 			// Get file size of extracted binary
 			fileInfo, err := os.Stat(destPath)
 			if err != nil {
 				msg := fmt.Sprintf("failed to get file info: %v", err)
-				log.Panic(msg)
 				DBService.Logs.LogFailure(id, msg, int64(time.Since(start)))
+				return fmt.Errorf("%s", msg)
 			}
 
 			// Handle optional InstallPath
@@ -129,8 +121,8 @@ func NewCommand() *cobra.Command {
 			installPath, err := v.SetActiveVersion(destPath, customInstallPath, binaryConfig.Name)
 			if err != nil {
 				msg := "error setting active version"
-				log.Panic(msg, err)
 				DBService.Logs.LogFailure(id, msg, int64(time.Since(start)))
+				return fmt.Errorf("%s: %w", msg, err)
 			}
 
 			log.Printf("downloaded binary: %s version: %s", binary, resolvedVersion)
@@ -147,32 +139,28 @@ func NewCommand() *cobra.Command {
 				FileSize:          fileInfo.Size(),
 			}
 
-			err = DBService.Installations.Create(installation)
-			if err != nil {
+			if err := DBService.Installations.Create(installation); err != nil {
 				msg := "error saving installation"
-				log.Panic(msg, err)
 				DBService.Logs.LogFailure(id, msg, int64(time.Since(start)))
+				return fmt.Errorf("%s: %w", msg, err)
 			}
 
-			err = DBService.Versions.Set(binaryConfig.ID, installation.ID, installPath)
-			if err != nil {
+			if err := DBService.Versions.Set(binaryConfig.ID, installation.ID, installPath); err != nil {
 				msg := "error saving version"
-				log.Panic(msg, err)
 				DBService.Logs.LogFailure(id, msg, int64(time.Since(start)))
-			}
-
-			if err != nil {
-				msg := "error saving installation"
-				log.Panic(msg, err)
-				DBService.Logs.LogFailure(id, msg, int64(time.Since(start)))
+				return fmt.Errorf("%s: %w", msg, err)
 			}
 
 			DBService.Logs.LogSuccess(id, int64(time.Since(start)))
+			return nil
 		},
 	}
 
-	cmd.Flags().String("binary", "", "binary to be installed")
-	cmd.Flags().String("version", "latest", "version of the binary to be installed")
+	cmd.Flags().StringVar(&binary, "binary", "", "binary to be installed")
+	cmd.Flags().StringVar(&version, "version", "latest", "version of the binary to be installed")
+
+	// Mark required flags
+	cmd.MarkFlagRequired("binary")
 
 	return cmd
 }
