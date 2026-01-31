@@ -19,7 +19,12 @@ func DownloadAsset(url string, assetName string) (string, error) {
 		return "", fmt.Errorf("download asset: unexpected status %s", response.Status)
 	}
 
-	destPath := filepath.Join(os.TempDir(), "binmate", assetName)
+	cacheDir, err := os.UserCacheDir()
+	if err != nil {
+		return "", fmt.Errorf("unable to locate cache directory: %w", err)
+	}
+
+	destPath := filepath.Join(cacheDir, "binmate", assetName)
 	tmp, err := os.CreateTemp(os.TempDir(), assetName+".*")
 	if err != nil {
 		return "", fmt.Errorf("create temp file: %w", err)
