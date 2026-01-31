@@ -55,11 +55,6 @@ func init() {
 		// Create database service
 		dbService = repository.NewService(db)
 
-		// Sync config to database
-		if err := config.SyncToDatabase(cfg, dbService); err != nil {
-			log.Fatalf("Unable to sync config to database: %v", err)
-		}
-
 		// Set package variables for commands
 		install.Config = &cfg
 		install.DBService = dbService
