@@ -24,7 +24,8 @@ func DownloadAsset(url string, assetName string) (string, error) {
 		return "", fmt.Errorf("unable to locate cache directory: %w", err)
 	}
 
-	destPath := filepath.Join(cacheDir, "binmate", assetName)
+	basePath := filepath.Join(cacheDir, "binmate")
+	destPath := filepath.Join(basePath, assetName)
 	tmp, err := os.CreateTemp(os.TempDir(), assetName+".*")
 	if err != nil {
 		return "", fmt.Errorf("create temp file: %w", err)
@@ -41,6 +42,9 @@ func DownloadAsset(url string, assetName string) (string, error) {
 		return "", fmt.Errorf("close temp file: %w", err)
 	}
 
+	if err := os.MkdirAll(basePath, 0o755); err != nil {
+		return "", fmt.Errorf("create destination path: %w", err)
+	}
 	if err := os.Rename(tmp.Name(), destPath); err != nil {
 		os.Remove(tmp.Name())
 		return "", fmt.Errorf("finalise asset: %w", err)
