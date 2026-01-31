@@ -35,7 +35,7 @@ func NewCommand() *cobra.Command {
 			if DBService == nil {
 				msg := "database service not initialised"
 				DBService.Logs.LogFailure(id, msg, int64(time.Since(start)))
-				return fmt.Errorf(msg)
+				return fmt.Errorf("%s", msg)
 			}
 
 			if err := config.SyncToDatabase(*Config, DBService); err != nil {
