@@ -32,6 +32,35 @@ func SyncToDatabase(config Config, dbService *repository.Service) error {
 	return nil
 }
 
+// SyncBinary syncs a specific binary from config to database
+func SyncBinary(binaryID string, config Config, dbService *repository.Service) error {
+	// Find the binary in config
+	binary, err := GetBinary(binaryID, config.Binaries)
+	if err != nil {
+		return fmt.Errorf("binary not found in config: %w", err)
+	}
+
+	// Convert to repository format
+	configBinary := repository.ConfigBinary{
+		ID:           binary.Id,
+		Name:         binary.Name,
+		Alias:        binary.Alias,
+		Provider:     binary.Provider,
+		Path:         binary.Path,
+		InstallPath:  binary.InstallPath,
+		Format:       binary.Format,
+		AssetRegex:   binary.AssetRegex,
+		ReleaseRegex: binary.ReleaseRegex,
+	}
+
+	// Sync single binary to database
+	if err := dbService.Binaries.SyncBinary(configBinary, config.Version); err != nil {
+		return fmt.Errorf("failed to sync binary to database: %w", err)
+	}
+
+	return nil
+}
+
 // ReadAndSync reads config and syncs to database
 func ReadAndSync(dbService *repository.Service) (Config, error) {
 	config := ReadConfig()
