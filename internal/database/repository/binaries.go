@@ -3,8 +3,10 @@ package repository
 import (
 	"database/sql"
 	"fmt"
+	"log"
 	"time"
 
+	"cturner8/binmate/internal/core/crypto"
 	"cturner8/binmate/internal/database"
 )
 
@@ -24,11 +26,11 @@ func (r *BinariesRepository) Create(binary *database.Binary) error {
 
 	result, err := r.db.Exec(`
 INSERT INTO binaries (user_id, name, alias, provider, provider_path, install_path, 
-format, asset_regex, release_regex, created_at, updated_at, config_version)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+format, asset_regex, release_regex, config_digest, created_at, updated_at, config_version)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 `, binary.UserID, binary.Name, binary.Alias, binary.Provider, binary.ProviderPath,
 		binary.InstallPath, binary.Format, binary.AssetRegex, binary.ReleaseRegex,
-		binary.CreatedAt, binary.UpdatedAt, binary.ConfigVersion)
+		binary.ConfigDigest, binary.CreatedAt, binary.UpdatedAt, binary.ConfigVersion)
 
 	if err != nil {
 		return fmt.Errorf("failed to create binary: %w", err)
@@ -46,11 +48,11 @@ func (r *BinariesRepository) Update(binary *database.Binary) error {
 UPDATE binaries 
 SET user_id = ?, name = ?, alias = ?, provider = ?, provider_path = ?,
 install_path = ?, format = ?, asset_regex = ?, release_regex = ?,
-updated_at = ?, config_version = ?
+config_digest = ?, updated_at = ?, config_version = ?
 WHERE id = ?
 `, binary.UserID, binary.Name, binary.Alias, binary.Provider, binary.ProviderPath,
 		binary.InstallPath, binary.Format, binary.AssetRegex, binary.ReleaseRegex,
-		binary.UpdatedAt, binary.ConfigVersion, binary.ID)
+		binary.ConfigDigest, binary.UpdatedAt, binary.ConfigVersion, binary.ID)
 
 	if err != nil {
 		return fmt.Errorf("failed to update binary: %w", err)
@@ -72,11 +74,11 @@ func (r *BinariesRepository) Get(id int64) (*database.Binary, error) {
 	binary := &database.Binary{}
 	err := r.db.QueryRow(`
 SELECT id, user_id, name, alias, provider, provider_path, install_path,
-format, asset_regex, release_regex, created_at, updated_at, config_version
+format, asset_regex, release_regex, config_digest, created_at, updated_at, config_version
 FROM binaries WHERE id = ?
 `, id).Scan(&binary.ID, &binary.UserID, &binary.Name, &binary.Alias, &binary.Provider,
 		&binary.ProviderPath, &binary.InstallPath, &binary.Format, &binary.AssetRegex,
-		&binary.ReleaseRegex, &binary.CreatedAt, &binary.UpdatedAt, &binary.ConfigVersion)
+		&binary.ReleaseRegex, &binary.ConfigDigest, &binary.CreatedAt, &binary.UpdatedAt, &binary.ConfigVersion)
 
 	if err == sql.ErrNoRows {
 		return nil, database.ErrNotFound
@@ -93,11 +95,11 @@ func (r *BinariesRepository) GetByUserID(userID string) (*database.Binary, error
 	binary := &database.Binary{}
 	err := r.db.QueryRow(`
 SELECT id, user_id, name, alias, provider, provider_path, install_path,
-format, asset_regex, release_regex, created_at, updated_at, config_version
+format, asset_regex, release_regex, config_digest, created_at, updated_at, config_version
 FROM binaries WHERE user_id = ?
 `, userID).Scan(&binary.ID, &binary.UserID, &binary.Name, &binary.Alias, &binary.Provider,
 		&binary.ProviderPath, &binary.InstallPath, &binary.Format, &binary.AssetRegex,
-		&binary.ReleaseRegex, &binary.CreatedAt, &binary.UpdatedAt, &binary.ConfigVersion)
+		&binary.ReleaseRegex, &binary.ConfigDigest, &binary.CreatedAt, &binary.UpdatedAt, &binary.ConfigVersion)
 
 	if err == sql.ErrNoRows {
 		return nil, database.ErrNotFound
@@ -114,11 +116,11 @@ func (r *BinariesRepository) GetByName(name string) (*database.Binary, error) {
 	binary := &database.Binary{}
 	err := r.db.QueryRow(`
 SELECT id, user_id, name, alias, provider, provider_path, install_path,
-format, asset_regex, release_regex, created_at, updated_at, config_version
+format, asset_regex, release_regex, config_digest, created_at, updated_at, config_version
 FROM binaries WHERE name = ?
 `, name).Scan(&binary.ID, &binary.UserID, &binary.Name, &binary.Alias, &binary.Provider,
 		&binary.ProviderPath, &binary.InstallPath, &binary.Format, &binary.AssetRegex,
-		&binary.ReleaseRegex, &binary.CreatedAt, &binary.UpdatedAt, &binary.ConfigVersion)
+		&binary.ReleaseRegex, &binary.ConfigDigest, &binary.CreatedAt, &binary.UpdatedAt, &binary.ConfigVersion)
 
 	if err == sql.ErrNoRows {
 		return nil, database.ErrNotFound
@@ -134,7 +136,7 @@ FROM binaries WHERE name = ?
 func (r *BinariesRepository) List() ([]*database.Binary, error) {
 	rows, err := r.db.Query(`
 SELECT id, user_id, name, alias, provider, provider_path, install_path,
-format, asset_regex, release_regex, created_at, updated_at, config_version
+format, asset_regex, release_regex, config_digest, created_at, updated_at, config_version
 FROM binaries ORDER BY name
 `)
 	if err != nil {
@@ -147,7 +149,7 @@ FROM binaries ORDER BY name
 		binary := &database.Binary{}
 		err := rows.Scan(&binary.ID, &binary.UserID, &binary.Name, &binary.Alias,
 			&binary.Provider, &binary.ProviderPath, &binary.InstallPath, &binary.Format,
-			&binary.AssetRegex, &binary.ReleaseRegex, &binary.CreatedAt, &binary.UpdatedAt,
+			&binary.AssetRegex, &binary.ReleaseRegex, &binary.ConfigDigest, &binary.CreatedAt, &binary.UpdatedAt,
 			&binary.ConfigVersion)
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan binary: %w", err)
@@ -197,7 +199,21 @@ func (r *BinariesRepository) SyncFromConfig(configBinaries []ConfigBinary, confi
 	for _, cb := range configBinaries {
 		configUserIDs[cb.ID] = true
 
+		// Compute digest for config binary
+		configDigest := crypto.ComputeDigest(
+			cb.ID, cb.Name, cb.Alias, cb.Provider, cb.Path,
+			cb.InstallPath, cb.Format, cb.AssetRegex, cb.ReleaseRegex,
+		)
+
 		if existingBinary, exists := existingMap[cb.ID]; exists {
+			// Check if config has changed using digest comparison
+			if existingBinary.ConfigDigest == configDigest {
+				log.Printf("Binary %s unchanged, skipping update", cb.ID)
+				continue
+			}
+
+			log.Printf("Binary %s changed, updating", cb.ID)
+
 			// Update existing binary
 			existingBinary.Name = cb.Name
 			existingBinary.Alias = stringToPtr(cb.Alias)
@@ -207,12 +223,15 @@ func (r *BinariesRepository) SyncFromConfig(configBinaries []ConfigBinary, confi
 			existingBinary.Format = cb.Format
 			existingBinary.AssetRegex = stringToPtr(cb.AssetRegex)
 			existingBinary.ReleaseRegex = stringToPtr(cb.ReleaseRegex)
+			existingBinary.ConfigDigest = configDigest
 			existingBinary.ConfigVersion = configVersion
 
 			if err := r.Update(existingBinary); err != nil {
 				return fmt.Errorf("failed to update binary %s: %w", cb.ID, err)
 			}
 		} else {
+			log.Printf("Binary %s not found, creating", cb.ID)
+
 			// Create new binary
 			binary := &database.Binary{
 				UserID:        cb.ID,
@@ -224,6 +243,7 @@ func (r *BinariesRepository) SyncFromConfig(configBinaries []ConfigBinary, confi
 				Format:        cb.Format,
 				AssetRegex:    stringToPtr(cb.AssetRegex),
 				ReleaseRegex:  stringToPtr(cb.ReleaseRegex),
+				ConfigDigest:  configDigest,
 				ConfigVersion: configVersion,
 			}
 
@@ -236,10 +256,76 @@ func (r *BinariesRepository) SyncFromConfig(configBinaries []ConfigBinary, confi
 	// Remove binaries that are no longer in config
 	for userID := range existingMap {
 		if !configUserIDs[userID] {
+			log.Printf("Binary %s removed from config, deleting", userID)
 			if err := r.Delete(existingMap[userID].ID); err != nil {
 				return fmt.Errorf("failed to delete binary %s: %w", userID, err)
 			}
 		}
+	}
+
+	return nil
+}
+
+// SyncBinary syncs a single binary from config to database by user ID
+func (r *BinariesRepository) SyncBinary(configBinary ConfigBinary, configVersion int) error {
+	// Compute digest for config binary
+	configDigest := crypto.ComputeDigest(
+		configBinary.ID, configBinary.Name, configBinary.Alias, configBinary.Provider,
+		configBinary.Path, configBinary.InstallPath, configBinary.Format,
+		configBinary.AssetRegex, configBinary.ReleaseRegex,
+	)
+
+	// Check if binary exists
+	existingBinary, err := r.GetByUserID(configBinary.ID)
+	if err != nil && err != database.ErrNotFound {
+		return fmt.Errorf("failed to get existing binary: %w", err)
+	}
+
+	if err == database.ErrNotFound {
+		// Create new binary
+		log.Printf("Binary %s not found, creating", configBinary.ID)
+		binary := &database.Binary{
+			UserID:        configBinary.ID,
+			Name:          configBinary.Name,
+			Alias:         stringToPtr(configBinary.Alias),
+			Provider:      configBinary.Provider,
+			ProviderPath:  configBinary.Path,
+			InstallPath:   stringToPtr(configBinary.InstallPath),
+			Format:        configBinary.Format,
+			AssetRegex:    stringToPtr(configBinary.AssetRegex),
+			ReleaseRegex:  stringToPtr(configBinary.ReleaseRegex),
+			ConfigDigest:  configDigest,
+			ConfigVersion: configVersion,
+		}
+
+		if err := r.Create(binary); err != nil {
+			return fmt.Errorf("failed to create binary %s: %w", configBinary.ID, err)
+		}
+		return nil
+	}
+
+	// Check if config has changed using digest comparison
+	if existingBinary.ConfigDigest == configDigest {
+		log.Printf("Binary %s unchanged, skipping update", configBinary.ID)
+		return nil
+	}
+
+	log.Printf("Binary %s changed, updating", configBinary.ID)
+
+	// Update existing binary
+	existingBinary.Name = configBinary.Name
+	existingBinary.Alias = stringToPtr(configBinary.Alias)
+	existingBinary.Provider = configBinary.Provider
+	existingBinary.ProviderPath = configBinary.Path
+	existingBinary.InstallPath = stringToPtr(configBinary.InstallPath)
+	existingBinary.Format = configBinary.Format
+	existingBinary.AssetRegex = stringToPtr(configBinary.AssetRegex)
+	existingBinary.ReleaseRegex = stringToPtr(configBinary.ReleaseRegex)
+	existingBinary.ConfigDigest = configDigest
+	existingBinary.ConfigVersion = configVersion
+
+	if err := r.Update(existingBinary); err != nil {
+		return fmt.Errorf("failed to update binary %s: %w", configBinary.ID, err)
 	}
 
 	return nil
