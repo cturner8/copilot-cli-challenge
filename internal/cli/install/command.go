@@ -35,6 +35,13 @@ func NewCommand() *cobra.Command {
 		Aliases:       []string{"i", "add"},
 		SilenceUsage:  true,  // Don't show usage on runtime errors
 		SilenceErrors: false, // Still print errors
+		PreRunE: func(cmd *cobra.Command, args []string) error {
+			// Sync the specific binary from config to database
+			if err := config.SyncBinary(binary, *Config, DBService); err != nil {
+				return fmt.Errorf("failed to sync binary config: %w", err)
+			}
+			return nil
+		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			start := time.Now()
 
