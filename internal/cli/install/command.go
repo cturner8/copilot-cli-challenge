@@ -1,12 +1,15 @@
 package install
 
 import (
+	"fmt"
 	"log"
+	"os"
 	"time"
 
 	"github.com/spf13/cobra"
 
 	"cturner8/binmate/internal/core/config"
+	"cturner8/binmate/internal/core/crypto"
 	"cturner8/binmate/internal/core/install"
 	v "cturner8/binmate/internal/core/version"
 	"cturner8/binmate/internal/database"
@@ -79,6 +82,16 @@ func NewCommand() *cobra.Command {
 				DBService.Logs.LogFailure(id, msg, int64(time.Since(start)))
 			}
 
+			// Verify downloaded archive checksum if digest is provided
+			if asset.Digest != "" {
+				if err := crypto.VerifyDigest(downloadPath, asset.Digest); err != nil {
+					msg := fmt.Sprintf("checksum verification failed: %v", err)
+					log.Panic(msg)
+					DBService.Logs.LogFailure(id, msg, int64(time.Since(start)))
+				}
+				log.Printf("✓ archive checksum verified")
+			}
+
 			resolvedVersion := version
 			if version == "latest" {
 				resolvedVersion = release.TagName
@@ -88,6 +101,22 @@ func NewCommand() *cobra.Command {
 			if err != nil {
 				msg := "error extracting asset"
 				log.Panic(msg, err)
+				DBService.Logs.LogFailure(id, msg, int64(time.Since(start)))
+			}
+
+			// Compute checksum of extracted binary
+			binaryChecksum, err := crypto.ComputeSHA256(destPath)
+			if err != nil {
+				msg := fmt.Sprintf("failed to compute binary checksum: %v", err)
+				log.Panic(msg)
+				DBService.Logs.LogFailure(id, msg, int64(time.Since(start)))
+			}
+
+			// Get file size of extracted binary
+			fileInfo, err := os.Stat(destPath)
+			if err != nil {
+				msg := fmt.Sprintf("failed to get file info: %v", err)
+				log.Panic(msg)
 				DBService.Logs.LogFailure(id, msg, int64(time.Since(start)))
 			}
 
@@ -108,14 +137,14 @@ func NewCommand() *cobra.Command {
 
 			installation := &database.Installation{
 				ID:                0,
-				Version:           version,
+				Version:           resolvedVersion,
 				InstalledPath:     installPath,
 				InstalledAt:       time.Now().Unix(),
 				BinaryID:          binaryConfig.ID,
 				SourceURL:         asset.BrowserDownloadUrl,
-				Checksum:          asset.Digest, // TODO
-				ChecksumAlgorithm: asset.Digest, // TODO
-				FileSize:          int64(asset.Size),
+				Checksum:          binaryChecksum,
+				ChecksumAlgorithm: "SHA256",
+				FileSize:          fileInfo.Size(),
 			}
 
 			err = DBService.Installations.Create(installation)
