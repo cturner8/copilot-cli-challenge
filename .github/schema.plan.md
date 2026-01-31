@@ -407,61 +407,61 @@ VALUES (1, strftime('%s', 'now'), 'Initial schema');
 ## Implementation Work Plan
 
 ### Phase 1: Database Infrastructure
-- [ ] **Create database package structure** (`internal/database/`)
-  - [ ] `connection.go` - SQLite connection management
-  - [ ] `migrations.go` - Schema migration runner
-  - [ ] `schema.go` - Schema definitions and creation
-- [ ] **Implement database initialisation**
-  - [ ] Create database file at `$HOME/.local/share/.binmate/user.db`
-  - [ ] Run initial migration
-  - [ ] Enable foreign keys: `PRAGMA foreign_keys = ON`
-  - [ ] Set appropriate pragmas for performance (`PRAGMA journal_mode=WAL`)
+- [x] **Create database package structure** (`internal/database/`)
+  - [x] `connection.go` - SQLite connection management
+  - [x] `migrations.go` - Schema migration runner
+  - [x] `schema.go` - Schema definitions and creation
+- [x] **Implement database initialisation**
+  - [x] Create database file at `$HOME/.local/share/.binmate/user.db`
+  - [x] Run initial migration
+  - [x] Enable foreign keys: `PRAGMA foreign_keys = ON`
+  - [x] Set appropriate pragmas for performance (`PRAGMA journal_mode=WAL`)
 - [ ] **Write database connection tests**
   - [ ] Test database creation
   - [ ] Test connection pooling
   - [ ] Test concurrent access
 
 ### Phase 2: Repository Layer (Data Access)
-- [ ] **Create repository interfaces** (`internal/database/repository/`)
-  - [ ] `binaries_repository.go` - CRUD for binaries
-  - [ ] `installations_repository.go` - CRUD for installations
-  - [ ] `versions_repository.go` - Active version management
-  - [ ] `downloads_repository.go` - Cache management
-  - [ ] `logs_repository.go` - Logging operations
-- [ ] **Implement binary repository methods**
-  - [ ] `Create(binary)` - Insert new binary
-  - [ ] `Update(binary)` - Update binary metadata
-  - [ ] `Get(id)` - Retrieve by ID
-  - [ ] `List()` - List all binaries
-  - [ ] `Delete(id)` - Remove binary (cascade deletes)
-  - [ ] `SyncFromConfig(config)` - Upsert from config.json
+- [x] **Create repository interfaces** (`internal/database/repository/`)
+  - [x] `binaries_repository.go` - CRUD for binaries
+  - [x] `installations_repository.go` - CRUD for installations
+  - [x] `versions_repository.go` - Active version management
+  - [x] `downloads_repository.go` - Cache management
+  - [x] `logs_repository.go` - Logging operations
+- [x] **Implement binary repository methods**
+  - [x] `Create(binary)` - Insert new binary
+  - [x] `Update(binary)` - Update binary metadata
+  - [x] `Get(id)` - Retrieve by ID
+  - [x] `List()` - List all binaries
+  - [x] `Delete(id)` - Remove binary (cascade deletes)
+  - [x] `SyncFromConfig(config)` - Upsert from config.json
 - [ ] **Implement installations repository methods**
-  - [ ] `Create(installation)` - Record new installation
-  - [ ] `Get(binaryID, version)` - Retrieve specific version
-  - [ ] `ListByBinary(binaryID)` - Get all versions for binary
-  - [ ] `Delete(id)` - Remove installation record
+  - [x] `Create(installation)` - Record new installation
+  - [x] `Get(binaryID, version)` - Retrieve specific version
+  - [x] `ListByBinary(binaryID)` - Get all versions for binary
+  - [x] `Delete(id)` - Remove installation record
   - [ ] `VerifyChecksum(id, expectedChecksum)` - Integrity check
-- [ ] **Implement active versions repository methods**
-  - [ ] `Set(binaryID, installationID, symlinkPath)` - Activate version
-  - [ ] `Get(binaryID)` - Get active version
-  - [ ] `Unset(binaryID)` - Remove active version
-  - [ ] `Switch(binaryID, installationID)` - Change active version
-- [ ] **Implement cached downloads repository methods**
-  - [ ] `Create(download)` - Record cached download
-  - [ ] `Get(binaryID, version)` - Check if cached
-  - [ ] `UpdateLastAccessed(id)` - Touch for LRU
-  - [ ] `MarkComplete(id)` - Complete download
-  - [ ] `ListForCleanup(cutoffTime, limit)` - LRU eviction
-  - [ ] `Delete(id)` - Remove cache entry
-  - [ ] `GetIncomplete()` - Find resumable downloads
-- [ ] **Implement operation logs repository methods**
-  - [ ] `Log(operation)` - Create log entry
-  - [ ] `LogStart(opType, entity)` - Log operation start
-  - [ ] `LogSuccess(id, duration)` - Mark operation success
-  - [ ] `LogFailure(id, error, duration)` - Mark operation failure
-  - [ ] `GetRecent(limit)` - Recent operations
-  - [ ] `GetByType(opType, limit)` - Filter by operation type
-  - [ ] `GetFailures(limit)` - Recent failures
+- [x] **Implement active versions repository methods**
+  - [x] `Set(binaryID, installationID, symlinkPath)` - Activate version
+  - [x] `Get(binaryID)` - Get active version
+  - [x] `Unset(binaryID)` - Remove active version
+  - [x] `Switch(binaryID, installationID)` - Change active version
+- [x] **Implement cached downloads repository methods**
+  - [x] `Create(download)` - Record cached download
+  - [x] `Get(binaryID, version)` - Check if cached
+  - [x] `UpdateLastAccessed(id)` - Touch for LRU
+  - [x] `MarkComplete(id)` - Complete download
+  - [x] `ListForCleanup(cutoffTime, limit)` - LRU eviction
+  - [x] `Delete(id)` - Remove cache entry
+  - [x] `GetIncomplete()` - Find resumable downloads
+- [x] **Implement operation logs repository methods**
+  - [x] `Log(operation)` - Create log entry
+  - [x] `LogStart(opType, entity)` - Log operation start
+  - [x] `LogSuccess(id, duration)` - Mark operation success
+  - [x] `LogFailure(id, error, duration)` - Mark operation failure
+  - [x] `GetRecent(limit)` - Recent operations
+  - [x] `GetByType(opType, limit)` - Filter by operation type
+  - [x] `GetFailures(limit)` - Recent failures
 
 ### Phase 3: Integration with Existing Code
 - [ ] **Update config sync logic**
