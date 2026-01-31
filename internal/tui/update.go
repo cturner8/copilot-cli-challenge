@@ -19,6 +19,11 @@ const (
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
+	case tea.WindowSizeMsg:
+		m.width = msg.Width
+		m.height = msg.Height
+		return m, nil
+
 	case binariesLoadedMsg:
 		m.loading = false
 		if msg.err != nil {
@@ -63,6 +68,12 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m.updateAddBinaryURL(msg)
 		case viewAddBinaryForm:
 			return m.updateAddBinaryForm(msg)
+		case viewDownloads:
+			return m.updatePlaceholderView(msg)
+		case viewConfiguration:
+			return m.updatePlaceholderView(msg)
+		case viewHelp:
+			return m.updatePlaceholderView(msg)
 		}
 
 		// Global key handlers
@@ -77,6 +88,12 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 // updateBinariesList handles updates for the binaries list view
 func (m model) updateBinariesList(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
+	// Check for tab switching
+	if view, ok := getTabForKey(msg.String()); ok {
+		m.currentView = view
+		return m, nil
+	}
+
 	switch msg.String() {
 	case keyUp:
 		if m.selectedIndex > 0 {
@@ -369,4 +386,20 @@ func saveBinary(m model) tea.Cmd {
 
 		return binarySavedMsg{binary: binary, err: nil}
 	}
+}
+
+// updatePlaceholderView handles updates for placeholder views (Downloads, Configuration, Help)
+func (m model) updatePlaceholderView(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
+	// Check for tab switching
+	if view, ok := getTabForKey(msg.String()); ok {
+		m.currentView = view
+		return m, nil
+	}
+
+	switch msg.String() {
+	case keyQuit, keyCtrlC:
+		return m, tea.Quit
+	}
+
+	return m, nil
 }

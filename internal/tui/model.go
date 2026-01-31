@@ -16,6 +16,10 @@ type model struct {
 	// View state
 	currentView viewState
 
+	// Window dimensions
+	width  int
+	height int
+
 	// Binaries list view state
 	binaries      []BinaryWithMetadata
 	selectedIndex int

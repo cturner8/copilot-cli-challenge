@@ -24,7 +24,7 @@ const (
 func getHelpText(view viewState) string {
 	switch view {
 	case viewBinariesList:
-		return "↑/↓: navigate • enter: view versions • a: add binary • q: quit"
+		return "↑/↓: navigate • enter: view versions • a: add binary • 1-4: switch tabs • q: quit"
 	case viewVersions:
 		return "↑/↓: navigate • esc: back to list • q: quit"
 	case viewAddBinaryURL:
@@ -32,11 +32,11 @@ func getHelpText(view viewState) string {
 	case viewAddBinaryForm:
 		return "tab/shift+tab: navigate fields • ctrl+s: save • esc: cancel • q: quit"
 	case viewDownloads:
-		return "esc: back to list • q: quit"
+		return "1-4: switch tabs • q: quit"
 	case viewConfiguration:
-		return "esc: back to list • q: quit"
+		return "1-4: switch tabs • q: quit"
 	case viewHelp:
-		return "esc: back to list • q: quit"
+		return "1-4: switch tabs • q: quit"
 	default:
 		return "q: quit"
 	}

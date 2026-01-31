@@ -15,6 +15,9 @@ func (m model) renderBinariesList() string {
 	b.WriteString(titleStyle.Render("📦 Binmate - Binary Manager"))
 	b.WriteString("\n\n")
 
+	// Tabs
+	b.WriteString(m.renderTabs())
+
 	// Show loading state
 	if m.loading {
 		b.WriteString(loadingStyle.Render("Loading binaries..."))
@@ -39,11 +42,19 @@ func (m model) renderBinariesList() string {
 		b.WriteString("\n\n")
 	}
 
-	// Table header
-	nameWidth := 20
-	providerWidth := 10
-	versionWidth := 15
-	countWidth := 10
+	// Calculate proportional column widths based on available width
+	// Default to 80 if width not set
+	availableWidth := m.width
+	if availableWidth == 0 {
+		availableWidth = 80
+	}
+	
+	// Allocate proportional widths: Name 35%, Provider 15%, Version 30%, Count 20%
+	totalWidth := availableWidth - 8 // Account for padding
+	nameWidth := int(float64(totalWidth) * 0.35)
+	providerWidth := int(float64(totalWidth) * 0.15)
+	versionWidth := int(float64(totalWidth) * 0.30)
+	countWidth := int(float64(totalWidth) * 0.20)
 
 	headers := []string{
 		tableHeaderStyle.Width(nameWidth).Render("Name"),
@@ -55,7 +66,7 @@ func (m model) renderBinariesList() string {
 	b.WriteString("\n")
 
 	// Separator line
-	b.WriteString(strings.Repeat("─", nameWidth+providerWidth+versionWidth+countWidth+6))
+	b.WriteString(strings.Repeat("─", nameWidth+providerWidth+versionWidth+countWidth+8))
 	b.WriteString("\n")
 
 	// Table rows

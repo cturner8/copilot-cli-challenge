@@ -8,8 +8,12 @@ import (
 func (m model) renderDownloads() string {
 	var b strings.Builder
 
-	b.WriteString(titleStyle.Render("📥 Downloads"))
+	b.WriteString(titleStyle.Render("📦 Binmate - Binary Manager"))
 	b.WriteString("\n\n")
+	
+	// Tabs
+	b.WriteString(m.renderTabs())
+
 	b.WriteString(emptyStateStyle.Render("This view will allow you to manage cached asset downloads."))
 	b.WriteString("\n")
 	b.WriteString(emptyStateStyle.Render("(Not yet implemented)"))
@@ -23,8 +27,12 @@ func (m model) renderDownloads() string {
 func (m model) renderConfiguration() string {
 	var b strings.Builder
 
-	b.WriteString(titleStyle.Render("⚙️  Configuration"))
+	b.WriteString(titleStyle.Render("📦 Binmate - Binary Manager"))
 	b.WriteString("\n\n")
+	
+	// Tabs
+	b.WriteString(m.renderTabs())
+
 	b.WriteString(emptyStateStyle.Render("This view will allow you to manage global configuration/settings."))
 	b.WriteString("\n")
 	b.WriteString(emptyStateStyle.Render("(Not yet implemented)"))
@@ -38,8 +46,11 @@ func (m model) renderConfiguration() string {
 func (m model) renderHelp() string {
 	var b strings.Builder
 
-	b.WriteString(titleStyle.Render("❓ Help"))
+	b.WriteString(titleStyle.Render("📦 Binmate - Binary Manager"))
 	b.WriteString("\n\n")
+	
+	// Tabs
+	b.WriteString(m.renderTabs())
 	b.WriteString(headerStyle.Render("Binmate - Binary Version Manager"))
 	b.WriteString("\n\n")
 	b.WriteString("Binmate helps you install and manage multiple versions of command-line binaries.\n")

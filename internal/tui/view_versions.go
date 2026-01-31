@@ -94,7 +94,11 @@ func (m model) renderVersions() string {
 		}
 
 		// Installed date
-		installedDate := time.Unix(installation.InstalledAt, 0).Format("2006-01-02 15:04")
+		dateFormat := "2006-01-02 15:04" // Default ISO format
+		if m.config != nil && m.config.DateFormat != "" {
+			dateFormat = m.config.DateFormat
+		}
+		installedDate := time.Unix(installation.InstalledAt, 0).Format(dateFormat)
 
 		// File size (human-readable)
 		size := formatBytes(installation.FileSize)
