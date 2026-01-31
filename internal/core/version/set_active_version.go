@@ -7,7 +7,7 @@ import (
 )
 
 func SetActiveVersion(versionPath string, initialInstallPath string, binaryName string) (string, error) {
-	installPath, err := getInstallPath(initialInstallPath)
+	installPath, err := getInstallBinPath(initialInstallPath)
 	if err != nil {
 		return "", fmt.Errorf("unable to resolve install path: %s", err)
 
@@ -34,5 +34,5 @@ func SetActiveVersion(versionPath string, initialInstallPath string, binaryName 
 		return "", fmt.Errorf("unable to create symlink: %w", err)
 	}
 
-	return installPath, nil
+	return targetInstallPath, nil
 }
