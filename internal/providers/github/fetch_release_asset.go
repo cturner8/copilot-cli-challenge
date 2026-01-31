@@ -1,7 +1,7 @@
 package github
 
 import (
-	"cturner8/binmate/internal/core/config"
+	"cturner8/binmate/internal/database"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -25,21 +25,21 @@ type Release struct {
 	Assets  []ReleaseAsset `json:"assets"`
 }
 
-func FetchReleaseAsset(binary config.Binary, version string) (Release, ReleaseAsset, error) {
-	if binary.Path == "" {
+func FetchReleaseAsset(binary *database.Binary, version string) (Release, ReleaseAsset, error) {
+	if binary.ProviderPath == "" {
 		log.Panicln("path is required for binary config")
 	}
 
 	// default to latest release
-	url := fmt.Sprintf("https://api.github.com/repos/%s/releases/latest", binary.Path)
+	url := fmt.Sprintf("https://api.github.com/repos/%s/releases/latest", binary.ProviderPath)
 	if version != "latest" {
 		tag := version
 		// TODO: handle as actual regex expression?
-		if binary.ReleaseRegex != "" {
-			tag = binary.ReleaseRegex + version
+		if binary.ReleaseRegex != nil && *binary.ReleaseRegex != "" {
+			tag = *binary.ReleaseRegex + version
 		}
 
-		url = fmt.Sprintf("https://api.github.com/repos/%s/releases/tags/%s", binary.Path, tag)
+		url = fmt.Sprintf("https://api.github.com/repos/%s/releases/tags/%s", binary.ProviderPath, tag)
 	}
 
 	response, err := http.Get(url)
@@ -73,8 +73,10 @@ func FetchReleaseAsset(binary config.Binary, version string) (Release, ReleaseAs
 
 	// Create filter based on binary config
 	filter := NewAssetFilter()
-	filter.Extension = binary.Format      // e.g., ".tar.gz", ".zip"
-	filter.AssetRegex = binary.AssetRegex // custom regex if provided
+	filter.Extension = binary.Format // e.g., ".tar.gz", ".zip"
+	if binary.AssetRegex != nil {
+		filter.AssetRegex = *binary.AssetRegex // custom regex if provided
+	}
 
 	// Filter assets based on platform, architecture, and format
 	filteredAssets, err := FilterAssets(release.Assets, filter)
