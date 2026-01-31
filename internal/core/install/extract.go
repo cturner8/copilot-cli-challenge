@@ -1,19 +1,15 @@
 package install
 
 import (
-	"cturner8/binmate/internal/core/config"
+	"cturner8/binmate/internal/database"
 	"fmt"
-	"os"
-	"path/filepath"
 )
 
-func ExtractAsset(srcPath string, binary config.Binary, version string) (string, error) {
-	cacheDir, err := os.UserCacheDir()
+func ExtractAsset(srcPath string, binary *database.Binary, version string) (string, error) {
+	destDir, err := getExtractPath(binary.UserID, version)
 	if err != nil {
-		return "", fmt.Errorf("unable to locate asset cache dir")
+		return "", fmt.Errorf("unable to locate asset extract dir")
 	}
-
-	destDir := filepath.Join(cacheDir, ".binmate", binary.Id, version)
 
 	switch binary.Format {
 	case ".zip":
