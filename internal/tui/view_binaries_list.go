@@ -46,12 +46,11 @@ func (m model) renderBinariesList() string {
 	// Default to 80 if width not set
 	availableWidth := m.width
 	if availableWidth == 0 {
-		availableWidth = 80
+		availableWidth = defaultTerminalWidth
 	}
 	
 	// Account for padding: 2 chars per column (4 columns = 8 total)
-	const columnPadding = 8
-	totalWidth := availableWidth - columnPadding
+	totalWidth := availableWidth - columnPadding4
 	
 	// Allocate proportional widths: Name 35%, Provider 15%, Version 30%, Count 20%
 	nameWidth := int(float64(totalWidth) * 0.35)
@@ -69,7 +68,7 @@ func (m model) renderBinariesList() string {
 	b.WriteString("\n")
 
 	// Separator line
-	b.WriteString(strings.Repeat("─", nameWidth+providerWidth+versionWidth+countWidth+columnPadding))
+	b.WriteString(strings.Repeat("─", nameWidth+providerWidth+versionWidth+countWidth+columnPadding4))
 	b.WriteString("\n")
 
 	// Table rows

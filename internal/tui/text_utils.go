@@ -6,6 +6,11 @@ const (
 	cellPaddingOverhead = 2 // Minimum padding on each side
 	ellipsisLength      = 3 // Length of "..." truncation indicator
 	minTruncateWidth    = cellPaddingOverhead + ellipsisLength // Minimum width before truncation
+	
+	// Layout constants
+	defaultTerminalWidth = 80 // Default terminal width when not detected
+	columnPadding4       = 8  // Padding for 4 columns (2 chars each)
+	columnPadding5       = 10 // Padding for 5 columns (2 chars each)
 )
 
 // truncateText truncates text to fit within the specified width

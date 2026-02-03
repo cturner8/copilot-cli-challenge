@@ -99,12 +99,16 @@ func getPreviousTab(current viewState) viewState {
 	return availableTabs[len(availableTabs)-1].view
 }
 
-// isTabView returns true if the view is a tab view (not versions or add binary views)
-func isTabView(view viewState) bool {
-	for _, tab := range availableTabs {
-		if tab.view == view {
-			return true
-		}
+// handleTabCycling handles shift+tab and ctrl+shift+tab for cycling between tabs
+// Returns true if a tab cycle key was pressed, along with the updated model
+func handleTabCycling(m model, key string) (model, bool) {
+	switch key {
+	case keyShiftTab:
+		m.currentView = getNextTab(m.currentView)
+		return m, true
+	case keyCtrlShiftTab:
+		m.currentView = getPreviousTab(m.currentView)
+		return m, true
 	}
-	return false
+	return m, false
 }

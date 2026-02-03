@@ -61,12 +61,11 @@ func (m model) renderVersions() string {
 	// Calculate proportional column widths based on available width
 	availableWidth := m.width
 	if availableWidth == 0 {
-		availableWidth = 80
+		availableWidth = defaultTerminalWidth
 	}
 	
 	// Account for padding: 2 chars per column (5 columns = 10 total)
-	const columnPadding = 10
-	totalWidth := availableWidth - columnPadding
+	totalWidth := availableWidth - columnPadding5
 	
 	// Allocate proportional widths: Active 5%, Version 20%, Installed 20%, Size 15%, Path 40%
 	activeWidth := int(float64(totalWidth) * 0.05)
@@ -86,7 +85,7 @@ func (m model) renderVersions() string {
 	b.WriteString("\n")
 
 	// Separator line
-	b.WriteString(strings.Repeat("─", activeWidth+versionWidth+installedWidth+sizeWidth+pathWidth+columnPadding))
+	b.WriteString(strings.Repeat("─", activeWidth+versionWidth+installedWidth+sizeWidth+pathWidth+columnPadding5))
 	b.WriteString("\n")
 
 	// Table rows

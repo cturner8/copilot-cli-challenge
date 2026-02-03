@@ -63,10 +63,11 @@ func getTimezone() string {
 // isEuropeanLocale checks if the locale string indicates a European locale
 func isEuropeanLocale(locale string) bool {
 	locale = strings.ToLower(locale)
+	// Common European locale prefixes
 	europeanCountries := []string{
-		"en_gb", "en_ie", "en_au", "en_nz", // UK, Ireland, Australia, New Zealand
-		"de_", "fr_", "es_", "it_", "pt_", "nl_", "pl_", "ru_", // European countries
-		"sv_", "no_", "da_", "fi_", "cs_", "hu_", "ro_", "el_",
+		"en_gb", "en_ie", "en_au", "en_nz", // English-speaking Commonwealth countries
+		"de_", "fr_", "es_", "it_", "pt_", "nl_", "pl_", "ru_", // Major European countries
+		"sv_", "no_", "da_", "fi_", "cs_", "hu_", "ro_", "el_", // Nordic and Eastern European
 	}
 	
 	for _, country := range europeanCountries {
@@ -99,6 +100,8 @@ func isEuropeanTimezone(tz string) bool {
 }
 
 // isUSTimezone checks if the timezone suggests US location
+// Note: These abbreviations can be ambiguous (e.g., CST could be China/Cuba/Central)
+// This is a best-effort heuristic for common cases
 func isUSTimezone(tz string) bool {
 	usTZ := []string{
 		"EST", "EDT", "CST", "CDT", "MST", "MDT", "PST", "PDT",

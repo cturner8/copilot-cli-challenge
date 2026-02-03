@@ -95,15 +95,8 @@ func (m model) updateBinariesList(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	}
 
 	// Handle tab cycling
-	switch msg.String() {
-	case keyShiftTab:
-		// Cycle to next tab
-		m.currentView = getNextTab(m.currentView)
-		return m, nil
-	case keyCtrlShiftTab:
-		// Cycle to previous tab
-		m.currentView = getPreviousTab(m.currentView)
-		return m, nil
+	if updatedModel, handled := handleTabCycling(m, msg.String()); handled {
+		return updatedModel, nil
 	}
 
 	switch msg.String() {
@@ -409,15 +402,11 @@ func (m model) updatePlaceholderView(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	}
 
 	// Handle tab cycling
+	if updatedModel, handled := handleTabCycling(m, msg.String()); handled {
+		return updatedModel, nil
+	}
+
 	switch msg.String() {
-	case keyShiftTab:
-		// Cycle to next tab
-		m.currentView = getNextTab(m.currentView)
-		return m, nil
-	case keyCtrlShiftTab:
-		// Cycle to previous tab
-		m.currentView = getPreviousTab(m.currentView)
-		return m, nil
 	case keyQuit, keyCtrlC:
 		return m, tea.Quit
 	}
