@@ -79,21 +79,9 @@ func (m model) renderBinariesList() string {
 			style = selectedStyle
 		}
 
-		name := binary.Binary.Name
-		if len(name) > nameWidth-2 {
-			name = name[:nameWidth-5] + "..."
-		}
-
-		provider := binary.Binary.Provider
-		if len(provider) > providerWidth-2 {
-			provider = provider[:providerWidth-5] + "..."
-		}
-
-		version := binary.ActiveVersion
-		if len(version) > versionWidth-2 {
-			version = version[:versionWidth-5] + "..."
-		}
-
+		name := truncateText(binary.Binary.Name, nameWidth)
+		provider := truncateText(binary.Binary.Provider, providerWidth)
+		version := truncateText(binary.ActiveVersion, versionWidth)
 		count := fmt.Sprintf("%d", binary.InstallCount)
 
 		row := []string{

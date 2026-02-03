@@ -58,12 +58,22 @@ func (m model) renderVersions() string {
 		}
 	}
 
-	// Table header
-	activeWidth := 4
-	versionWidth := 20
-	installedWidth := 20
-	sizeWidth := 12
-	pathWidth := 30
+	// Calculate proportional column widths based on available width
+	availableWidth := m.width
+	if availableWidth == 0 {
+		availableWidth = 80
+	}
+	
+	// Account for padding: 2 chars per column (5 columns = 10 total)
+	const columnPadding = 10
+	totalWidth := availableWidth - columnPadding
+	
+	// Allocate proportional widths: Active 5%, Version 20%, Installed 20%, Size 15%, Path 40%
+	activeWidth := int(float64(totalWidth) * 0.05)
+	versionWidth := int(float64(totalWidth) * 0.20)
+	installedWidth := int(float64(totalWidth) * 0.20)
+	sizeWidth := int(float64(totalWidth) * 0.15)
+	pathWidth := int(float64(totalWidth) * 0.40)
 
 	headers := []string{
 		tableHeaderStyle.Width(activeWidth).Render(""),
@@ -76,7 +86,7 @@ func (m model) renderVersions() string {
 	b.WriteString("\n")
 
 	// Separator line
-	b.WriteString(strings.Repeat("─", activeWidth+versionWidth+installedWidth+sizeWidth+pathWidth+8))
+	b.WriteString(strings.Repeat("─", activeWidth+versionWidth+installedWidth+sizeWidth+pathWidth+columnPadding))
 	b.WriteString("\n")
 
 	// Table rows
@@ -88,13 +98,10 @@ func (m model) renderVersions() string {
 		}
 
 		// Version
-		version := installation.Version
-		if len(version) > versionWidth-2 {
-			version = version[:versionWidth-5] + "..."
-		}
+		version := truncateText(installation.Version, versionWidth)
 
 		// Installed date
-		dateFormat := "2006-01-02 15:04" // Default ISO format
+		dateFormat := getDefaultDateFormat()
 		if m.config != nil && m.config.DateFormat != "" {
 			dateFormat = m.config.DateFormat
 		}
@@ -103,11 +110,8 @@ func (m model) renderVersions() string {
 		// File size (human-readable)
 		size := formatBytes(installation.FileSize)
 
-		// Install path
-		path := installation.InstalledPath
-		if len(path) > pathWidth-2 {
-			path = "..." + path[len(path)-(pathWidth-5):]
-		}
+		// Install path (truncate from beginning, keep end)
+		path := truncatePathEnd(installation.InstalledPath, pathWidth)
 
 		row := []string{
 			tableCellStyle.Width(activeWidth).Render(activeIndicator),
