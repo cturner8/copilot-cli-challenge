@@ -31,18 +31,12 @@ func ReadConfig(flagConfigPath string) Config {
 	}
 
 	// Find and read the config file
-	err := v.ReadInConfig()
-	if err != nil {
-		log.Fatalf("unable to read config, %v", err)
-	}
-
-	// Watch the config for changes
-	v.WatchConfig()
+	v.ReadInConfig()
 
 	var config Config
 
 	// extract config
-	err = v.Unmarshal(&config)
+	err := v.Unmarshal(&config)
 	if err != nil {
 		log.Fatalf("unable to decode into struct, %v", err)
 	}
