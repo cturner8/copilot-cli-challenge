@@ -7,8 +7,6 @@ import (
 
 	binarySvc "cturner8/binmate/internal/core/binary"
 	"cturner8/binmate/internal/core/config"
-	"cturner8/binmate/internal/core/format"
-	versionSvc "cturner8/binmate/internal/core/version"
 	"cturner8/binmate/internal/database/repository"
 )
 
@@ -19,58 +17,18 @@ var (
 )
 
 func NewCommand() *cobra.Command {
-	var (
-		showVersions bool
-		binaryID     string
-	)
-
 	cmd := &cobra.Command{
-		Use:   "list",
-		Short: "List installed binaries and their versions",
-		Long: `List all installed binaries or versions of a specific binary.
+		Use:     "list",
+		Aliases: []string{"ls"},
+		Short:   "List all installed binaries",
+		Long: `List all installed binaries.
 
-Examples:
+Example:
   binmate list                          # List all binaries
-  binmate list --binary gh              # List versions of gh binary
-  binmate list --versions --binary gh   # List versions of gh binary (explicit flag)`,
+  binmate ls                            # Same as above (alias)`,
 		SilenceUsage:  true,
 		SilenceErrors: false,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			// Check if we should list versions for a specific binary
-			if binaryID != "" || showVersions {
-				if binaryID == "" {
-					return fmt.Errorf("please provide a binary ID using --binary flag when using --versions")
-				}
-
-				// List versions for specific binary
-				versions, err := versionSvc.ListVersions(binaryID, DBService)
-				if err != nil {
-					return fmt.Errorf("failed to list versions: %w", err)
-				}
-
-				// Get active version
-				activeVersion, _ := versionSvc.GetActiveVersion(binaryID, DBService)
-
-				fmt.Fprintf(cmd.OutOrStdout(), "Versions for %s:\n", binaryID)
-				fmt.Fprintln(cmd.OutOrStdout(), "---")
-				
-				// Get date format from config or use default
-				dateFormat := ""
-				if Config != nil && Config.DateFormat != "" {
-					dateFormat = Config.DateFormat
-				}
-				
-				for _, v := range versions {
-					activeMarker := " "
-					if activeVersion != nil && activeVersion.InstallationID == v.ID {
-						activeMarker = "*"
-					}
-					formattedDate := format.FormatTimestamp(v.InstalledAt, dateFormat)
-					fmt.Fprintf(cmd.OutOrStdout(), "%s %s (installed: %s)\n", activeMarker, v.Version, formattedDate)
-				}
-				return nil
-			}
-
 			// List all binaries
 			binaries, err := binarySvc.ListBinariesWithDetails(DBService)
 			if err != nil {
@@ -97,9 +55,6 @@ Examples:
 			return nil
 		},
 	}
-
-	cmd.Flags().BoolVarP(&showVersions, "versions", "v", false, "Show versions for a specific binary")
-	cmd.Flags().StringVarP(&binaryID, "binary", "b", "", "Binary ID to list versions for")
 
 	return cmd
 }

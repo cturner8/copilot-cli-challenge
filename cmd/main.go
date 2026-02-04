@@ -8,6 +8,7 @@ import (
 	"os"
 
 	"cturner8/binmate/internal/cli/add"
+	"cturner8/binmate/internal/cli/check"
 	configcmd "cturner8/binmate/internal/cli/config"
 	importcmd "cturner8/binmate/internal/cli/import"
 	"cturner8/binmate/internal/cli/install"
@@ -17,6 +18,7 @@ import (
 	switchcmd "cturner8/binmate/internal/cli/switch"
 	"cturner8/binmate/internal/cli/sync"
 	"cturner8/binmate/internal/cli/update"
+	"cturner8/binmate/internal/cli/versions"
 	"cturner8/binmate/internal/core/config"
 	"cturner8/binmate/internal/database"
 	"cturner8/binmate/internal/database/repository"
@@ -94,6 +96,10 @@ func init() {
 		importcmd.DBService = dbService
 		configcmd.Config = &cfg
 		configcmd.DBService = dbService
+		versions.Config = &cfg
+		versions.DBService = dbService
+		check.Config = &cfg
+		check.DBService = dbService
 	}
 
 	rootCmd.PersistentPostRun = func(cmd *cobra.Command, args []string) {
@@ -114,4 +120,6 @@ func init() {
 	rootCmd.AddCommand(update.NewCommand())
 	rootCmd.AddCommand(importcmd.NewCommand())
 	rootCmd.AddCommand(configcmd.NewCommand())
+	rootCmd.AddCommand(versions.NewCommand())
+	rootCmd.AddCommand(check.NewCommand())
 }

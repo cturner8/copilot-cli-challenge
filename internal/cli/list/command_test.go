@@ -97,79 +97,7 @@ func TestListCommand_WithBinaries(t *testing.T) {
 	}
 }
 
-func TestListCommand_BinaryFlag(t *testing.T) {
-	dbService, cfg, cleanup := setupTestEnv(t)
-	defer cleanup()
-
-	Config = cfg
-	DBService = dbService
-
-	// Add a test binary
-	binary := &database.Binary{
-		UserID:       "testbin",
-		Name:         "testbin",
-		Provider:     "github",
-		ProviderPath: "owner/repo",
-		Format:       ".tar.gz",
-	}
-	if err := dbService.Binaries.Create(binary); err != nil {
-		t.Fatalf("Failed to create test binary: %v", err)
-	}
-
-	cmd := NewCommand()
-	cmd.SetArgs([]string{"--binary", "testbin"})
-	
-	buf := new(bytes.Buffer)
-	cmd.SetOut(buf)
-	
-	err := cmd.Execute()
-	if err != nil {
-		t.Errorf("Command failed: %v", err)
-	}
-	
-	output := buf.String()
-	if !strings.Contains(output, "Versions for testbin") {
-		t.Errorf("Expected version list header, got: %s", output)
-	}
-}
-
-func TestListCommand_BinaryShorthand(t *testing.T) {
-	dbService, cfg, cleanup := setupTestEnv(t)
-	defer cleanup()
-
-	Config = cfg
-	DBService = dbService
-
-	// Add a test binary
-	binary := &database.Binary{
-		UserID:       "testbin",
-		Name:         "testbin",
-		Provider:     "github",
-		ProviderPath: "owner/repo",
-		Format:       ".tar.gz",
-	}
-	if err := dbService.Binaries.Create(binary); err != nil {
-		t.Fatalf("Failed to create test binary: %v", err)
-	}
-
-	cmd := NewCommand()
-	cmd.SetArgs([]string{"-b", "testbin"})
-	
-	buf := new(bytes.Buffer)
-	cmd.SetOut(buf)
-	
-	err := cmd.Execute()
-	if err != nil {
-		t.Errorf("Command failed: %v", err)
-	}
-	
-	output := buf.String()
-	if !strings.Contains(output, "Versions for testbin") {
-		t.Errorf("Expected version list header, got: %s", output)
-	}
-}
-
-func TestListCommand_NonExistentBinary(t *testing.T) {
+func TestListCommand_LsAlias(t *testing.T) {
 	dbService, cfg, cleanup := setupTestEnv(t)
 	defer cleanup()
 
@@ -177,15 +105,18 @@ func TestListCommand_NonExistentBinary(t *testing.T) {
 	DBService = dbService
 
 	cmd := NewCommand()
-	cmd.SetArgs([]string{"--binary", "nonexistent"})
 	
-	buf := new(bytes.Buffer)
-	cmd.SetOut(buf)
-	cmd.SetErr(buf)
+	// Check if ls alias exists
+	found := false
+	for _, alias := range cmd.Aliases {
+		if alias == "ls" {
+			found = true
+			break
+		}
+	}
 	
-	err := cmd.Execute()
-	if err == nil {
-		t.Error("Expected error for non-existent binary, got none")
+	if !found {
+		t.Error("Expected 'ls' alias to be present")
 	}
 }
 
@@ -204,8 +135,5 @@ func TestListCommand_Help(t *testing.T) {
 	output := buf.String()
 	if !strings.Contains(output, "List") {
 		t.Error("Help output missing expected text")
-	}
-	if !strings.Contains(output, "-b, --binary") {
-		t.Error("Help output missing flag information")
 	}
 }
