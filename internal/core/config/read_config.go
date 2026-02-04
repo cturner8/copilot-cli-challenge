@@ -8,12 +8,12 @@ import (
 	"github.com/spf13/viper"
 )
 
-func ReadConfig() Config {
+func ReadConfig(flagConfigPath string) Config {
 	v := viper.New()
 
 	v.SetConfigName("config")
 
-	configPath, configPathSet := os.LookupEnv("BINMATE_CONFIG_PATH")
+	envConfigPath, isEnvConfigPathSet := os.LookupEnv("BINMATE_CONFIG_PATH")
 
 	// set defaults
 	v.SetDefault("version", 1)
@@ -21,8 +21,10 @@ func ReadConfig() Config {
 
 	homeDir, _ := os.UserConfigDir()
 
-	if configPathSet {
-		v.SetConfigFile(configPath)
+	if flagConfigPath != "" {
+		v.SetConfigFile(flagConfigPath)
+	} else if isEnvConfigPathSet {
+		v.SetConfigFile(envConfigPath)
 	} else {
 		// Add search paths to find the file
 		v.AddConfigPath(fmt.Sprintf("%s/.binmate", homeDir))
