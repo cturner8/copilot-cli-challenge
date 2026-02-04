@@ -34,13 +34,6 @@ Example:
 		SilenceUsage:  true,
 		SilenceErrors: false,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if binaryID == "" {
-				return fmt.Errorf("please provide a binary ID using --binary flag")
-			}
-			if version == "" {
-				return fmt.Errorf("please provide a version using --version flag")
-			}
-
 			if err := versionSvc.SwitchVersion(binaryID, version, DBService); err != nil {
 				return fmt.Errorf("failed to switch version: %w", err)
 			}

@@ -101,7 +101,7 @@ func (m model) renderVersions() string {
 		version := truncateText(installation.Version, versionWidth)
 
 		// Installed date
-		dateFormat := ""
+		dateFormat := format.GetDefaultDateFormat()
 		if m.config != nil && m.config.DateFormat != "" {
 			dateFormat = m.config.DateFormat
 		}

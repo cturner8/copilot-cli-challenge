@@ -33,10 +33,6 @@ Example:
 		SilenceUsage:  true,
 		SilenceErrors: false,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if binaryID == "" {
-				return fmt.Errorf("please provide a binary ID using --binary flag")
-			}
-
 			result, err := installSvc.UpdateToLatest(binaryID, DBService)
 			if err != nil {
 				return fmt.Errorf("failed to update binary: %w", err)

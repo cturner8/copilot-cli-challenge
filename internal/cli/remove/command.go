@@ -37,10 +37,6 @@ Example:
 		SilenceUsage:  true,
 		SilenceErrors: false,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if binaryID == "" {
-				return fmt.Errorf("please provide a binary ID using --binary flag")
-			}
-
 			if err := binarySvc.RemoveBinary(binaryID, DBService, removeFiles); err != nil {
 				return fmt.Errorf("failed to remove binary: %w", err)
 			}
