@@ -1,8 +1,73 @@
 package tui
 
+import (
+	"cturner8/binmate/internal/core/config"
+	"cturner8/binmate/internal/database"
+	"cturner8/binmate/internal/database/repository"
+
+	"github.com/charmbracelet/bubbles/textinput"
+)
+
 type model struct {
+	// Services
+	dbService *repository.Service
+	config    *config.Config
+
+	// View state
+	currentView viewState
+
+	// Window dimensions
+	width  int
+	height int
+
+	// Binaries list view state
+	binaries      []BinaryWithMetadata
+	selectedIndex int
+	loading       bool
+
+	// Versions view state
+	selectedBinary *database.Binary
+	installations  []*database.Installation
+
+	// Add binary view state - URL input
+	urlTextInput textinput.Model
+
+	// Add binary view state - Form
+	parsedBinary  *parsedBinaryConfig
+	formInputs    []textinput.Model
+	focusedField  int
+
+	// Error state
+	errorMessage string
 }
 
-func initialModel() model {
-	return model{}
+// parsedBinaryConfig represents a binary configuration parsed from a URL
+type parsedBinaryConfig struct {
+	userID       string
+	name         string
+	provider     string
+	path         string
+	format       string
+	version      string
+	assetName    string
+	installPath  string
+	assetRegex   string
+	releaseRegex string
+}
+
+func initialModel(dbService *repository.Service, cfg *config.Config) model {
+	// Create URL text input
+	urlInput := textinput.New()
+	urlInput.Placeholder = "https://github.com/owner/repo/releases/download/v1.0.0/binary.tar.gz"
+	urlInput.CharLimit = 256
+	urlInput.Width = 80
+
+	return model{
+		dbService:    dbService,
+		config:       cfg,
+		currentView:  viewBinariesList,
+		loading:      true,
+		urlTextInput: urlInput,
+		formInputs:   []textinput.Model{},
+	}
 }

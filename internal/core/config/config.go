@@ -14,6 +14,7 @@ type Binary struct {
 }
 
 type Config struct {
-	Version  int      `mapstructure:"version"`
-	Binaries []Binary `mapstructure:"binaries"`
+	Version    int      `mapstructure:"version"`
+	Binaries   []Binary `mapstructure:"binaries"`
+	DateFormat string   `mapstructure:"dateFormat"` // Date format for display, e.g., "02/01/2006 15:04"
 }
