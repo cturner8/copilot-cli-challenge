@@ -2,7 +2,6 @@ package install
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"time"
 
@@ -50,7 +49,7 @@ func NewCommand() *cobra.Command {
 				return fmt.Errorf("sync start error: %w", err)
 			}
 
-			log.Printf("installing binary: %s version: %s", binary, version)
+			fmt.Fprintf(cmd.OutOrStdout(), "Installing %s version %s...\n", binary, version)
 
 			DBService.Logs.LogEntity(id, binary, version)
 
@@ -88,7 +87,7 @@ func NewCommand() *cobra.Command {
 					DBService.Logs.LogFailure(id, msg, int64(time.Since(start)))
 					return fmt.Errorf("%s", msg)
 				}
-				log.Printf("✓ archive checksum verified")
+				fmt.Fprintln(cmd.OutOrStdout(), "✓ Archive checksum verified")
 			}
 
 			resolvedVersion := version
@@ -132,8 +131,6 @@ func NewCommand() *cobra.Command {
 				return fmt.Errorf("%s: %w", msg, err)
 			}
 
-			log.Printf("downloaded binary: %s version: %s", binary, resolvedVersion)
-
 			installation := &database.Installation{
 				ID:                0,
 				Version:           resolvedVersion,
@@ -159,6 +156,8 @@ func NewCommand() *cobra.Command {
 			}
 
 			DBService.Logs.LogSuccess(id, int64(time.Since(start)))
+
+			fmt.Fprintf(cmd.OutOrStdout(), "✓ Successfully installed %s version %s\n", binary, resolvedVersion)
 			return nil
 		},
 	}
