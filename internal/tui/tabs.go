@@ -103,10 +103,10 @@ func getPreviousTab(current viewState) viewState {
 // Returns true if a tab cycle key was pressed, along with the updated model
 func handleTabCycling(m model, key string) (model, bool) {
 	switch key {
-	case keyShiftTab:
+	case keyTab:
 		m.currentView = getNextTab(m.currentView)
 		return m, true
-	case keyCtrlShiftTab:
+	case keyShiftTab:
 		m.currentView = getPreviousTab(m.currentView)
 		return m, true
 	}
