@@ -33,15 +33,23 @@ func Execute() {
 func init() {
 	var (
 		configPath string
+		logLevel   string
 	)
 
 	// set global flags
 	rootCmd.PersistentFlags().StringVarP(&configPath, "config", "c", "", "(optional) path to the config file to use")
+	rootCmd.PersistentFlags().StringVarP(&logLevel, "log-level", "l", "", "(optional) controls verbosity of application logging")
 
 	// Setup database lifecycle hooks
 	rootCmd.PersistentPreRun = func(cmd *cobra.Command, args []string) {
 		// Read config file
-		cfg = config.ReadConfig(configPath)
+		cfg = config.ReadConfig(config.ConfigFlags{
+			ConfigPath: configPath,
+			LogLevel:   logLevel,
+		})
+
+		// Configure logger with appropriate level (handles silent mode)
+		config.ConfigureLogger(cfg.LogLevel)
 
 		// Resolve database path
 		dbPath, err := database.GetDefaultDBPath()
