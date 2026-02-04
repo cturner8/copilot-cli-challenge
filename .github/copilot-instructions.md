@@ -25,6 +25,8 @@
 │   │   ├── config/         # Configuration management
 │   │   ├── install/        # Archive extraction (tar.gz, zip)
 │   │   └── version/        # Version management and symlink handling
+│   ├── database/           # SQLite data layer
+│   │   └── repository/     # Data access repositories
 │   ├── providers/          # External provider integrations
 │   │   └── github/         # GitHub releases API integration
 │   └── tui/                # Terminal UI (Bubble Tea)
@@ -69,9 +71,24 @@
 - `get_install_path.go`: Determines installation paths for versioned binaries
 - `set_active_version.go`: Creates symlinks to activate specific versions
 
-#### 6. TUI (`internal/tui/`)
+#### 6. Database (`internal/database/`)
+
+- SQLite3-based persistence layer for installations and metadata
+- `connection.go`: Database connection management
+- `migrations.go`: Schema migration system
+- `models.go`: Core data models (Binary, Installation, Version, Download, etc.)
+- `schema.go`: Table definitions and schema versioning
+- `repository/`: Data access layer with repositories for each entity
+  - `binaries.go`: Binary definitions CRUD
+  - `installations.go`: Installation tracking
+  - `versions.go`: Active version management
+  - `downloads.go`: Download cache tracking
+  - `service.go`: High-level business operations
+
+#### 7. TUI (`internal/tui/`)
 
 - Built with [Bubble Tea](https://github.com/charmbracelet/bubbletea)
+- Follows the Elm Architecture (Model-Update-View)
 - `program.go`: Initialises the Bubble Tea program
 - `model.go`: Defines the TUI model and state
 - `init.go`: Initial command for the TUI
@@ -88,8 +105,9 @@
 
 - **Cobra**: CLI framework for command structure
 - **Viper**: Configuration management
-- **Bubble Tea**: Terminal UI framework
-- **Lipgloss**: Terminal styling (transitive dependency)
+- **Bubble Tea**: Terminal UI framework (Elm Architecture)
+- **SQLite3**: Embedded database for state persistence
+- **Lipgloss**: Terminal styling (transitive dependency via Bubble Tea)
 
 ### Code Style
 
@@ -116,19 +134,36 @@
 
 ### Testing
 
-- Unit tests exist for critical functionality (e.g., `filter_assets_test.go`)
-- Run tests with `go test ./...`
-- Write tests for new provider logic and core business functions
+- Unit tests exist for critical functionality (e.g., `filter_assets_test.go`, database tests)
+- Run all tests: `go test ./...`
+- Run specific test: `go test -run TestName ./path/to/package`
+- Run with verbose output: `go test -v ./...`
+- Write tests for new provider logic, core business functions, and database operations
+- Database tests use in-memory SQLite (`:memory:`) for isolation
 
 ### Building
 
-- When running a test build to verify changes, write to the `/tmp` directory rather than the repository root directory
+- Build the binary: `go build -o binmate .`
+- Build to specific location: `go build -o /tmp/binmate .`
+- Run without building: `go run . [args]`
+- When running test builds to verify changes, write to the `/tmp` directory rather than the repository root directory
 
 ### Version Management
 
 - Binaries are installed to versioned directories
 - Symlinks are used to activate specific versions
 - Installation path structure: `<install_path>/<name>/<version>/`
+- Version state is tracked in SQLite database alongside filesystem state
+- The `Version` table maintains active version references per binary
+
+### Database Conventions
+
+- Use SQLite for all persistent state (installations, versions, downloads, logs)
+- Database location: User's config directory or specified via configuration
+- Migrations are versioned and run automatically on connection
+- All timestamps stored as Unix epoch (int64)
+- Use prepared statements for all queries (already done in repositories)
+- In-memory databases (`:memory:`) for testing isolation
 
 ### Error Handling
 
