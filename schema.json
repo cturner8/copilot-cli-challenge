@@ -21,6 +21,11 @@
         "$ref": "#/definitions/binary"
       },
       "minItems": 1
+    },
+    "logLevel": {
+      "type": "string",
+      "description": "Controls verbosity of application logging",
+      "enum": ["debug", "info", "silent"]
     }
   },
   "definitions": {
