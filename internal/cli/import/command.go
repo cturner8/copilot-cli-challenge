@@ -2,7 +2,6 @@ package importcmd
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/spf13/cobra"
 
@@ -46,12 +45,12 @@ Example:
 				return fmt.Errorf("failed to import binary: %w", err)
 			}
 
-			log.Printf("✓ Binary %s imported successfully", name)
+			fmt.Fprintf(cmd.OutOrStdout(), "✓ Binary %s imported successfully\n", name)
 			return nil
 		},
 	}
 
-	cmd.Flags().StringVar(&name, "name", "", "Name for the imported binary (required)")
+	cmd.Flags().StringVarP(&name, "name", "n", "", "Name for the imported binary (required)")
 	cmd.MarkFlagRequired("name")
 
 	return cmd

@@ -17,6 +17,8 @@ Submission for the [2026 DEV GitHub Copilot CLI challenge](https://dev.to/devtea
 
 ## Installation
 
+<!-- TODO: Update this section once builds are published to GitHub releases -->
+
 ```bash
 go build -o binmate .
 ```

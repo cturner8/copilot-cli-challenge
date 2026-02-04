@@ -2,7 +2,6 @@ package update
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/spf13/cobra"
 
@@ -18,30 +17,38 @@ var (
 )
 
 func NewCommand() *cobra.Command {
+	var (
+		binaryID string
+	)
+
 	cmd := &cobra.Command{
-		Use:   "update <binary-id>",
+		Use:   "update",
 		Short: "Update a binary to the latest version",
 		Long: `Update a binary to the latest available version.
 
 This will install the latest version and set it as the active version.
 
 Example:
-  binmate update gh              # Update gh to latest version`,
+  binmate update --binary gh              # Update gh to latest version`,
 		SilenceUsage:  true,
 		SilenceErrors: false,
-		Args:          cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			binaryID := args[0]
+			if binaryID == "" {
+				return fmt.Errorf("please provide a binary ID using --binary flag")
+			}
 
 			result, err := installSvc.UpdateToLatest(binaryID, DBService)
 			if err != nil {
 				return fmt.Errorf("failed to update binary: %w", err)
 			}
 
-			log.Printf("✓ Updated %s to version %s", binaryID, result.Version)
+			fmt.Fprintf(cmd.OutOrStdout(), "✓ Updated %s to version %s\n", binaryID, result.Version)
 			return nil
 		},
 	}
+
+	cmd.Flags().StringVarP(&binaryID, "binary", "b", "", "Binary ID to update (required)")
+	cmd.MarkFlagRequired("binary")
 
 	return cmd
 }

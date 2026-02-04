@@ -3,7 +3,8 @@ package tui
 import (
 	"fmt"
 	"strings"
-	"time"
+
+	"cturner8/binmate/internal/core/format"
 
 	"github.com/charmbracelet/lipgloss"
 )
@@ -100,11 +101,11 @@ func (m model) renderVersions() string {
 		version := truncateText(installation.Version, versionWidth)
 
 		// Installed date
-		dateFormat := getDefaultDateFormat()
+		dateFormat := ""
 		if m.config != nil && m.config.DateFormat != "" {
 			dateFormat = m.config.DateFormat
 		}
-		installedDate := time.Unix(installation.InstalledAt, 0).Format(dateFormat)
+		installedDate := format.FormatTimestamp(installation.InstalledAt, dateFormat)
 
 		// File size (human-readable)
 		size := formatBytes(installation.FileSize)

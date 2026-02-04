@@ -2,7 +2,6 @@ package add
 
 import (
 	"fmt"
-	"log"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -42,7 +41,7 @@ The binary will be registered in the database but not installed until you run 'b
 				if err != nil {
 					return fmt.Errorf("failed to add binary from URL: %w", err)
 				}
-				log.Printf("✓ Binary %s added successfully", binary.UserID)
+				fmt.Fprintf(cmd.OutOrStdout(), "✓ Binary %s added successfully\n", binary.UserID)
 				return nil
 			}
 
@@ -54,7 +53,7 @@ The binary will be registered in the database but not installed until you run 'b
 					if err != nil {
 						return fmt.Errorf("failed to add binary from URL: %w", err)
 					}
-					log.Printf("✓ Binary %s added successfully", binary.UserID)
+					fmt.Fprintf(cmd.OutOrStdout(), "✓ Binary %s added successfully\n", binary.UserID)
 					return nil
 				}
 
@@ -63,7 +62,7 @@ The binary will be registered in the database but not installed until you run 'b
 				if err := config.SyncBinary(binaryID, *Config, DBService); err != nil {
 					return fmt.Errorf("failed to add binary from config: %w", err)
 				}
-				log.Printf("✓ Binary %s added from config", binaryID)
+				fmt.Fprintf(cmd.OutOrStdout(), "✓ Binary %s added from config\n", binaryID)
 				return nil
 			}
 
@@ -71,7 +70,7 @@ The binary will be registered in the database but not installed until you run 'b
 		},
 	}
 
-	cmd.Flags().StringVar(&url, "url", "", "GitHub release URL for the binary")
+	cmd.Flags().StringVarP(&url, "url", "u", "", "GitHub release URL for the binary")
 
 	return cmd
 }

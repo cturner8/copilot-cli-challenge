@@ -2,7 +2,6 @@ package remove
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/spf13/cobra"
 
@@ -19,11 +18,12 @@ var (
 
 func NewCommand() *cobra.Command {
 	var (
+		binaryID    string
 		removeFiles bool
 	)
 
 	cmd := &cobra.Command{
-		Use:   "remove <binary-id>",
+		Use:   "remove",
 		Short: "Remove a binary and its installations",
 		Long: `Remove a binary from binmate.
 
@@ -31,29 +31,32 @@ This will remove the binary from the database along with all installation record
 Use --files to also remove the physical binary files and symlinks.
 
 Example:
-  binmate remove gh              # Remove binary from database only
-  binmate remove gh --files      # Remove binary and all files`,
+  binmate remove --binary gh              # Remove binary from database only
+  binmate remove --binary gh --files      # Remove binary and all files`,
 		Aliases:       []string{"rm", "delete"},
 		SilenceUsage:  true,
 		SilenceErrors: false,
-		Args:          cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			binaryID := args[0]
+			if binaryID == "" {
+				return fmt.Errorf("please provide a binary ID using --binary flag")
+			}
 
 			if err := binarySvc.RemoveBinary(binaryID, DBService, removeFiles); err != nil {
 				return fmt.Errorf("failed to remove binary: %w", err)
 			}
 
 			if removeFiles {
-				log.Printf("✓ Binary %s removed (including files)", binaryID)
+				fmt.Fprintf(cmd.OutOrStdout(), "✓ Binary %s removed (including files)\n", binaryID)
 			} else {
-				log.Printf("✓ Binary %s removed from database", binaryID)
+				fmt.Fprintf(cmd.OutOrStdout(), "✓ Binary %s removed from database\n", binaryID)
 			}
 			return nil
 		},
 	}
 
-	cmd.Flags().BoolVar(&removeFiles, "files", false, "Also remove physical binary files and symlinks")
+	cmd.Flags().StringVarP(&binaryID, "binary", "b", "", "Binary ID to remove (required)")
+	cmd.Flags().BoolVarP(&removeFiles, "files", "f", false, "Also remove physical binary files and symlinks")
+	cmd.MarkFlagRequired("binary")
 
 	return cmd
 }
