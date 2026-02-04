@@ -32,7 +32,7 @@ func NewCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:           "install",
 		Short:         "Install a new binary version",
-		Aliases:       []string{"i", "add"},
+		Aliases:       []string{"i"},
 		SilenceUsage:  true,  // Don't show usage on runtime errors
 		SilenceErrors: false, // Still print errors
 		PreRunE: func(cmd *cobra.Command, args []string) error {

@@ -7,9 +7,16 @@ import (
 	"log"
 	"os"
 
+	"cturner8/binmate/internal/cli/add"
+	configcmd "cturner8/binmate/internal/cli/config"
+	importcmd "cturner8/binmate/internal/cli/import"
 	"cturner8/binmate/internal/cli/install"
+	"cturner8/binmate/internal/cli/list"
+	"cturner8/binmate/internal/cli/remove"
 	"cturner8/binmate/internal/cli/root"
+	switchcmd "cturner8/binmate/internal/cli/switch"
 	"cturner8/binmate/internal/cli/sync"
+	"cturner8/binmate/internal/cli/update"
 	"cturner8/binmate/internal/core/config"
 	"cturner8/binmate/internal/database"
 	"cturner8/binmate/internal/database/repository"
@@ -62,6 +69,20 @@ func init() {
 		install.DBService = dbService
 		sync.Config = &cfg
 		sync.DBService = dbService
+		add.Config = &cfg
+		add.DBService = dbService
+		list.Config = &cfg
+		list.DBService = dbService
+		remove.Config = &cfg
+		remove.DBService = dbService
+		switchcmd.Config = &cfg
+		switchcmd.DBService = dbService
+		update.Config = &cfg
+		update.DBService = dbService
+		importcmd.Config = &cfg
+		importcmd.DBService = dbService
+		configcmd.Config = &cfg
+		configcmd.DBService = dbService
 	}
 
 	rootCmd.PersistentPostRun = func(cmd *cobra.Command, args []string) {
@@ -75,4 +96,11 @@ func init() {
 	// Register subcommands
 	rootCmd.AddCommand(install.NewCommand())
 	rootCmd.AddCommand(sync.NewCommand())
+	rootCmd.AddCommand(add.NewCommand())
+	rootCmd.AddCommand(list.NewCommand())
+	rootCmd.AddCommand(remove.NewCommand())
+	rootCmd.AddCommand(switchcmd.NewCommand())
+	rootCmd.AddCommand(update.NewCommand())
+	rootCmd.AddCommand(importcmd.NewCommand())
+	rootCmd.AddCommand(configcmd.NewCommand())
 }
