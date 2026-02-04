@@ -8,21 +8,32 @@ import (
 	"github.com/spf13/viper"
 )
 
-func ReadConfig(flagConfigPath string) Config {
+type ConfigFlags struct {
+	ConfigPath string
+	LogLevel   string
+}
+
+func ReadConfig(flags ConfigFlags) Config {
 	v := viper.New()
 
 	v.SetConfigName("config")
 
 	envConfigPath, isEnvConfigPathSet := os.LookupEnv("BINMATE_CONFIG_PATH")
 
+	logLevel := flags.LogLevel
+	if logLevel == "" {
+		logLevel = "silent"
+	}
+
 	// set defaults
 	v.SetDefault("version", 1)
 	v.SetDefault("binaries", []Binary{})
+	v.SetDefault("logLevel", logLevel)
 
 	homeDir, _ := os.UserConfigDir()
 
-	if flagConfigPath != "" {
-		v.SetConfigFile(flagConfigPath)
+	if flags.ConfigPath != "" {
+		v.SetConfigFile(flags.ConfigPath)
 	} else if isEnvConfigPathSet {
 		v.SetConfigFile(envConfigPath)
 	} else {
