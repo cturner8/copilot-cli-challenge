@@ -2,7 +2,6 @@ package sync
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"cturner8/binmate/internal/core/config"
@@ -44,9 +43,10 @@ func NewCommand() *cobra.Command {
 				return fmt.Errorf("%s: %w", msg, err)
 			}
 
-			log.Println("Sync complete")
-
 			DBService.Logs.LogSuccess(id, int64(time.Since(start)))
+
+			fmt.Fprintln(cmd.OutOrStdout(), "✓ Sync complete")
+
 			return nil
 		},
 	}

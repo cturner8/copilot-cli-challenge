@@ -17,6 +17,7 @@ const (
 	keySave = "ctrl+s"
 
 	// Tab cycling keys
+	tab             = "tab"
 	keyShiftTab     = "shift+tab"
 	keyCtrlShiftTab = "ctrl+shift+tab"
 

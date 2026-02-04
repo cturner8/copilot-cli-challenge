@@ -2,7 +2,6 @@ package install
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -45,7 +44,7 @@ func NewCommand() *cobra.Command {
 				return fmt.Errorf("sync start error: %w", err)
 			}
 
-			log.Printf("installing binary: %s version: %s", binary, version)
+			fmt.Fprintf(cmd.OutOrStdout(), "Installing %s version %s...\n", binary, version)
 
 			DBService.Logs.LogEntity(id, binary, version)
 
@@ -57,15 +56,15 @@ func NewCommand() *cobra.Command {
 				return fmt.Errorf("%s: %w", msg, err)
 			}
 
-			log.Printf("downloaded binary: %s version: %s", binary, result.Version)
-
 			DBService.Logs.LogSuccess(id, int64(time.Since(start)))
+
+			fmt.Fprintf(cmd.OutOrStdout(), "✓ Successfully installed %s version %s\n", binary, result.Version)
 			return nil
 		},
 	}
 
-	cmd.Flags().StringVar(&binary, "binary", "", "binary to be installed")
-	cmd.Flags().StringVar(&version, "version", "latest", "version of the binary to be installed")
+	cmd.Flags().StringVarP(&binary, "binary", "b", "", "binary to be installed")
+	cmd.Flags().StringVarP(&version, "version", "v", "latest", "version of the binary to be installed")
 
 	// Mark required flags
 	cmd.MarkFlagRequired("binary")

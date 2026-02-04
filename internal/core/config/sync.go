@@ -62,9 +62,7 @@ func SyncBinary(binaryID string, config Config, dbService *repository.Service) e
 }
 
 // ReadAndSync reads config and syncs to database
-func ReadAndSync(dbService *repository.Service) (Config, error) {
-	config := ReadConfig()
-
+func ReadAndSync(config Config, dbService *repository.Service) (Config, error) {
 	if err := SyncToDatabase(config, dbService); err != nil {
 		return config, fmt.Errorf("failed to sync to database: %w", err)
 	}
