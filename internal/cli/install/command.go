@@ -163,8 +163,8 @@ func NewCommand() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringVar(&binary, "binary", "", "binary to be installed")
-	cmd.Flags().StringVar(&version, "version", "latest", "version of the binary to be installed")
+	cmd.Flags().StringVarP(&binary, "binary", "b", "", "binary to be installed")
+	cmd.Flags().StringVarP(&version, "version", "v", "latest", "version of the binary to be installed")
 
 	// Mark required flags
 	cmd.MarkFlagRequired("binary")
