@@ -3,6 +3,7 @@ package add
 import (
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/spf13/cobra"
 
@@ -48,7 +49,7 @@ The binary will be registered in the database but not installed until you run 'b
 			// Case 2: URL provided as first argument
 			if len(args) > 0 && len(args[0]) > 0 {
 				// Check if it's a URL (starts with http)
-				if len(args[0]) > 4 && (args[0][:4] == "http" || args[0][:5] == "https") {
+				if strings.HasPrefix(args[0], "http://") || strings.HasPrefix(args[0], "https://") {
 					binary, err := binarySvc.AddBinaryFromURL(args[0], DBService)
 					if err != nil {
 						return fmt.Errorf("failed to add binary from URL: %w", err)

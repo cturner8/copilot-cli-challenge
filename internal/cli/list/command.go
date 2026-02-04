@@ -3,6 +3,7 @@ package list
 import (
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/spf13/cobra"
 
@@ -104,6 +105,6 @@ Examples:
 }
 
 func formatTimestamp(timestamp int64) string {
-	// Simple formatting - just return as string for now
-	return fmt.Sprintf("%d", timestamp)
+	t := time.Unix(timestamp, 0)
+	return t.Format("2006-01-02 15:04")
 }
