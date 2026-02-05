@@ -72,12 +72,12 @@ func ParseGitHubReleaseURL(rawURL string) (*ParsedGitHubRelease, error) {
 // detectFormat detects the archive format from the file name
 func detectFormat(fileName string) string {
 	ext := path.Ext(fileName)
-	
+
 	// Check for .tar.gz
 	if strings.HasSuffix(fileName, ".tar.gz") {
 		return ".tar.gz"
 	}
-	
+
 	// Check for other common formats
 	switch ext {
 	case ".zip":
@@ -96,16 +96,16 @@ func GenerateBinaryID(assetName string) string {
 	name := strings.TrimSuffix(assetName, ".tar.gz")
 	name = strings.TrimSuffix(name, ".zip")
 	name = strings.TrimSuffix(name, ".tgz")
-	
+
 	// Split by common separators
 	parts := strings.FieldsFunc(name, func(r rune) bool {
 		return r == '-' || r == '_'
 	})
-	
+
 	if len(parts) > 0 {
 		return parts[0]
 	}
-	
+
 	return name
 }
 

@@ -3,8 +3,8 @@ package tui
 import (
 	"fmt"
 
-	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/bubbles/textinput"
+	tea "github.com/charmbracelet/bubbletea"
 
 	"cturner8/binmate/internal/core/crypto"
 	urlparser "cturner8/binmate/internal/core/url"
@@ -176,12 +176,12 @@ func (m model) updateAddBinaryURL(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 
 		// Create parsed binary config
 		m.parsedBinary = &parsedBinaryConfig{
-			userID:   urlparser.GenerateBinaryID(parsed.AssetName),
-			name:     urlparser.GenerateBinaryName(parsed.AssetName),
-			provider: "github",
-			path:     fmt.Sprintf("%s/%s", parsed.Owner, parsed.Repo),
-			format:   parsed.Format,
-			version:  parsed.Version,
+			userID:    urlparser.GenerateBinaryID(parsed.AssetName),
+			name:      urlparser.GenerateBinaryName(parsed.AssetName),
+			provider:  "github",
+			path:      fmt.Sprintf("%s/%s", parsed.Owner, parsed.Repo),
+			format:    parsed.Format,
+			version:   parsed.Version,
 			assetName: parsed.AssetName,
 		}
 

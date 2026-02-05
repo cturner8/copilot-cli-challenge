@@ -11,7 +11,7 @@ func (m model) renderAddBinaryURL() string {
 
 	b.WriteString(titleStyle.Render("➕ Add Binary - Enter GitHub Release URL"))
 	b.WriteString("\n\n")
-	
+
 	if m.errorMessage != "" {
 		b.WriteString(errorStyle.Render("Error: " + m.errorMessage))
 		b.WriteString("\n\n")
@@ -68,7 +68,7 @@ func (m model) renderAddBinaryForm() string {
 	for i, label := range fieldLabels {
 		labelStr := formLabelStyle.Render(fmt.Sprintf("%-15s: ", label))
 		b.WriteString(labelStr)
-		
+
 		if i < len(m.formInputs) {
 			b.WriteString(m.formInputs[i].View())
 		}
