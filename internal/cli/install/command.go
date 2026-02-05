@@ -30,9 +30,16 @@ func NewCommand() *cobra.Command {
 		SilenceUsage:  true,  // Don't show usage on runtime errors
 		SilenceErrors: false, // Still print errors
 		PreRunE: func(cmd *cobra.Command, args []string) error {
-			// Sync the specific binary from config to database
+			// Check if binary exists in database first
+			_, err := DBService.Binaries.GetByUserID(binary)
+			if err == nil {
+				// Binary already in database, no need to sync from config
+				return nil
+			}
+
+			// Binary not in database, try to sync from config
 			if err := config.SyncBinary(binary, *Config, DBService); err != nil {
-				return fmt.Errorf("failed to sync binary config: %w", err)
+				return fmt.Errorf("binary '%s' not found in database or config: %w", binary, err)
 			}
 			return nil
 		},
