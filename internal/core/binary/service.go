@@ -3,6 +3,7 @@ package binary
 import (
 	"fmt"
 	"log"
+	"os"
 
 	"cturner8/binmate/internal/core/crypto"
 	"cturner8/binmate/internal/core/url"
@@ -71,10 +72,37 @@ func RemoveBinary(binaryID string, dbService *repository.Service, removeFiles bo
 		return fmt.Errorf("failed to list installations: %w", err)
 	}
 
-	// TODO: If removeFiles is true, delete the physical files and symlinks
-	// This would require implementing file system operations
+	// Delete physical files and symlinks if requested
 	if removeFiles {
-		log.Printf("Warning: physical file removal not yet implemented")
+		// Get the active version to find the symlink path
+		version, err := dbService.Versions.Get(binary.ID)
+		if err == nil {
+			// Symlink exists, try to remove it
+			if version.SymlinkPath != "" {
+				if err := os.Remove(version.SymlinkPath); err != nil {
+					// Log warning but continue - symlink may have been manually deleted
+					if !os.IsNotExist(err) {
+						log.Printf("Warning: failed to remove symlink %s: %v", version.SymlinkPath, err)
+					}
+				} else {
+					log.Printf("Removed symlink: %s", version.SymlinkPath)
+				}
+			}
+		}
+
+		// Delete all installation directories
+		for _, inst := range installations {
+			if inst.InstalledPath != "" {
+				if err := os.RemoveAll(inst.InstalledPath); err != nil {
+					// Log warning but continue - files may have been manually deleted
+					if !os.IsNotExist(err) {
+						log.Printf("Warning: failed to remove installation at %s: %v", inst.InstalledPath, err)
+					}
+				} else {
+					log.Printf("Removed installation: %s", inst.InstalledPath)
+				}
+			}
+		}
 	}
 
 	// Delete from database (cascade will handle installations, versions)
