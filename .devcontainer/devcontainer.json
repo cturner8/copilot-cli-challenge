@@ -10,7 +10,7 @@
     "ghcr.io/devcontainers/features/copilot-cli:1": {},
     "ghcr.io/devcontainers-extra/features/gh-release": {
       "repo": "steveyegge/beads",
-      "binaryNames": "bd,beads"
+      "binaryNames": "bd"
     }
   },
 
