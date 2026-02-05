@@ -59,7 +59,7 @@ func (r *LogsRepository) LogEntity(id int64, entityType, entityID string) error 
 UPDATE logs 
 SET entity_type = ?, entity_id = ?
 WHERE id = ?
-`, entityType, entityID)
+`, entityType, entityID, id)
 
 	if err != nil {
 		return fmt.Errorf("failed to log entity: %w", err)
