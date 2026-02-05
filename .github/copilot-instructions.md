@@ -37,7 +37,7 @@ bd sync               # Sync with git
 **MANDATORY WORKFLOW:**
 
 1. **File issues for remaining work** - Create issues for anything that needs follow-up
-2. **Run quality gates** (if code changed) - Tests, linters, builds
+2. **Run quality gates** (if code changed) - Tests, linters, builds, formatter
 3. **Update issue status** - Close finished work, update in-progress items
 4. **PUSH TO REMOTE** - This is MANDATORY:
    ```bash
@@ -173,6 +173,7 @@ bd sync               # Sync with git
 - Keep packages focused and single-purpose
 - Prefer small, composable functions
 - Use meaningful variable and function names
+- When changing or adding new `go` files, run `go fmt` on changes files
 
 ### Configuration Schema
 
