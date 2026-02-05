@@ -10,10 +10,10 @@ import (
 
 // Known test vectors for SHA256
 const (
-	testContent1      = "Hello, World!"
-	testSHA256_1      = "dffd6021bb2bd5b0af676290809ec3a53191dd81c7f70a4b28688a362182986f"
-	testContent2      = "The quick brown fox jumps over the lazy dog"
-	testSHA256_2      = "d7a8fbb307d7809469ca9abcb0082e4f8d5651e46d3cdb762d02d0bf37c9e592"
+	testContent1       = "Hello, World!"
+	testSHA256_1       = "dffd6021bb2bd5b0af676290809ec3a53191dd81c7f70a4b28688a362182986f"
+	testContent2       = "The quick brown fox jumps over the lazy dog"
+	testSHA256_2       = "d7a8fbb307d7809469ca9abcb0082e4f8d5651e46d3cdb762d02d0bf37c9e592"
 	emptyContentSHA256 = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
 )
 
@@ -127,7 +127,7 @@ func TestVerifySHA256_NonExistentFile(t *testing.T) {
 
 func TestComputeDigest_SingleField(t *testing.T) {
 	digest := ComputeDigest("test")
-	
+
 	// Verify format is "sha256:..."
 	if len(digest) < 8 || digest[:7] != "sha256:" {
 		t.Errorf("Digest should start with 'sha256:', got: %s", digest)
@@ -331,7 +331,7 @@ func TestLargeFile(t *testing.T) {
 	}
 
 	tmpFile := filepath.Join(t.TempDir(), "large.bin")
-	
+
 	// Create a 10MB file
 	size := 10 * 1024 * 1024
 	data := make([]byte, size)
@@ -369,12 +369,12 @@ func TestLargeFile(t *testing.T) {
 // Helper function to create a temp file with content
 func createTempFile(t *testing.T, content string) string {
 	t.Helper()
-	
+
 	tmpFile := filepath.Join(t.TempDir(), "test.txt")
 	if err := os.WriteFile(tmpFile, []byte(content), 0644); err != nil {
 		t.Fatalf("Failed to create temp file: %v", err)
 	}
-	
+
 	return tmpFile
 }
 
