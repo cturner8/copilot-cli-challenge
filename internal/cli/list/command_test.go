@@ -21,9 +21,9 @@ func setupTestEnv(t *testing.T) (*repository.Service, *config.Config, func()) {
 	}
 
 	dbService := repository.NewService(db)
-	
+
 	cfg := &config.Config{
-		Version: 1,
+		Version:  1,
 		Binaries: []config.Binary{},
 	}
 
@@ -43,15 +43,15 @@ func TestListCommand_Empty(t *testing.T) {
 
 	cmd := NewCommand()
 	cmd.SetArgs([]string{})
-	
+
 	buf := new(bytes.Buffer)
 	cmd.SetOut(buf)
-	
+
 	err := cmd.Execute()
 	if err != nil {
 		t.Errorf("Command failed: %v", err)
 	}
-	
+
 	output := buf.String()
 	if !strings.Contains(output, "No binaries") {
 		t.Errorf("Expected 'No binaries' message, got: %s", output)
@@ -79,15 +79,15 @@ func TestListCommand_WithBinaries(t *testing.T) {
 
 	cmd := NewCommand()
 	cmd.SetArgs([]string{})
-	
+
 	buf := new(bytes.Buffer)
 	cmd.SetOut(buf)
-	
+
 	err := cmd.Execute()
 	if err != nil {
 		t.Errorf("Command failed: %v", err)
 	}
-	
+
 	output := buf.String()
 	if !strings.Contains(output, "testbin") {
 		t.Errorf("Expected binary name in output, got: %s", output)
@@ -105,7 +105,7 @@ func TestListCommand_LsAlias(t *testing.T) {
 	DBService = dbService
 
 	cmd := NewCommand()
-	
+
 	// Check if ls alias exists
 	found := false
 	for _, alias := range cmd.Aliases {
@@ -114,7 +114,7 @@ func TestListCommand_LsAlias(t *testing.T) {
 			break
 		}
 	}
-	
+
 	if !found {
 		t.Error("Expected 'ls' alias to be present")
 	}
@@ -123,15 +123,15 @@ func TestListCommand_LsAlias(t *testing.T) {
 func TestListCommand_Help(t *testing.T) {
 	cmd := NewCommand()
 	cmd.SetArgs([]string{"--help"})
-	
+
 	buf := new(bytes.Buffer)
 	cmd.SetOut(buf)
-	
+
 	err := cmd.Execute()
 	if err != nil {
 		t.Errorf("Help command failed: %v", err)
 	}
-	
+
 	output := buf.String()
 	if !strings.Contains(output, "List") {
 		t.Error("Help output missing expected text")

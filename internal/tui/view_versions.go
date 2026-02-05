@@ -64,10 +64,10 @@ func (m model) renderVersions() string {
 	if availableWidth == 0 {
 		availableWidth = defaultTerminalWidth
 	}
-	
+
 	// Account for padding: 2 chars per column (5 columns = 10 total)
 	totalWidth := availableWidth - columnPadding5
-	
+
 	// Allocate proportional widths: Active 5%, Version 20%, Installed 20%, Size 15%, Path 40%
 	activeWidth := int(float64(totalWidth) * 0.05)
 	versionWidth := int(float64(totalWidth) * 0.20)
@@ -137,10 +137,10 @@ func formatBytes(bytes int64) string {
 	if bytes < unit {
 		return fmt.Sprintf("%d B", bytes)
 	}
-	
+
 	// Unit prefixes: Kilo, Mega, Giga, Tera, Peta, Exa
 	const unitPrefixes = "KMGTPE"
-	
+
 	div, exp := int64(unit), 0
 	for n := bytes / unit; n >= unit; n /= unit {
 		div *= unit

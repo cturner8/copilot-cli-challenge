@@ -9,7 +9,7 @@ import (
 func TestFormatTimestamp(t *testing.T) {
 	// Use a fixed timestamp for testing
 	timestamp := int64(1609459200) // 2021-01-01 00:00:00 UTC
-	
+
 	tests := []struct {
 		name       string
 		timestamp  int64
@@ -42,7 +42,7 @@ func TestFormatTimestamp(t *testing.T) {
 			// Just verify it doesn't panic
 		},
 	}
-	
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got := FormatTimestamp(tt.timestamp, tt.dateFormat)
@@ -63,7 +63,7 @@ func TestGetDefaultDateFormat(t *testing.T) {
 	if format == "" {
 		t.Error("GetDefaultDateFormat() returned empty string")
 	}
-	
+
 	// Verify the format works with time.Format
 	now := time.Now()
 	result := now.Format(format)
@@ -84,7 +84,7 @@ func TestIsEuropeanLocale(t *testing.T) {
 		{"US locale", "en_US.UTF-8", false},
 		{"empty locale", "", false},
 	}
-	
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := isEuropeanLocale(tt.locale); got != tt.want {
@@ -104,7 +104,7 @@ func TestIsUSLocale(t *testing.T) {
 		{"UK locale", "en_GB.UTF-8", false},
 		{"empty locale", "", false},
 	}
-	
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := isUSLocale(tt.locale); got != tt.want {
@@ -126,7 +126,7 @@ func TestIsEuropeanTimezone(t *testing.T) {
 		{"EST", "EST", false},
 		{"empty", "", false},
 	}
-	
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := isEuropeanTimezone(tt.tz); got != tt.want {
@@ -147,7 +147,7 @@ func TestIsUSTimezone(t *testing.T) {
 		{"GMT", "GMT", false},
 		{"empty", "", false},
 	}
-	
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := isUSTimezone(tt.tz); got != tt.want {
@@ -162,36 +162,36 @@ func TestGetLocaleFromEnv(t *testing.T) {
 	origLCTime := os.Getenv("LC_TIME")
 	origLCAll := os.Getenv("LC_ALL")
 	origLang := os.Getenv("LANG")
-	
+
 	defer func() {
 		// Restore original env vars
 		os.Setenv("LC_TIME", origLCTime)
 		os.Setenv("LC_ALL", origLCAll)
 		os.Setenv("LANG", origLang)
 	}()
-	
+
 	// Clear all locale env vars
 	os.Unsetenv("LC_TIME")
 	os.Unsetenv("LC_ALL")
 	os.Unsetenv("LANG")
-	
+
 	// Test empty case
 	if got := getLocaleFromEnv(); got != "" {
 		t.Errorf("getLocaleFromEnv() with no env vars = %q, want empty string", got)
 	}
-	
+
 	// Test LANG
 	os.Setenv("LANG", "en_US.UTF-8")
 	if got := getLocaleFromEnv(); got != "en_US.UTF-8" {
 		t.Errorf("getLocaleFromEnv() with LANG = %q, want %q", got, "en_US.UTF-8")
 	}
-	
+
 	// Test LC_ALL takes precedence
 	os.Setenv("LC_ALL", "en_GB.UTF-8")
 	if got := getLocaleFromEnv(); got != "en_GB.UTF-8" {
 		t.Errorf("getLocaleFromEnv() with LC_ALL = %q, want %q", got, "en_GB.UTF-8")
 	}
-	
+
 	// Test LC_TIME takes precedence
 	os.Setenv("LC_TIME", "de_DE.UTF-8")
 	if got := getLocaleFromEnv(); got != "de_DE.UTF-8" {

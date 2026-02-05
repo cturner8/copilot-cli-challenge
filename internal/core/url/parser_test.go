@@ -94,19 +94,19 @@ func TestParseGitHubReleaseURL(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := ParseGitHubReleaseURL(tt.url)
-			
+
 			if tt.expectError {
 				if err == nil {
 					t.Errorf("ParseGitHubReleaseURL() expected error but got none")
 				}
 				return
 			}
-			
+
 			if err != nil {
 				t.Errorf("ParseGitHubReleaseURL() unexpected error: %v", err)
 				return
 			}
-			
+
 			if got.Owner != tt.want.Owner {
 				t.Errorf("Owner = %v, want %v", got.Owner, tt.want.Owner)
 			}

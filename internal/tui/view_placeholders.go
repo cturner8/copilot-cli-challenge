@@ -10,7 +10,7 @@ func (m model) renderDownloads() string {
 
 	b.WriteString(titleStyle.Render("📦 Binmate - Binary Manager"))
 	b.WriteString("\n\n")
-	
+
 	// Tabs
 	b.WriteString(m.renderTabs())
 
@@ -29,7 +29,7 @@ func (m model) renderConfiguration() string {
 
 	b.WriteString(titleStyle.Render("📦 Binmate - Binary Manager"))
 	b.WriteString("\n\n")
-	
+
 	// Tabs
 	b.WriteString(m.renderTabs())
 
@@ -48,7 +48,7 @@ func (m model) renderHelp() string {
 
 	b.WriteString(titleStyle.Render("📦 Binmate - Binary Manager"))
 	b.WriteString("\n\n")
-	
+
 	// Tabs
 	b.WriteString(m.renderTabs())
 	b.WriteString(headerStyle.Render("Binmate - Binary Version Manager"))

@@ -1,8 +1,8 @@
 package tui
 
 import (
-	tea "github.com/charmbracelet/bubbletea"
 	"cturner8/binmate/internal/database/repository"
+	tea "github.com/charmbracelet/bubbletea"
 )
 
 func (m model) Init() tea.Cmd {

@@ -33,9 +33,9 @@ type model struct {
 	urlTextInput textinput.Model
 
 	// Add binary view state - Form
-	parsedBinary  *parsedBinaryConfig
-	formInputs    []textinput.Model
-	focusedField  int
+	parsedBinary *parsedBinaryConfig
+	formInputs   []textinput.Model
+	focusedField int
 
 	// Error state
 	errorMessage string

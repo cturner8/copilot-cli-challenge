@@ -44,7 +44,7 @@ func createTestInstallation(t *testing.T, dbService *repository.Service, binaryI
 	// Create a temporary directory for the test binary
 	tmpDir := t.TempDir()
 	binaryPath := filepath.Join(tmpDir, "testbin")
-	
+
 	// Create a dummy binary file
 	if err := os.WriteFile(binaryPath, []byte("#!/bin/bash\necho test"), 0755); err != nil {
 		t.Fatalf("Failed to create test binary file: %v", err)
@@ -150,13 +150,13 @@ func TestSwitchVersion(t *testing.T) {
 	// Set initial active version
 	tmpDir := t.TempDir()
 	symlinkPath := filepath.Join(tmpDir, "testbin-link")
-	
+
 	// Get the first installation
 	installation1, err := dbService.Installations.Get(binary.ID, "v1.0.0")
 	if err != nil {
 		t.Fatalf("Failed to get installation: %v", err)
 	}
-	
+
 	if err := dbService.Versions.Set(binary.ID, installation1.ID, symlinkPath); err != nil {
 		t.Fatalf("Failed to set initial version: %v", err)
 	}

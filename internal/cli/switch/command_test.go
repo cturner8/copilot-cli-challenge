@@ -21,7 +21,7 @@ func setupTestEnv(t *testing.T) (*repository.Service, *config.Config, func()) {
 	}
 
 	dbService := repository.NewService(db)
-	
+
 	cfg := &config.Config{
 		Version:  1,
 		Binaries: []config.Binary{},
@@ -43,11 +43,11 @@ func TestSwitchCommand_NonExistent(t *testing.T) {
 
 	cmd := NewCommand()
 	cmd.SetArgs([]string{"--binary", "nonexistent", "--version", "v1.0.0"})
-	
+
 	buf := new(bytes.Buffer)
 	cmd.SetOut(buf)
 	cmd.SetErr(buf)
-	
+
 	err := cmd.Execute()
 	if err == nil {
 		t.Error("Expected error for non-existent binary, got none")
@@ -63,11 +63,11 @@ func TestSwitchCommand_MissingBinaryFlag(t *testing.T) {
 
 	cmd := NewCommand()
 	cmd.SetArgs([]string{"--version", "v1.0.0"})
-	
+
 	buf := new(bytes.Buffer)
 	cmd.SetOut(buf)
 	cmd.SetErr(buf)
-	
+
 	err := cmd.Execute()
 	if err == nil {
 		t.Error("Expected error when binary flag missing, got none")
@@ -83,11 +83,11 @@ func TestSwitchCommand_MissingVersionFlag(t *testing.T) {
 
 	cmd := NewCommand()
 	cmd.SetArgs([]string{"--binary", "testbin"})
-	
+
 	buf := new(bytes.Buffer)
 	cmd.SetOut(buf)
 	cmd.SetErr(buf)
-	
+
 	err := cmd.Execute()
 	if err == nil {
 		t.Error("Expected error when version flag missing, got none")
@@ -103,11 +103,11 @@ func TestSwitchCommand_Shorthands(t *testing.T) {
 
 	cmd := NewCommand()
 	cmd.SetArgs([]string{"-b", "testbin", "-v", "v1.0.0"})
-	
+
 	buf := new(bytes.Buffer)
 	cmd.SetOut(buf)
 	cmd.SetErr(buf)
-	
+
 	// This will error because testbin doesn't exist, but it validates flag parsing
 	err := cmd.Execute()
 	if err == nil {
@@ -118,15 +118,15 @@ func TestSwitchCommand_Shorthands(t *testing.T) {
 func TestSwitchCommand_Help(t *testing.T) {
 	cmd := NewCommand()
 	cmd.SetArgs([]string{"--help"})
-	
+
 	buf := new(bytes.Buffer)
 	cmd.SetOut(buf)
-	
+
 	err := cmd.Execute()
 	if err != nil {
 		t.Errorf("Help command failed: %v", err)
 	}
-	
+
 	output := buf.String()
 	if !strings.Contains(output, "Switch") {
 		t.Error("Help output missing expected text")

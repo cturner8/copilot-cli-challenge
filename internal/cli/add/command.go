@@ -23,8 +23,8 @@ func NewCommand() *cobra.Command {
 	)
 
 	cmd := &cobra.Command{
-		Use:           "add [binary-id] [url]",
-		Short:         "Add a new binary from GitHub release URL or config",
+		Use:   "add [binary-id] [url]",
+		Short: "Add a new binary from GitHub release URL or config",
 		Long: `Add a new binary to binmate.
 
 You can add a binary in two ways:

@@ -4,12 +4,12 @@ import "github.com/charmbracelet/lipgloss"
 
 var (
 	// Color scheme - orange theme to match the box icon
-	primaryColor   = lipgloss.Color("#F97316")  // Orange
-	secondaryColor = lipgloss.Color("#FB923C")  // Light orange
-	accentColor    = lipgloss.Color("#FDBA74")  // Lighter orange
-	errorColor     = lipgloss.Color("#EF4444")  // Red
-	successColor   = lipgloss.Color("#10B981")  // Green
-	mutedColor     = lipgloss.Color("#6B7280")  // Grey
+	primaryColor   = lipgloss.Color("#F97316") // Orange
+	secondaryColor = lipgloss.Color("#FB923C") // Light orange
+	accentColor    = lipgloss.Color("#FDBA74") // Lighter orange
+	errorColor     = lipgloss.Color("#EF4444") // Red
+	successColor   = lipgloss.Color("#10B981") // Green
+	mutedColor     = lipgloss.Color("#6B7280") // Grey
 
 	// Base styles
 	titleStyle = lipgloss.NewStyle().

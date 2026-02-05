@@ -203,7 +203,7 @@ func SelectBestAsset(assets []ReleaseAsset) (ReleaseAsset, error) {
 				matching = append(matching, asset)
 			}
 		}
-		
+
 		if len(matching) > 0 {
 			// Sort by name length to prefer simpler names
 			// (assets without additional suffixes come first)
