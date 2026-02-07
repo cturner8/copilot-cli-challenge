@@ -24,6 +24,7 @@ const (
 	keyRemove    = "r"
 	keyCheck     = "c"
 	keyImport    = "m" // 'm' for iMport
+	keySync      = "s" // 's' for sync (in config view)
 
 	// Tab cycling keys
 	tab             = "tab"
@@ -48,7 +49,7 @@ func getHelpText(view viewState) string {
 	case viewDownloads:
 		return "1-4/shift+tab/ctrl+shift+tab: switch tabs • q: quit"
 	case viewConfiguration:
-		return "1-4/shift+tab/ctrl+shift+tab: switch tabs • q: quit"
+		return "s: sync config to database • 1-4/shift+tab/ctrl+shift+tab: switch tabs • q: quit"
 	case viewHelp:
 		return "1-4/shift+tab/ctrl+shift+tab: switch tabs • q: quit"
 	default:

@@ -64,6 +64,11 @@ type (
 		err            error
 	}
 
+	// configSyncedMsg is sent when config sync is complete
+	configSyncedMsg struct {
+		err error
+	}
+
 	// errorMsg represents an error state
 	errorMsg struct {
 		err error

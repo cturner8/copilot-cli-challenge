@@ -7,6 +7,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 
 	binarySvc "cturner8/binmate/internal/core/binary"
+	configPkg "cturner8/binmate/internal/core/config"
 	"cturner8/binmate/internal/core/crypto"
 	installSvc "cturner8/binmate/internal/core/install"
 	urlparser "cturner8/binmate/internal/core/url"
@@ -120,6 +121,19 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			} else {
 				m.successMessage = fmt.Sprintf("✓ %s is up to date (%s)", msg.binaryID, msg.currentVersion)
 			}
+		}
+		return m, nil
+
+	case configSyncedMsg:
+		m.loading = false
+		if msg.err != nil {
+			m.errorMessage = msg.err.Error()
+			m.successMessage = ""
+		} else {
+			m.errorMessage = ""
+			m.successMessage = "Configuration synced to database successfully"
+			// Reload binaries list
+			return m, loadBinaries(m.dbService)
 		}
 		return m, nil
 
@@ -618,6 +632,18 @@ func saveBinary(m model) tea.Cmd {
 
 // updatePlaceholderView handles updates for placeholder views (Downloads, Configuration, Help)
 func (m model) updatePlaceholderView(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
+	// Configuration view: handle sync action
+	if m.currentView == viewConfiguration {
+		switch msg.String() {
+		case keySync:
+			// Trigger sync
+			m.errorMessage = ""
+			m.successMessage = ""
+			m.loading = true
+			return m, syncConfig(m.dbService, m.config)
+		}
+	}
+
 	// Check for tab switching
 	if view, ok := getTabForKey(msg.String()); ok {
 		m.currentView = view
@@ -922,4 +948,16 @@ func (m model) updateImportBinary(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		m.importNameInput, cmd = m.importNameInput.Update(msg)
 	}
 	return m, cmd
+}
+
+// syncConfig syncs the configuration file to the database
+func syncConfig(dbService *repository.Service, cfg *configPkg.Config) tea.Cmd {
+	return func() tea.Msg {
+		err := configPkg.SyncToDatabase(*cfg, dbService)
+		if err != nil {
+			return configSyncedMsg{err: fmt.Errorf("failed to sync config: %w", err)}
+		}
+
+		return configSyncedMsg{err: nil}
+	}
 }

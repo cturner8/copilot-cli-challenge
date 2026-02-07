@@ -1,6 +1,7 @@
 package tui
 
 import (
+	"fmt"
 	"strings"
 )
 
@@ -23,7 +24,7 @@ func (m model) renderDownloads() string {
 	return b.String()
 }
 
-// renderConfiguration renders the configuration placeholder view
+// renderConfiguration renders the configuration view
 func (m model) renderConfiguration() string {
 	var b strings.Builder
 
@@ -33,11 +34,63 @@ func (m model) renderConfiguration() string {
 	// Tabs
 	b.WriteString(m.renderTabs())
 
-	b.WriteString(emptyStateStyle.Render("This view will allow you to manage global configuration/settings."))
-	b.WriteString("\n")
-	b.WriteString(emptyStateStyle.Render("(Not yet implemented)"))
+	// Show error if any
+	if m.errorMessage != "" {
+		b.WriteString(errorStyle.Render("Error: " + m.errorMessage))
+		b.WriteString("\n\n")
+	}
+
+	// Show success message if any
+	if m.successMessage != "" {
+		b.WriteString(successStyle.Render("✓ " + m.successMessage))
+		b.WriteString("\n\n")
+	}
+
+	// Show loading state
+	if m.loading {
+		b.WriteString(loadingStyle.Render("Syncing configuration..."))
+		b.WriteString("\n\n")
+		b.WriteString(helpStyle.Render(getHelpText(m.currentView)))
+		return b.String()
+	}
+
+	// Configuration display
+	b.WriteString(headerStyle.Render("Configuration Settings"))
 	b.WriteString("\n\n")
-	b.WriteString(helpStyle.Render(getHelpText(m.currentView)))
+
+	if m.config != nil {
+		b.WriteString(fmt.Sprintf("Version: %d\n", m.config.Version))
+		b.WriteString(fmt.Sprintf("Binaries in config: %d\n", len(m.config.Binaries)))
+		if m.config.DateFormat != "" {
+			b.WriteString(fmt.Sprintf("Date Format: %s\n", m.config.DateFormat))
+		}
+		if m.config.LogLevel != "" {
+			b.WriteString(fmt.Sprintf("Log Level: %s\n", m.config.LogLevel))
+		}
+		b.WriteString("\n")
+
+		// Show first few binaries from config
+		if len(m.config.Binaries) > 0 {
+			b.WriteString(headerStyle.Render("Configured Binaries:"))
+			b.WriteString("\n")
+			maxShow := 5
+			if len(m.config.Binaries) < maxShow {
+				maxShow = len(m.config.Binaries)
+			}
+			for i := 0; i < maxShow; i++ {
+				binary := m.config.Binaries[i]
+				b.WriteString(fmt.Sprintf("  • %s (%s)\n", binary.Name, binary.Id))
+			}
+			if len(m.config.Binaries) > maxShow {
+				b.WriteString(fmt.Sprintf("  ... and %d more\n", len(m.config.Binaries)-maxShow))
+			}
+		}
+	} else {
+		b.WriteString(emptyStateStyle.Render("No configuration loaded"))
+	}
+
+	b.WriteString("\n")
+	b.WriteString(helpStyle.Render("s: sync config to database • esc: back • q: quit"))
 
 	return b.String()
 }
