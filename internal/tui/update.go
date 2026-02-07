@@ -76,6 +76,23 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		return m, nil
 
+	case binaryUpdatedMsg:
+		if msg.err != nil {
+			m.errorMessage = msg.err.Error()
+			m.successMessage = ""
+		} else {
+			m.errorMessage = ""
+			if msg.oldVersion == msg.newVersion {
+				m.successMessage = fmt.Sprintf("%s is already up to date (%s)", msg.binaryID, msg.newVersion)
+			} else {
+				m.successMessage = fmt.Sprintf("Updated %s from %s to %s", msg.binaryID, msg.oldVersion, msg.newVersion)
+			}
+			// Reload binaries list
+			m.loading = true
+			return m, loadBinaries(m.dbService)
+		}
+		return m, nil
+
 	case versionSwitchedMsg:
 		if msg.err != nil {
 			m.errorMessage = msg.err.Error()
@@ -192,6 +209,24 @@ func (m model) updateBinariesList(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 			m.installVersionInput.Focus()
 			m.errorMessage = ""
 			m.successMessage = ""
+		}
+
+	case keyUpdate:
+		// Update selected binary to latest version
+		if len(m.binaries) > 0 && m.selectedIndex < len(m.binaries) {
+			selectedBinary := m.binaries[m.selectedIndex]
+			m.errorMessage = ""
+			m.successMessage = ""
+			return m, updateBinary(m.dbService, selectedBinary.Binary.UserID)
+		}
+
+	case keyUpdateAll:
+		// Update all binaries to latest version
+		if len(m.binaries) > 0 {
+			m.errorMessage = ""
+			m.successMessage = ""
+			m.loading = true
+			return m, updateAllBinaries(m.dbService, m.binaries)
 		}
 
 	case keyQuit, keyCtrlC:
@@ -612,6 +647,62 @@ func installBinary(dbService *repository.Service, binaryID string, version strin
 			binary:       result.Binary,
 			installation: result.Installation,
 			err:          nil,
+		}
+	}
+}
+
+// updateBinary updates a binary to the latest version
+func updateBinary(dbService *repository.Service, binaryID string) tea.Cmd {
+	return func() tea.Msg {
+		// Get current active version if any
+		currentVersion := "none"
+		binary, err := dbService.Binaries.GetByUserID(binaryID)
+		if err == nil {
+			activeVer, err := dbService.Versions.Get(binary.ID)
+			if err == nil && activeVer != nil {
+				installation, err := dbService.Installations.GetByID(activeVer.InstallationID)
+				if err == nil {
+					currentVersion = installation.Version
+				}
+			}
+		}
+
+		// Use the install service to update to latest
+		result, err := installSvc.UpdateToLatest(binaryID, dbService)
+		if err != nil {
+			return binaryUpdatedMsg{
+				binaryID: binaryID,
+				err:      fmt.Errorf("failed to update binary: %w", err),
+			}
+		}
+
+		return binaryUpdatedMsg{
+			binaryID:   binaryID,
+			oldVersion: currentVersion,
+			newVersion: result.Version,
+			err:        nil,
+		}
+	}
+}
+
+// updateAllBinaries updates all binaries to their latest versions
+func updateAllBinaries(dbService *repository.Service, binaries []BinaryWithMetadata) tea.Cmd {
+	return func() tea.Msg {
+		updatedCount := 0
+		failedCount := 0
+
+		for _, b := range binaries {
+			_, err := installSvc.UpdateToLatest(b.Binary.UserID, dbService)
+			if err != nil {
+				failedCount++
+			} else {
+				updatedCount++
+			}
+		}
+
+		// Return a success message with the summary
+		return successMsg{
+			message: fmt.Sprintf("Updated %d binaries (%d failed)", updatedCount, failedCount),
 		}
 	}
 }
