@@ -6,6 +6,7 @@ import (
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 
+	binarySvc "cturner8/binmate/internal/core/binary"
 	"cturner8/binmate/internal/core/crypto"
 	installSvc "cturner8/binmate/internal/core/install"
 	urlparser "cturner8/binmate/internal/core/url"
@@ -93,6 +94,19 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		return m, nil
 
+	case binaryRemovedMsg:
+		if msg.err != nil {
+			m.errorMessage = msg.err.Error()
+			m.successMessage = ""
+		} else {
+			m.errorMessage = ""
+			m.successMessage = fmt.Sprintf("Binary %s removed successfully", msg.binaryID)
+			// Reload binaries list
+			m.loading = true
+			return m, loadBinaries(m.dbService)
+		}
+		return m, nil
+
 	case versionSwitchedMsg:
 		if msg.err != nil {
 			m.errorMessage = msg.err.Error()
@@ -161,6 +175,30 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 // updateBinariesList handles updates for the binaries list view
 func (m model) updateBinariesList(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
+	// Handle remove confirmation if active
+	if m.confirmingRemove {
+		switch msg.String() {
+		case "y":
+			// Remove without files
+			binaryID := m.removeBinaryID
+			m.confirmingRemove = false
+			m.removeBinaryID = ""
+			return m, removeBinary(m.dbService, binaryID, false)
+		case "Y":
+			// Remove with files
+			binaryID := m.removeBinaryID
+			m.confirmingRemove = false
+			m.removeBinaryID = ""
+			return m, removeBinary(m.dbService, binaryID, true)
+		case "n", keyEsc:
+			// Cancel
+			m.confirmingRemove = false
+			m.removeBinaryID = ""
+			return m, nil
+		}
+		return m, nil
+	}
+
 	// Check for tab switching
 	if view, ok := getTabForKey(msg.String()); ok {
 		m.currentView = view
@@ -227,6 +265,15 @@ func (m model) updateBinariesList(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 			m.successMessage = ""
 			m.loading = true
 			return m, updateAllBinaries(m.dbService, m.binaries)
+		}
+
+	case keyRemove:
+		// Show remove confirmation for selected binary
+		if len(m.binaries) > 0 && m.selectedIndex < len(m.binaries) {
+			m.confirmingRemove = true
+			m.removeBinaryID = m.binaries[m.selectedIndex].Binary.UserID
+			m.errorMessage = ""
+			m.successMessage = ""
 		}
 
 	case keyQuit, keyCtrlC:
@@ -703,6 +750,25 @@ func updateAllBinaries(dbService *repository.Service, binaries []BinaryWithMetad
 		// Return a success message with the summary
 		return successMsg{
 			message: fmt.Sprintf("Updated %d binaries (%d failed)", updatedCount, failedCount),
+		}
+	}
+}
+
+// removeBinary removes a binary from the database and optionally from disk
+func removeBinary(dbService *repository.Service, binaryID string, removeFiles bool) tea.Cmd {
+	return func() tea.Msg {
+		// Use the binary service to remove the binary
+		err := binarySvc.RemoveBinary(binaryID, dbService, removeFiles)
+		if err != nil {
+			return binaryRemovedMsg{
+				binaryID: binaryID,
+				err:      fmt.Errorf("failed to remove binary: %w", err),
+			}
+		}
+
+		return binaryRemovedMsg{
+			binaryID: binaryID,
+			err:      nil,
 		}
 	}
 }

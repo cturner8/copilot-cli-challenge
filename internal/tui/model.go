@@ -43,6 +43,11 @@ type model struct {
 	installVersionInput  textinput.Model
 	installingInProgress bool
 
+	// Remove confirmation state
+	confirmingRemove     bool
+	removeBinaryID       string
+	removeWithFiles      bool
+
 	// Error state
 	errorMessage   string
 	successMessage string
