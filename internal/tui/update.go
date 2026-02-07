@@ -275,7 +275,6 @@ func (m model) updateBinariesList(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		if len(m.binaries) > 0 && m.selectedIndex < len(m.binaries) {
 			m.currentView = viewInstallBinary
 			m.installBinaryID = m.binaries[m.selectedIndex].Binary.UserID
-			m.installVersionInput.SetValue("latest")
 			m.installVersionInput.Focus()
 			m.errorMessage = ""
 			m.successMessage = ""
