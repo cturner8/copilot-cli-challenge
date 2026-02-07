@@ -23,6 +23,7 @@ const (
 	keyUpdateAll = "U"
 	keyRemove    = "r"
 	keyCheck     = "c"
+	keyImport    = "m" // 'm' for iMport
 
 	// Tab cycling keys
 	tab             = "tab"
@@ -37,7 +38,7 @@ const (
 func getHelpText(view viewState) string {
 	switch view {
 	case viewBinariesList:
-		return "↑/↓: navigate • enter: view versions • a: add binary • i: install • u: update • r: remove • c: check updates • 1-4/shift+tab/ctrl+shift+tab: switch tabs • q: quit"
+		return "↑/↓: navigate • enter: view versions • a: add binary • i: install • u: update • r: remove • c: check updates • m: import • 1-4/shift+tab/ctrl+shift+tab: switch tabs • q: quit"
 	case viewVersions:
 		return "↑/↓: navigate • s/enter: switch version • d/delete: delete version • esc: back to list • q: quit"
 	case viewAddBinaryURL:

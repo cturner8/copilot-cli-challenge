@@ -171,6 +171,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m.updateAddBinaryForm(msg)
 		case viewInstallBinary:
 			return m.updateInstallBinary(msg)
+		case viewImportBinary:
+			return m.updateImportBinary(msg)
 		case viewDownloads:
 			return m.updatePlaceholderView(msg)
 		case viewConfiguration:
@@ -301,6 +303,16 @@ func (m model) updateBinariesList(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 			m.loading = true
 			return m, checkForUpdates(m.dbService, selectedBinary.Binary.UserID)
 		}
+
+	case keyImport:
+		// Transition to import binary view
+		m.currentView = viewImportBinary
+		m.importPathInput.Reset()
+		m.importNameInput.Reset()
+		m.importFocusIdx = 0
+		m.importPathInput.Focus()
+		m.errorMessage = ""
+		m.successMessage = ""
 
 	case keyQuit, keyCtrlC:
 		return m, tea.Quit
@@ -849,4 +861,65 @@ func checkForUpdates(dbService *repository.Service, binaryID string) tea.Cmd {
 			err:            nil,
 		}
 	}
+}
+
+// updateImportBinary handles updates for the import binary view
+func (m model) updateImportBinary(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
+	switch msg.String() {
+	case keyEsc:
+		// Cancel and return to binaries list
+		m.currentView = viewBinariesList
+		m.importPathInput.Reset()
+		m.importNameInput.Reset()
+		m.importFocusIdx = 0
+		m.errorMessage = ""
+		m.successMessage = ""
+		return m, nil
+
+	case keyTab:
+		// Move to next field
+		if m.importFocusIdx == 0 {
+			m.importPathInput.Blur()
+			m.importNameInput.Focus()
+			m.importFocusIdx = 1
+		} else {
+			m.importNameInput.Blur()
+			m.importPathInput.Focus()
+			m.importFocusIdx = 0
+		}
+		return m, nil
+
+	case keyEnter:
+		// Attempt import
+		path := m.importPathInput.Value()
+		name := m.importNameInput.Value()
+
+		if path == "" {
+			m.errorMessage = "Binary path is required"
+			m.successMessage = ""
+			return m, nil
+		}
+		if name == "" {
+			m.errorMessage = "Binary name is required"
+			m.successMessage = ""
+			return m, nil
+		}
+
+		// Show message that import is not yet fully implemented
+		m.errorMessage = ""
+		m.successMessage = "Import functionality is pending service layer implementation"
+		return m, nil
+
+	case keyQuit, keyCtrlC:
+		return m, tea.Quit
+	}
+
+	// Handle text input for focused field
+	var cmd tea.Cmd
+	if m.importFocusIdx == 0 {
+		m.importPathInput, cmd = m.importPathInput.Update(msg)
+	} else {
+		m.importNameInput, cmd = m.importNameInput.Update(msg)
+	}
+	return m, cmd
 }

@@ -48,6 +48,11 @@ type model struct {
 	removeBinaryID   string
 	removeWithFiles  bool
 
+	// Import binary view state
+	importPathInput textinput.Model
+	importNameInput textinput.Model
+	importFocusIdx  int
+
 	// Error state
 	errorMessage   string
 	successMessage string
@@ -80,6 +85,17 @@ func initialModel(dbService *repository.Service, cfg *config.Config) model {
 	versionInput.CharLimit = 64
 	versionInput.Width = 40
 
+	// Create text inputs for import view
+	importPathInput := textinput.New()
+	importPathInput.Placeholder = "/usr/local/bin/binary"
+	importPathInput.CharLimit = 256
+	importPathInput.Width = 60
+
+	importNameInput := textinput.New()
+	importNameInput.Placeholder = "binary-name"
+	importNameInput.CharLimit = 64
+	importNameInput.Width = 40
+
 	return model{
 		dbService:           dbService,
 		config:              cfg,
@@ -88,5 +104,7 @@ func initialModel(dbService *repository.Service, cfg *config.Config) model {
 		urlTextInput:        urlInput,
 		formInputs:          []textinput.Model{},
 		installVersionInput: versionInput,
+		importPathInput:     importPathInput,
+		importNameInput:     importNameInput,
 	}
 }
