@@ -7,6 +7,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 
 	"cturner8/binmate/internal/core/crypto"
+	installSvc "cturner8/binmate/internal/core/install"
 	urlparser "cturner8/binmate/internal/core/url"
 	versionSvc "cturner8/binmate/internal/core/version"
 	"cturner8/binmate/internal/database"
@@ -60,6 +61,21 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		return m, nil
 
+	case binaryInstalledMsg:
+		m.installingInProgress = false
+		if msg.err != nil {
+			m.errorMessage = msg.err.Error()
+			m.successMessage = ""
+		} else {
+			// Return to binaries list and reload
+			m.currentView = viewBinariesList
+			m.errorMessage = ""
+			m.successMessage = fmt.Sprintf("Successfully installed %s version %s", msg.binary.Name, msg.installation.Version)
+			m.loading = true
+			return m, loadBinaries(m.dbService)
+		}
+		return m, nil
+
 	case versionSwitchedMsg:
 		if msg.err != nil {
 			m.errorMessage = msg.err.Error()
@@ -106,6 +122,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m.updateAddBinaryURL(msg)
 		case viewAddBinaryForm:
 			return m.updateAddBinaryForm(msg)
+		case viewInstallBinary:
+			return m.updateInstallBinary(msg)
 		case viewDownloads:
 			return m.updatePlaceholderView(msg)
 		case viewConfiguration:
@@ -163,6 +181,18 @@ func (m model) updateBinariesList(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		m.urlTextInput.Reset()
 		m.urlTextInput.Focus()
 		m.errorMessage = ""
+		m.successMessage = ""
+
+	case keyInstall:
+		// Transition to install binary view
+		if len(m.binaries) > 0 && m.selectedIndex < len(m.binaries) {
+			m.currentView = viewInstallBinary
+			m.installBinaryID = m.binaries[m.selectedIndex].Binary.UserID
+			m.installVersionInput.SetValue("latest")
+			m.installVersionInput.Focus()
+			m.errorMessage = ""
+			m.successMessage = ""
+		}
 
 	case keyQuit, keyCtrlC:
 		return m, tea.Quit
@@ -523,5 +553,65 @@ func deleteVersion(dbService *repository.Service, installation *database.Install
 		// In a future enhancement, we can add a confirmation dialog
 
 		return versionDeletedMsg{installationID: installation.ID, err: nil}
+	}
+}
+
+// updateInstallBinary handles updates for the install binary view
+func (m model) updateInstallBinary(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
+	// Don't process keys if installing
+	if m.installingInProgress {
+		switch msg.String() {
+		case keyQuit, keyCtrlC:
+			return m, tea.Quit
+		}
+		return m, nil
+	}
+
+	switch msg.String() {
+	case keyEsc:
+		// Cancel and return to binaries list
+		m.currentView = viewBinariesList
+		m.installVersionInput.Reset()
+		m.installBinaryID = ""
+		m.errorMessage = ""
+		m.successMessage = ""
+		return m, nil
+
+	case keyEnter:
+		// Start installation
+		version := m.installVersionInput.Value()
+		if version == "" {
+			version = "latest"
+		}
+
+		m.installingInProgress = true
+		m.errorMessage = ""
+		m.successMessage = ""
+		return m, installBinary(m.dbService, m.installBinaryID, version)
+
+	case keyQuit, keyCtrlC:
+		return m, tea.Quit
+	}
+
+	// Handle text input
+	var cmd tea.Cmd
+	m.installVersionInput, cmd = m.installVersionInput.Update(msg)
+	return m, cmd
+}
+
+// installBinary installs a binary version
+func installBinary(dbService *repository.Service, binaryID string, version string) tea.Cmd {
+	return func() tea.Msg {
+		// Use the install service to install the binary
+		result, err := installSvc.InstallBinary(binaryID, version, dbService)
+		if err != nil {
+			return binaryInstalledMsg{err: fmt.Errorf("failed to install binary: %w", err)}
+		}
+
+		return binaryInstalledMsg{
+			binary:       result.Binary,
+			installation: result.Installation,
+			err:          nil,
+		}
 	}
 }

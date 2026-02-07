@@ -38,6 +38,11 @@ type model struct {
 	formInputs   []textinput.Model
 	focusedField int
 
+	// Install binary view state
+	installBinaryID      string
+	installVersionInput  textinput.Model
+	installingInProgress bool
+
 	// Error state
 	errorMessage   string
 	successMessage string
@@ -64,12 +69,19 @@ func initialModel(dbService *repository.Service, cfg *config.Config) model {
 	urlInput.CharLimit = 256
 	urlInput.Width = 80
 
+	// Create version text input for install view
+	versionInput := textinput.New()
+	versionInput.Placeholder = "latest"
+	versionInput.CharLimit = 64
+	versionInput.Width = 40
+
 	return model{
-		dbService:    dbService,
-		config:       cfg,
-		currentView:  viewBinariesList,
-		loading:      true,
-		urlTextInput: urlInput,
-		formInputs:   []textinput.Model{},
+		dbService:           dbService,
+		config:              cfg,
+		currentView:         viewBinariesList,
+		loading:             true,
+		urlTextInput:        urlInput,
+		formInputs:          []textinput.Model{},
+		installVersionInput: versionInput,
 	}
 }

@@ -8,6 +8,7 @@ const (
 	viewVersions
 	viewAddBinaryURL
 	viewAddBinaryForm
+	viewInstallBinary
 	viewDownloads
 	viewConfiguration
 	viewHelp
@@ -24,6 +25,8 @@ func (v viewState) String() string {
 		return "Add Binary - URL"
 	case viewAddBinaryForm:
 		return "Add Binary - Configuration"
+	case viewInstallBinary:
+		return "Install Binary"
 	case viewDownloads:
 		return "Downloads"
 	case viewConfiguration:
