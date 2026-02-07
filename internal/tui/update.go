@@ -13,6 +13,7 @@ import (
 	versionSvc "cturner8/binmate/internal/core/version"
 	"cturner8/binmate/internal/database"
 	"cturner8/binmate/internal/database/repository"
+	"cturner8/binmate/internal/providers/github"
 )
 
 const (
@@ -104,6 +105,21 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			// Reload binaries list
 			m.loading = true
 			return m, loadBinaries(m.dbService)
+		}
+		return m, nil
+
+	case updateCheckMsg:
+		m.loading = false
+		if msg.err != nil {
+			m.errorMessage = msg.err.Error()
+			m.successMessage = ""
+		} else {
+			m.errorMessage = ""
+			if msg.hasUpdate {
+				m.successMessage = fmt.Sprintf("⬆ Update available for %s: %s → %s", msg.binaryID, msg.currentVersion, msg.latestVersion)
+			} else {
+				m.successMessage = fmt.Sprintf("✓ %s is up to date (%s)", msg.binaryID, msg.currentVersion)
+			}
 		}
 		return m, nil
 
@@ -274,6 +290,16 @@ func (m model) updateBinariesList(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 			m.removeBinaryID = m.binaries[m.selectedIndex].Binary.UserID
 			m.errorMessage = ""
 			m.successMessage = ""
+		}
+
+	case keyCheck:
+		// Check for updates for selected binary
+		if len(m.binaries) > 0 && m.selectedIndex < len(m.binaries) {
+			selectedBinary := m.binaries[m.selectedIndex]
+			m.errorMessage = ""
+			m.successMessage = ""
+			m.loading = true
+			return m, checkForUpdates(m.dbService, selectedBinary.Binary.UserID)
 		}
 
 	case keyQuit, keyCtrlC:
@@ -769,6 +795,58 @@ func removeBinary(dbService *repository.Service, binaryID string, removeFiles bo
 		return binaryRemovedMsg{
 			binaryID: binaryID,
 			err:      nil,
+		}
+	}
+}
+
+// checkForUpdates checks if updates are available for a binary
+func checkForUpdates(dbService *repository.Service, binaryID string) tea.Cmd {
+	return func() tea.Msg {
+		// Get the binary configuration
+		binaryConfig, err := dbService.Binaries.GetByUserID(binaryID)
+		if err != nil {
+			return updateCheckMsg{
+				binaryID: binaryID,
+				err:      fmt.Errorf("binary not found: %w", err),
+			}
+		}
+
+		if binaryConfig.Provider != "github" {
+			return updateCheckMsg{
+				binaryID: binaryID,
+				err:      fmt.Errorf("only github provider is currently supported"),
+			}
+		}
+
+		// Import github provider
+		// Fetch latest release
+		release, _, err := github.FetchReleaseAsset(binaryConfig, "latest")
+		if err != nil {
+			return updateCheckMsg{
+				binaryID: binaryID,
+				err:      fmt.Errorf("failed to fetch latest release: %w", err),
+			}
+		}
+
+		// Get current active version
+		currentVersion := "none"
+		activeVersion, err := dbService.Versions.Get(binaryConfig.ID)
+		if err == nil && activeVersion != nil {
+			installation, err := dbService.Installations.GetByID(activeVersion.InstallationID)
+			if err == nil {
+				currentVersion = installation.Version
+			}
+		}
+
+		latestVersion := release.TagName
+		hasUpdate := currentVersion != latestVersion && currentVersion != "none"
+
+		return updateCheckMsg{
+			binaryID:       binaryID,
+			currentVersion: currentVersion,
+			latestVersion:  latestVersion,
+			hasUpdate:      hasUpdate,
+			err:            nil,
 		}
 	}
 }
