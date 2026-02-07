@@ -42,6 +42,23 @@ func (m model) renderBinariesList() string {
 		b.WriteString("\n\n")
 	}
 
+	// Show success message if any
+	if m.successMessage != "" {
+		b.WriteString(successStyle.Render("✓ " + m.successMessage))
+		b.WriteString("\n\n")
+	}
+
+	// Show remove confirmation if active
+	if m.confirmingRemove {
+		b.WriteString(headerStyle.Render(fmt.Sprintf("Remove binary '%s'?", m.removeBinaryID)))
+		b.WriteString("\n\n")
+		b.WriteString("Press 'y' to remove from database only\n")
+		b.WriteString("Press 'Y' (Shift+Y) to also delete files from disk\n")
+		b.WriteString("Press 'n' or Esc to cancel\n")
+		b.WriteString("\n")
+		return b.String()
+	}
+
 	// Calculate proportional column widths based on available width
 	// Default to 80 if width not set
 	availableWidth := m.width

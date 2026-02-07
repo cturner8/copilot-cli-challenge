@@ -50,6 +50,12 @@ func (m model) renderVersions() string {
 		b.WriteString("\n\n")
 	}
 
+	// Show success message if any
+	if m.successMessage != "" {
+		b.WriteString(successStyle.Render("✓ " + m.successMessage))
+		b.WriteString("\n\n")
+	}
+
 	// Get active version
 	var activeInstallationID int64
 	if m.selectedBinary != nil {
@@ -90,7 +96,13 @@ func (m model) renderVersions() string {
 	b.WriteString("\n")
 
 	// Table rows
-	for _, installation := range m.installations {
+	for i, installation := range m.installations {
+		// Determine row style (selected or normal)
+		rowStyle := tableCellStyle
+		if i == m.selectedVersionIdx {
+			rowStyle = selectedStyle
+		}
+
 		// Active indicator
 		activeIndicator := ""
 		if installation.ID == activeInstallationID {
@@ -114,11 +126,11 @@ func (m model) renderVersions() string {
 		path := truncatePathEnd(installation.InstalledPath, pathWidth)
 
 		row := []string{
-			tableCellStyle.Width(activeWidth).Render(activeIndicator),
-			tableCellStyle.Width(versionWidth).Render(version),
-			tableCellStyle.Width(installedWidth).Render(installedDate),
-			tableCellStyle.Width(sizeWidth).Render(size),
-			tableCellStyle.Width(pathWidth).Render(path),
+			rowStyle.Width(activeWidth).Render(activeIndicator),
+			rowStyle.Width(versionWidth).Render(version),
+			rowStyle.Width(installedWidth).Render(installedDate),
+			rowStyle.Width(sizeWidth).Render(size),
+			rowStyle.Width(pathWidth).Render(path),
 		}
 
 		b.WriteString(lipgloss.JoinHorizontal(lipgloss.Top, row...))
