@@ -39,7 +39,7 @@ func (m model) renderDownloads() string {
 	b.WriteString("\n\n")
 	b.WriteString("This view will allow you to manage cached asset downloads.\n")
 	b.WriteString("\n")
-	
+
 	b.WriteString(emptyStateStyle.Render("Downloads management features:"))
 	b.WriteString("\n")
 	b.WriteString("  • View all cached downloads with size and date\n")
@@ -50,7 +50,7 @@ func (m model) renderDownloads() string {
 	b.WriteString("\n")
 	b.WriteString(mutedStyle.Render("(Full implementation pending)"))
 	b.WriteString("\n\n")
-	
+
 	b.WriteString(helpStyle.Render(getHelpText(m.currentView)))
 
 	return b.String()
@@ -136,7 +136,7 @@ func (m model) renderHelp() string {
 
 	// Tabs
 	b.WriteString(m.renderTabs())
-	
+
 	b.WriteString(headerStyle.Render("Welcome to Binmate"))
 	b.WriteString("\n\n")
 	b.WriteString("Binmate helps you install and manage multiple versions of command-line binaries from GitHub releases.\n")
