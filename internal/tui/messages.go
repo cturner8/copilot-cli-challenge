@@ -22,8 +22,55 @@ type (
 		err    error
 	}
 
+	// versionSwitchedMsg is sent when active version is switched
+	versionSwitchedMsg struct {
+		installation *database.Installation
+		err          error
+	}
+
+	// versionDeletedMsg is sent when a version is deleted
+	versionDeletedMsg struct {
+		installationID int64
+		err            error
+	}
+
+	// binaryInstalledMsg is sent when a binary version is installed
+	binaryInstalledMsg struct {
+		binary       *database.Binary
+		installation *database.Installation
+		err          error
+	}
+
+	// binaryUpdatedMsg is sent when a binary is updated
+	binaryUpdatedMsg struct {
+		binaryID   string
+		oldVersion string
+		newVersion string
+		err        error
+	}
+
+	// binaryRemovedMsg is sent when a binary is removed
+	binaryRemovedMsg struct {
+		binaryID string
+		err      error
+	}
+
+	// updateCheckMsg is sent when update check is complete
+	updateCheckMsg struct {
+		binaryID       string
+		currentVersion string
+		latestVersion  string
+		hasUpdate      bool
+		err            error
+	}
+
 	// errorMsg represents an error state
 	errorMsg struct {
 		err error
+	}
+
+	// successMsg represents a success notification
+	successMsg struct {
+		message string
 	}
 )

@@ -26,8 +26,9 @@ type model struct {
 	loading       bool
 
 	// Versions view state
-	selectedBinary *database.Binary
-	installations  []*database.Installation
+	selectedBinary     *database.Binary
+	installations      []*database.Installation
+	selectedVersionIdx int
 
 	// Add binary view state - URL input
 	urlTextInput textinput.Model
@@ -38,7 +39,8 @@ type model struct {
 	focusedField int
 
 	// Error state
-	errorMessage string
+	errorMessage   string
+	successMessage string
 }
 
 // parsedBinaryConfig represents a binary configuration parsed from a URL

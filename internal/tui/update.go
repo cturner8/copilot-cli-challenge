@@ -8,6 +8,7 @@ import (
 
 	"cturner8/binmate/internal/core/crypto"
 	urlparser "cturner8/binmate/internal/core/url"
+	versionSvc "cturner8/binmate/internal/core/version"
 	"cturner8/binmate/internal/database"
 	"cturner8/binmate/internal/database/repository"
 )
@@ -53,9 +54,46 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.parsedBinary = nil
 			m.formInputs = []textinput.Model{}
 			m.errorMessage = ""
+			m.successMessage = fmt.Sprintf("Binary %s added successfully", msg.binary.Name)
 			m.loading = true
 			return m, loadBinaries(m.dbService)
 		}
+		return m, nil
+
+	case versionSwitchedMsg:
+		if msg.err != nil {
+			m.errorMessage = msg.err.Error()
+			m.successMessage = ""
+		} else {
+			m.errorMessage = ""
+			m.successMessage = fmt.Sprintf("Switched to version %s", msg.installation.Version)
+			// Reload versions to update active indicator
+			m.loading = true
+			return m, loadVersions(m.dbService, m.selectedBinary.ID)
+		}
+		return m, nil
+
+	case versionDeletedMsg:
+		if msg.err != nil {
+			m.errorMessage = msg.err.Error()
+			m.successMessage = ""
+		} else {
+			m.errorMessage = ""
+			m.successMessage = "Version deleted successfully"
+			// Reload versions list
+			m.loading = true
+			return m, loadVersions(m.dbService, m.selectedBinary.ID)
+		}
+		return m, nil
+
+	case successMsg:
+		m.successMessage = msg.message
+		m.errorMessage = ""
+		return m, nil
+
+	case errorMsg:
+		m.errorMessage = msg.err.Error()
+		m.successMessage = ""
 		return m, nil
 
 	case tea.KeyMsg:
@@ -136,12 +174,47 @@ func (m model) updateBinariesList(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 // updateVersions handles updates for the versions view
 func (m model) updateVersions(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	switch msg.String() {
+	case keyUp:
+		if m.selectedVersionIdx > 0 {
+			m.selectedVersionIdx--
+		}
+
+	case keyDown:
+		if m.selectedVersionIdx < len(m.installations)-1 {
+			m.selectedVersionIdx++
+		}
+
+	case keySwitch, keyEnter:
+		// Switch to selected version
+		if len(m.installations) > 0 && m.selectedVersionIdx < len(m.installations) {
+			selectedInstallation := m.installations[m.selectedVersionIdx]
+			return m, switchVersion(m.dbService, m.selectedBinary, selectedInstallation)
+		}
+
+	case keyDelete, keyDelete2:
+		// Delete selected version
+		if len(m.installations) > 0 && m.selectedVersionIdx < len(m.installations) {
+			selectedInstallation := m.installations[m.selectedVersionIdx]
+
+			// Check if this is the active version
+			activeVersion, _ := getActiveVersion(m.dbService, m.selectedBinary.ID)
+			if activeVersion != nil && activeVersion.ID == selectedInstallation.ID {
+				m.errorMessage = "Cannot delete active version. Switch to another version first."
+				m.successMessage = ""
+				return m, nil
+			}
+
+			return m, deleteVersion(m.dbService, selectedInstallation)
+		}
+
 	case keyEsc:
 		// Return to binaries list
 		m.currentView = viewBinariesList
 		m.selectedBinary = nil
 		m.installations = nil
+		m.selectedVersionIdx = 0
 		m.errorMessage = ""
+		m.successMessage = ""
 
 	case keyQuit, keyCtrlC:
 		return m, tea.Quit
@@ -412,4 +485,43 @@ func (m model) updatePlaceholderView(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	}
 
 	return m, nil
+}
+
+// switchVersion switches the active version of a binary
+func switchVersion(dbService *repository.Service, binary *database.Binary, installation *database.Installation) tea.Cmd {
+	return func() tea.Msg {
+		// Handle optional InstallPath
+		customInstallPath := ""
+		if binary.InstallPath != nil {
+			customInstallPath = *binary.InstallPath
+		}
+
+		// Update the symlink
+		symlinkPath, err := versionSvc.SetActiveVersion(installation.InstalledPath, customInstallPath, binary.Name)
+		if err != nil {
+			return versionSwitchedMsg{err: fmt.Errorf("failed to set active version: %w", err)}
+		}
+
+		// Update the versions table
+		if err := dbService.Versions.Set(binary.ID, installation.ID, symlinkPath); err != nil {
+			return versionSwitchedMsg{err: fmt.Errorf("failed to update version record: %w", err)}
+		}
+
+		return versionSwitchedMsg{installation: installation, err: nil}
+	}
+}
+
+// deleteVersion deletes an installation
+func deleteVersion(dbService *repository.Service, installation *database.Installation) tea.Cmd {
+	return func() tea.Msg {
+		// Delete from database
+		if err := dbService.Installations.Delete(installation.ID); err != nil {
+			return versionDeletedMsg{err: fmt.Errorf("failed to delete version: %w", err)}
+		}
+
+		// Optionally delete files (for now we'll leave the files)
+		// In a future enhancement, we can add a confirmation dialog
+
+		return versionDeletedMsg{installationID: installation.ID, err: nil}
+	}
 }

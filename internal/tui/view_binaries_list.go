@@ -42,6 +42,12 @@ func (m model) renderBinariesList() string {
 		b.WriteString("\n\n")
 	}
 
+	// Show success message if any
+	if m.successMessage != "" {
+		b.WriteString(successStyle.Render("✓ " + m.successMessage))
+		b.WriteString("\n\n")
+	}
+
 	// Calculate proportional column widths based on available width
 	// Default to 80 if width not set
 	availableWidth := m.width

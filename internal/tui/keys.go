@@ -12,9 +12,17 @@ const (
 	keyTab   = "tab"
 
 	// Action keys
-	keyAdd  = "a"
-	keyQuit = "q"
-	keySave = "ctrl+s"
+	keyAdd       = "a"
+	keyQuit      = "q"
+	keySave      = "ctrl+s"
+	keySwitch    = "s"
+	keyDelete    = "d"
+	keyDelete2   = "delete"
+	keyInstall   = "i"
+	keyUpdate    = "u"
+	keyUpdateAll = "U"
+	keyRemove    = "r"
+	keyCheck     = "c"
 
 	// Tab cycling keys
 	tab             = "tab"
@@ -29,9 +37,9 @@ const (
 func getHelpText(view viewState) string {
 	switch view {
 	case viewBinariesList:
-		return "↑/↓: navigate • enter: view versions • a: add binary • 1-4/shift+tab/ctrl+shift+tab: switch tabs • q: quit"
+		return "↑/↓: navigate • enter: view versions • a: add binary • i: install • u: update • r: remove • c: check updates • 1-4/shift+tab/ctrl+shift+tab: switch tabs • q: quit"
 	case viewVersions:
-		return "↑/↓: navigate • esc: back to list • q: quit"
+		return "↑/↓: navigate • s/enter: switch version • d/delete: delete version • esc: back to list • q: quit"
 	case viewAddBinaryURL:
 		return "Type URL • enter: parse • esc: cancel • q: quit"
 	case viewAddBinaryForm:
