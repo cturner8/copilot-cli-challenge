@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -63,16 +64,28 @@ func (db *DB) configurePragmas() error {
 	return nil
 }
 
-// GetDefaultDBPath returns the default database path
+// GetDefaultDBPath returns the default database path based on OS
 func GetDefaultDBPath() (string, error) {
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		return "", fmt.Errorf("failed to get home directory: %w", err)
+	var baseDir string
+	var err error
+
+	if runtime.GOOS == "windows" {
+		// On Windows, use %LOCALAPPDATA%
+		// os.UserCacheDir() returns %LOCALAPPDATA% on Windows
+		baseDir, err = os.UserCacheDir()
+		if err != nil {
+			return "", fmt.Errorf("failed to get cache directory: %w", err)
+		}
+	} else {
+		// On Linux/macOS, use ~/.local/share
+		homeDir, err := os.UserHomeDir()
+		if err != nil {
+			return "", fmt.Errorf("failed to get home directory: %w", err)
+		}
+		baseDir = filepath.Join(homeDir, ".local", "share")
 	}
 
-	// Use $HOME/.local/share/binmate/user.db
-	// TODO: make os aware, dont use .local/share on windows
-	dbPath := filepath.Join(homeDir, ".local", "share", "binmate", "user.db")
+	dbPath := filepath.Join(baseDir, "binmate", "user.db")
 	return dbPath, nil
 }
 
