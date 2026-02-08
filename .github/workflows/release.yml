@@ -54,7 +54,8 @@ jobs:
         run: |
           sudo apt-get update
           # Install Zig for cross-compilation
-          # Using beta channel as it's the most stable version available via Snap
+          # Note: Zig does not have a 'stable' channel on Snap; 'beta' is the most stable available
+          # The beta channel provides tagged releases (e.g., 0.15.x), while 'edge' provides nightly builds
           sudo snap install zig --beta --classic
 
       - name: Run GoReleaser
