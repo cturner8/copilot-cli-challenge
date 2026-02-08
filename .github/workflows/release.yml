@@ -54,7 +54,8 @@ jobs:
         run: |
           sudo apt-get update
           # Install Zig for cross-compilation
-          sudo snap install zig --classic --beta
+          # Using beta channel as it's the most stable version available via Snap
+          sudo snap install zig --beta --classic
 
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v6
