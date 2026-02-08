@@ -27,7 +27,8 @@ CREATE TABLE IF NOT EXISTS binaries (
     created_at INTEGER NOT NULL,
     updated_at INTEGER NOT NULL,
     config_version INTEGER NOT NULL DEFAULT 1,
-    source TEXT NOT NULL DEFAULT 'manual'
+    source TEXT NOT NULL DEFAULT 'manual',
+    authenticated INTEGER NOT NULL DEFAULT 0
 );
 
 CREATE INDEX IF NOT EXISTS idx_binaries_user_id ON binaries(user_id);

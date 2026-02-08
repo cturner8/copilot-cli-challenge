@@ -8,8 +8,14 @@ import (
 	"path/filepath"
 )
 
-func DownloadAsset(url string, assetName string) (string, error) {
-	response, err := http.Get(url)
+func DownloadAsset(url string, assetName string, authenticated bool) (string, error) {
+	// Create HTTP client with optional authentication
+	client, err := CreateHTTPClient(authenticated)
+	if err != nil {
+		return "", fmt.Errorf("failed to create HTTP client: %w", err)
+	}
+
+	response, err := client.Get(url)
 	if err != nil {
 		return "", fmt.Errorf("download asset: %w", err)
 	}
