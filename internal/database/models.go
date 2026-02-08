@@ -16,6 +16,7 @@ type Binary struct {
 	CreatedAt     int64
 	UpdatedAt     int64
 	ConfigVersion int
+	Source        string // "config" for binaries from config.json, "manual" for user-added binaries
 }
 
 // Installation represents an installed binary version
