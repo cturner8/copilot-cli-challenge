@@ -6,7 +6,6 @@
   "image": "mcr.microsoft.com/devcontainers/go:1.25-bookworm",
 
   "features": {
-    "ghcr.io/devcontainers/features/github-cli": {},
     "ghcr.io/devcontainers/features/copilot-cli:1": {},
     "ghcr.io/devcontainers-extra/features/gh-release": {
       "repo": "steveyegge/beads",
@@ -19,7 +18,8 @@
   ],
 
   "remoteEnv": {
-    "BINMATE_CONFIG_PATH": "${containerWorkspaceFolder}/config.json"
+    "BINMATE_CONFIG_PATH": "${containerWorkspaceFolder}/config.json",
+    "EDITOR": "nano"
   },
 
   // Features to add to the dev container. More info: https://containers.dev/features.
