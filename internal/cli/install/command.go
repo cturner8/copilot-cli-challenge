@@ -38,11 +38,9 @@ func NewCommand() *cobra.Command {
 					// Manually added binary, don't sync from config
 					return nil
 				}
-				// Config-managed binary already in database, no need to sync again
-				return nil
 			}
 
-			// Binary not in database, try to sync from config
+			// try to sync from config
 			if err := config.SyncBinary(binary, *Config, DBService); err != nil {
 				return fmt.Errorf("binary '%s' not found in database or config: %w", binary, err)
 			}
