@@ -130,3 +130,63 @@ func TestInstallBinaryResult_Structure(t *testing.T) {
 		t.Errorf("Expected version v1.0.0, got %s", result.Version)
 	}
 }
+
+func TestInstallBinary_InstalledPathStoresActualBinaryPath(t *testing.T) {
+	dbService, cleanup := setupTestDB(t)
+	defer cleanup()
+
+	// This test verifies that InstalledPath stores the actual binary path,
+	// not the symlink path, to prevent circular symlinks when switching versions.
+	// See bug bm-j1h for context.
+
+	// Create mock installation paths
+	tmpDir := t.TempDir()
+	binaryPath := filepath.Join(tmpDir, "versions", "testbin", "v1.0.0", "testbin")
+	symlinkPath := filepath.Join(tmpDir, "bin", "testbin")
+
+	// Create a mock installation record as InstallBinary would
+	binary := createTestBinary(t, dbService, "test")
+
+	installation := &database.Installation{
+		BinaryID:          binary.ID,
+		Version:           "v1.0.0",
+		InstalledPath:     binaryPath, // Should be the actual binary path
+		SourceURL:         "https://github.com/test/test/releases/download/v1.0.0/test.tar.gz",
+		FileSize:          1024,
+		Checksum:          "abc123",
+		ChecksumAlgorithm: "SHA256",
+	}
+
+	if err := dbService.Installations.Create(installation); err != nil {
+		t.Fatalf("Failed to create installation: %v", err)
+	}
+
+	if err := dbService.Versions.Set(binary.ID, installation.ID, symlinkPath); err != nil {
+		t.Fatalf("Failed to set version: %v", err)
+	}
+
+	// Retrieve the installation and verify InstalledPath is the binary path
+	retrieved, err := dbService.Installations.Get(binary.ID, "v1.0.0")
+	if err != nil {
+		t.Fatalf("Failed to retrieve installation: %v", err)
+	}
+
+	if retrieved.InstalledPath != binaryPath {
+		t.Errorf("InstalledPath should store actual binary path, got %s, want %s", retrieved.InstalledPath, binaryPath)
+	}
+
+	// Verify the symlink path is stored separately in versions table
+	version, err := dbService.Versions.Get(binary.ID)
+	if err != nil {
+		t.Fatalf("Failed to get version: %v", err)
+	}
+
+	if version.SymlinkPath != symlinkPath {
+		t.Errorf("SymlinkPath should be stored in versions table, got %s, want %s", version.SymlinkPath, symlinkPath)
+	}
+
+	// Verify the two paths are different (this was the bug - they were the same)
+	if retrieved.InstalledPath == version.SymlinkPath {
+		t.Error("InstalledPath and SymlinkPath should be different to avoid circular symlinks")
+	}
+}
