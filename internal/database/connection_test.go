@@ -58,13 +58,15 @@ func TestGetDefaultDBPath(t *testing.T) {
 		if !contains(path, "AppData") && !contains(path, "Local") {
 			t.Logf("Note: Expected Windows path in LocalAppData, got: %s", path)
 		}
-	case "darwin":
-		// On macOS, path can vary but should be valid
-		t.Logf("macOS DB path: %s", path)
-	default:
-		// On Linux, should contain .local/share
+	case "darwin", "linux":
+		// On macOS and Linux, should contain .local/share
 		if !contains(path, ".local") || !contains(path, "share") {
-			t.Errorf("Linux DB path should contain '.local/share': %s", path)
+			t.Errorf("macOS/Linux DB path should contain '.local/share': %s", path)
+		}
+	default:
+		// Other Unix-like systems should also use .local/share
+		if !contains(path, ".local") || !contains(path, "share") {
+			t.Errorf("Unix DB path should contain '.local/share': %s", path)
 		}
 	}
 }
