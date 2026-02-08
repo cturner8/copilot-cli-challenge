@@ -1,5 +1,9 @@
 # DEV GitHub Copilot CLI Challenge
 
+[![Tests](https://github.com/cturner8/copilot-cli-challenge/actions/workflows/test.yml/badge.svg)](https://github.com/cturner8/copilot-cli-challenge/actions/workflows/test.yml)
+[![Release](https://github.com/cturner8/copilot-cli-challenge/actions/workflows/release.yml/badge.svg)](https://github.com/cturner8/copilot-cli-challenge/actions/workflows/release.yml)
+[![Go Report Card](https://goreportcard.com/badge/github.com/cturner8/copilot-cli-challenge)](https://goreportcard.com/report/github.com/cturner8/copilot-cli-challenge)
+
 Submission for the [2026 DEV GitHub Copilot CLI challenge](https://dev.to/devteam/join-the-github-copilot-cli-challenge-win-github-universe-tickets-copilot-pro-subscriptions-and-50af).
 
 ## About binmate
@@ -17,9 +21,35 @@ Submission for the [2026 DEV GitHub Copilot CLI challenge](https://dev.to/devtea
 
 ## Installation
 
-<!-- TODO: Update this section once builds are published to GitHub releases -->
+### Using the Install Script (Recommended)
+
+Install the latest version using our install script:
 
 ```bash
+curl -fsSL https://raw.githubusercontent.com/cturner8/copilot-cli-challenge/main/install.sh | bash
+```
+
+Install a specific version:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/cturner8/copilot-cli-challenge/main/install.sh | BINMATE_VERSION=v1.0.0 bash
+```
+
+Install to a custom directory:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/cturner8/copilot-cli-challenge/main/install.sh | BINMATE_INSTALL_DIR=$HOME/.local/bin bash
+```
+
+### Manual Installation
+
+Download the appropriate binary for your platform from the [releases page](https://github.com/cturner8/copilot-cli-challenge/releases), extract it, and place it in your PATH.
+
+### Building from Source
+
+```bash
+git clone https://github.com/cturner8/copilot-cli-challenge.git
+cd copilot-cli-challenge
 go build -o binmate .
 ```
 
