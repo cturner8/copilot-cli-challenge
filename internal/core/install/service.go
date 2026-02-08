@@ -39,7 +39,7 @@ func InstallBinary(binaryID string, version string, dbService *repository.Servic
 	}
 
 	// Download the asset
-	downloadPath, err := github.DownloadAsset(asset.BrowserDownloadUrl, asset.Name)
+	downloadPath, err := github.DownloadAsset(asset.BrowserDownloadUrl, asset.Name, binaryConfig.Authenticated)
 	if err != nil {
 		return nil, fmt.Errorf("download failed: %w", err)
 	}

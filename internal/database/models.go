@@ -17,6 +17,7 @@ type Binary struct {
 	UpdatedAt     int64
 	ConfigVersion int
 	Source        string // "config" for binaries from config.json, "manual" for user-added binaries
+	Authenticated bool   // Whether to use GitHub token for authentication (for private repos or rate limit avoidance)
 }
 
 // Installation represents an installed binary version

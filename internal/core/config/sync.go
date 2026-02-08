@@ -12,15 +12,16 @@ func SyncToDatabase(config Config, dbService *repository.Service) error {
 	configBinaries := make([]repository.ConfigBinary, len(config.Binaries))
 	for i, b := range config.Binaries {
 		configBinaries[i] = repository.ConfigBinary{
-			ID:           b.Id,
-			Name:         b.Name,
-			Alias:        b.Alias,
-			Provider:     b.Provider,
-			Path:         b.Path,
-			InstallPath:  b.InstallPath,
-			Format:       b.Format,
-			AssetRegex:   b.AssetRegex,
-			ReleaseRegex: b.ReleaseRegex,
+			ID:            b.Id,
+			Name:          b.Name,
+			Alias:         b.Alias,
+			Provider:      b.Provider,
+			Path:          b.Path,
+			InstallPath:   b.InstallPath,
+			Format:        b.Format,
+			AssetRegex:    b.AssetRegex,
+			ReleaseRegex:  b.ReleaseRegex,
+			Authenticated: b.Authenticated,
 		}
 	}
 
@@ -42,15 +43,16 @@ func SyncBinary(binaryID string, config Config, dbService *repository.Service) e
 
 	// Convert to repository format
 	configBinary := repository.ConfigBinary{
-		ID:           binary.Id,
-		Name:         binary.Name,
-		Alias:        binary.Alias,
-		Provider:     binary.Provider,
-		Path:         binary.Path,
-		InstallPath:  binary.InstallPath,
-		Format:       binary.Format,
-		AssetRegex:   binary.AssetRegex,
-		ReleaseRegex: binary.ReleaseRegex,
+		ID:            binary.Id,
+		Name:          binary.Name,
+		Alias:         binary.Alias,
+		Provider:      binary.Provider,
+		Path:          binary.Path,
+		InstallPath:   binary.InstallPath,
+		Format:        binary.Format,
+		AssetRegex:    binary.AssetRegex,
+		ReleaseRegex:  binary.ReleaseRegex,
+		Authenticated: binary.Authenticated,
 	}
 
 	// Sync single binary to database
