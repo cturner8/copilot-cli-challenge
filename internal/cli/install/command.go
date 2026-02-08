@@ -31,13 +31,16 @@ func NewCommand() *cobra.Command {
 		SilenceErrors: false, // Still print errors
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			// Check if binary exists in database first
-			_, err := DBService.Binaries.GetByUserID(binary)
+			existingBinary, err := DBService.Binaries.GetByUserID(binary)
 			if err == nil {
-				// Binary already in database, no need to sync from config
-				return nil
+				// Binary exists - check if it's manually added
+				if existingBinary.Source == "manual" {
+					// Manually added binary, don't sync from config
+					return nil
+				}
 			}
 
-			// Binary not in database, try to sync from config
+			// try to sync from config
 			if err := config.SyncBinary(binary, *Config, DBService); err != nil {
 				return fmt.Errorf("binary '%s' not found in database or config: %w", binary, err)
 			}

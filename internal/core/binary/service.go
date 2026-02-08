@@ -30,7 +30,8 @@ func AddBinaryFromURL(rawURL string, dbService *repository.Service) (*database.B
 		Provider:      "github",
 		ProviderPath:  fmt.Sprintf("%s/%s", parsed.Owner, parsed.Repo),
 		Format:        parsed.Format,
-		ConfigVersion: 0, // TUI-added binaries have ConfigVersion=0
+		ConfigVersion: 0,        // TUI-added binaries have ConfigVersion=0
+		Source:        "manual", // User-added binaries are marked as manual
 	}
 
 	// Compute config digest
