@@ -96,7 +96,7 @@ func InstallBinary(binaryID string, version string, dbService *repository.Servic
 	}
 
 	// Set active version (create symlink)
-	installPath, err := v.SetActiveVersion(destPath, customInstallPath, binaryConfig.Name)
+	symlinkPath, err := v.SetActiveVersion(destPath, customInstallPath, binaryConfig.Name)
 	if err != nil {
 		return nil, fmt.Errorf("failed to set active version: %w", err)
 	}
@@ -104,7 +104,7 @@ func InstallBinary(binaryID string, version string, dbService *repository.Servic
 	// Create installation record
 	installation := &database.Installation{
 		Version:           resolvedVersion,
-		InstalledPath:     installPath,
+		InstalledPath:     destPath,
 		InstalledAt:       time.Now().Unix(),
 		BinaryID:          binaryConfig.ID,
 		SourceURL:         asset.BrowserDownloadUrl,
@@ -118,7 +118,7 @@ func InstallBinary(binaryID string, version string, dbService *repository.Servic
 	}
 
 	// Update active version
-	if err := dbService.Versions.Set(binaryConfig.ID, installation.ID, installPath); err != nil {
+	if err := dbService.Versions.Set(binaryConfig.ID, installation.ID, symlinkPath); err != nil {
 		return nil, fmt.Errorf("failed to save version: %w", err)
 	}
 
