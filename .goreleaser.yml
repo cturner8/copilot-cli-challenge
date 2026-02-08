@@ -35,19 +35,19 @@ builds:
       - goos: linux
         goarch: amd64
         env:
-          - CC=zig cc -target x86_64-linux-gnu
+          - CC=zig cc -target x86_64-linux-musl
       - goos: linux
         goarch: arm64
         env:
-          - CC=zig cc -target aarch64-linux-gnu
+          - CC=zig cc -target aarch64-linux-musl
       - goos: darwin
         goarch: amd64
         env:
-          - CC=zig cc -target x86_64-macos-gnu
+          - CC=zig cc -target x86_64-macos
       - goos: darwin
         goarch: arm64
         env:
-          - CC=zig cc -target aarch64-macos-gnu
+          - CC=zig cc -target aarch64-macos
       - goos: windows
         goarch: amd64
         env:
