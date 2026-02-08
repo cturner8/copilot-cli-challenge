@@ -218,8 +218,9 @@ func TestInstallCommand_ManualBinaryNotSyncedFromConfig(t *testing.T) {
 	}
 }
 
-func TestInstallCommand_ConfigBinaryAlreadyInDatabase(t *testing.T) {
-	// Test that config-managed binaries already in DB are not re-synced
+func TestInstallCommand_ConfigBinaryReSyncedFromConfig(t *testing.T) {
+	// Test that config-managed binaries ARE re-synced from config during PreRun
+	// This ensures config changes are picked up even if binary exists in DB
 	tmpDir := t.TempDir()
 	dbPath := filepath.Join(tmpDir, "test.db")
 
@@ -232,10 +233,10 @@ func TestInstallCommand_ConfigBinaryAlreadyInDatabase(t *testing.T) {
 	dbService := repository.NewService(db)
 	defer dbService.Close()
 
-	// Create a config-managed binary in the database
+	// Create a config-managed binary in the database with old name
 	configBinary := &database.Binary{
 		UserID:        "config-binary",
-		Name:          "configbin",
+		Name:          "oldname",
 		Provider:      "github",
 		ProviderPath:  "test/config-binary",
 		Format:        ".tar.gz",
@@ -248,19 +249,19 @@ func TestInstallCommand_ConfigBinaryAlreadyInDatabase(t *testing.T) {
 		t.Fatalf("Failed to create config binary: %v", err)
 	}
 
-	// Setup config with same binary
+	// Setup config with updated binary name
 	DBService = dbService
 	Config = &config.Config{
 		Binaries: []config.Binary{
 			{
 				Id:       "config-binary",
-				Name:     "configbin",
+				Name:     "newname", // Updated name in config
 				Provider: "github",
 				Path:     "test/config-binary",
 				Format:   ".tar.gz",
 			},
 		},
-		Version: 1,
+		Version: 2,
 	}
 
 	cmd := NewCommand()
@@ -280,7 +281,7 @@ func TestInstallCommand_ConfigBinaryAlreadyInDatabase(t *testing.T) {
 		t.Errorf("PreRunE failed for config binary: %v\nOutput: %s", err, buf.String())
 	}
 
-	// Verify binary still exists and is still source='config'
+	// Verify binary was updated from config
 	binary, err := dbService.Binaries.GetByUserID("config-binary")
 	if err != nil {
 		t.Errorf("Binary should still exist: %v", err)
@@ -289,6 +290,14 @@ func TestInstallCommand_ConfigBinaryAlreadyInDatabase(t *testing.T) {
 
 	if binary.Source != "config" {
 		t.Errorf("Expected source='config', got '%s'", binary.Source)
+	}
+
+	if binary.Name != "newname" {
+		t.Errorf("Binary should be updated from config. Expected name 'newname', got '%s'", binary.Name)
+	}
+
+	if binary.ConfigVersion != 2 {
+		t.Errorf("Expected ConfigVersion=2, got %d", binary.ConfigVersion)
 	}
 }
 
