@@ -72,6 +72,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		} else {
 			// Return to binaries list and reload
 			m.currentView = viewBinariesList
+			m.installVersionInput.Reset()
+			m.installBinaryID = ""
 			m.errorMessage = ""
 			m.successMessage = fmt.Sprintf("Successfully installed %s version %s", msg.binary.Name, msg.installation.Version)
 			m.loading = true
