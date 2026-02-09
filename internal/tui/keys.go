@@ -41,7 +41,7 @@ func getHelpText(view viewState) string {
 	case viewBinariesList:
 		return "↑/↓: navigate • enter: view versions • a: add binary • i: install • u: update • r: remove • c: check updates • m: import • 1-4/shift+tab/ctrl+shift+tab: switch tabs • q: quit"
 	case viewVersions:
-		return "↑/↓: navigate • s/enter: switch version • d/delete: delete version • esc: back to list • q: quit"
+		return "↑/↓: navigate • s/enter: switch version • i: install new version • u: update • c: check updates • d/delete: delete version • esc: back to list • q: quit"
 	case viewAddBinaryURL:
 		return "Type URL • enter: parse • esc: cancel • q: quit"
 	case viewAddBinaryForm:
