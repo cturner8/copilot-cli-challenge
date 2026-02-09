@@ -3,6 +3,12 @@ name: Tests
 on:
   pull_request:
     branches: [ main, dev ]
+    paths: 
+      - "cmd/**"
+      - "internal/**"
+      - main.go
+      - go.mod
+      - go.sum
 
 permissions:
   contents: read
