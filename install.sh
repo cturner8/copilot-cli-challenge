@@ -45,6 +45,7 @@ detect_platform() {
     case "$(uname -s)" in
         Linux*)     os="linux" ;;
         Darwin*)    os="darwin" ;;
+        Windows*)    os="windows" ;;
         *)          
             log_error "Unsupported operating system: $(uname -s)"
             exit 1
