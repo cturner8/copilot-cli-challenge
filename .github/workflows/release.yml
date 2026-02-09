@@ -53,13 +53,16 @@ jobs:
       - name: Install cross-compilation tools
         run: |
           sudo apt-get update
-          sudo apt-get install -y gcc-aarch64-linux-gnu
+          # Install Zig for cross-compilation
+          # Note: Zig does not have a 'stable' channel on Snap; 'beta' is the most stable available
+          # The beta channel provides tagged releases (e.g., 0.15.x), while 'edge' provides nightly builds
+          sudo snap install zig --beta --classic
 
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v6
         with:
           distribution: goreleaser
-          version: latest
+          version: '~> v2'
           args: release --clean
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

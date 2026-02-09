@@ -18,8 +18,7 @@ builds:
     goos:
       - linux
       - darwin
-      # Windows build disabled due to CGO complexity with SQLite
-      # - windows
+      - windows
     goarch:
       - amd64
       - arm64
@@ -31,34 +30,47 @@ builds:
       - -X main.version={{.Version}}
       - -X main.commit={{.Commit}}
       - -X main.date={{.Date}}
-    # Platform-specific build settings for CGO
+    # Platform-specific build settings for CGO with Zig cross-compilation
     overrides:
       - goos: linux
         goarch: amd64
         env:
-          - CC=gcc
+          - CC=zig cc -target x86_64-linux-musl
       - goos: linux
         goarch: arm64
         env:
-          - CC=aarch64-linux-gnu-gcc
+          - CC=zig cc -target aarch64-linux-musl
       - goos: darwin
         goarch: amd64
         env:
-          - CC=o64-clang
+          - CC=zig cc -target x86_64-macos
       - goos: darwin
         goarch: arm64
         env:
-          - CC=oa64-clang
+          - CC=zig cc -target aarch64-macos
+      - goos: windows
+        goarch: amd64
+        env:
+          - CC=zig cc -target x86_64-windows-gnu
+      - goos: windows
+        goarch: arm64
+        env:
+          - CC=zig cc -target aarch64-windows-gnu
 
 archives:
   - id: binmate-archive
-    format: tar.gz
+    formats:
+      - tar.gz
     name_template: >-
       {{ .ProjectName }}_
       {{- .Version }}_
       {{- .Os }}_
       {{- .Arch }}
       {{- if .Arm }}v{{ .Arm }}{{ end }}
+    format_overrides:
+      - goos: windows
+        formats:
+          - zip
     files:
       - LICENSE*
       - README*
@@ -109,4 +121,4 @@ release:
 
 # Snapshots (for testing releases locally)
 snapshot:
-  name_template: "{{ .Version }}-snapshot-{{.ShortCommit}}"
+  version_template: "{{ .Version }}-snapshot-{{.ShortCommit}}"
