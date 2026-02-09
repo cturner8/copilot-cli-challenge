@@ -96,7 +96,7 @@ func InstallBinary(binaryID string, version string, dbService *repository.Servic
 	}
 
 	// Set active version (create symlink)
-	symlinkPath, err := v.SetActiveVersion(destPath, customInstallPath, binaryConfig.Name)
+	symlinkPath, err := v.SetActiveVersion(destPath, customInstallPath, binaryConfig.Name, binaryConfig.Alias)
 	if err != nil {
 		return nil, fmt.Errorf("failed to set active version: %w", err)
 	}

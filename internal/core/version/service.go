@@ -29,7 +29,7 @@ func SwitchVersion(binaryID string, version string, dbService *repository.Servic
 	}
 
 	// Update the symlink
-	symlinkPath, err := SetActiveVersion(installation.InstalledPath, customInstallPath, binary.Name)
+	symlinkPath, err := SetActiveVersion(installation.InstalledPath, customInstallPath, binary.Name, binary.Alias)
 	if err != nil {
 		return fmt.Errorf("failed to set active version: %w", err)
 	}

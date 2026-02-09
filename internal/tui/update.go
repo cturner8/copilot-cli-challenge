@@ -715,7 +715,7 @@ func switchVersion(dbService *repository.Service, binary *database.Binary, insta
 		}
 
 		// Update the symlink
-		symlinkPath, err := versionSvc.SetActiveVersion(installation.InstalledPath, customInstallPath, binary.Name)
+		symlinkPath, err := versionSvc.SetActiveVersion(installation.InstalledPath, customInstallPath, binary.Name, binary.Alias)
 		if err != nil {
 			return versionSwitchedMsg{err: fmt.Errorf("failed to set active version: %w", err)}
 		}
