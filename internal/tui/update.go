@@ -2,6 +2,7 @@ package tui
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
@@ -535,7 +536,7 @@ func loadVersions(dbService *repository.Service, binaryID int64) tea.Cmd {
 
 // createFormInputs creates text input fields for the binary form
 func createFormInputs(parsed *parsedBinaryConfig) []textinput.Model {
-	inputs := make([]textinput.Model, 8)
+	inputs := make([]textinput.Model, 9)
 
 	// User ID
 	inputs[0] = textinput.New()
@@ -591,6 +592,17 @@ func createFormInputs(parsed *parsedBinaryConfig) []textinput.Model {
 	inputs[7].CharLimit = 256
 	inputs[7].Width = 40
 
+	// Authenticated (boolean as string)
+	inputs[8] = textinput.New()
+	inputs[8].Placeholder = "true/false (default: false)"
+	if parsed.authenticated {
+		inputs[8].SetValue("true")
+	} else {
+		inputs[8].SetValue("false")
+	}
+	inputs[8].CharLimit = 5
+	inputs[8].Width = 40
+
 	return inputs
 }
 
@@ -610,6 +622,7 @@ func saveBinary(m model) tea.Cmd {
 		installPath := m.formInputs[5].Value()
 		assetRegex := m.formInputs[6].Value()
 		releaseRegex := m.formInputs[7].Value()
+		authenticatedStr := m.formInputs[8].Value()
 
 		// Validate required fields
 		if userID == "" {
@@ -626,6 +639,13 @@ func saveBinary(m model) tea.Cmd {
 		}
 		if format == "" {
 			return binarySavedMsg{err: fmt.Errorf("format is required")}
+		}
+
+		// Parse authenticated boolean
+		authenticated := false
+		if authenticatedStr != "" {
+			authenticatedStr = strings.ToLower(strings.TrimSpace(authenticatedStr))
+			authenticated = authenticatedStr == "true" || authenticatedStr == "yes" || authenticatedStr == "1"
 		}
 
 		// Check if binary already exists
@@ -652,6 +672,7 @@ func saveBinary(m model) tea.Cmd {
 			Format:        format,
 			ConfigDigest:  configDigest,
 			ConfigVersion: ConfigVersionManual, // Not from config file
+			Authenticated: authenticated,
 		}
 
 		// Set optional fields

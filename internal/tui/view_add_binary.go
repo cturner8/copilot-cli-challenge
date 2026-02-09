@@ -62,6 +62,7 @@ func (m model) renderAddBinaryForm() string {
 		"Install Path",
 		"Asset Regex",
 		"Release Regex",
+		"Authenticated",
 	}
 
 	// Render each form field
