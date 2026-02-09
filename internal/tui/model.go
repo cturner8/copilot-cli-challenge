@@ -42,6 +42,7 @@ type model struct {
 	installBinaryID      string
 	installVersionInput  textinput.Model
 	installingInProgress bool
+	installReturnView    viewState // Track which view to return to after install
 
 	// Remove confirmation state
 	confirmingRemove bool

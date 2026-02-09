@@ -7,6 +7,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"regexp"
 	"strings"
 )
 
@@ -34,9 +35,27 @@ func FetchReleaseAsset(binary *database.Binary, version string) (Release, Releas
 	url := fmt.Sprintf("https://api.github.com/repos/%s/releases/latest", binary.ProviderPath)
 	if version != "latest" {
 		tag := version
-		// TODO: handle as actual regex expression?
 		if binary.ReleaseRegex != nil && *binary.ReleaseRegex != "" {
-			tag = *binary.ReleaseRegex + version
+			// Apply regex pattern to transform version to GitHub release tag format.
+			// This handles cases where releases use different tag formats (e.g., "v1.0.0" vs "1.0.0").
+			//
+			// Examples:
+			//   - Simple prefix: "^v" validates that version starts with "v", otherwise prepends it
+			//   - Pattern matching: "^cli-v(.+)" would match "cli-v1.0.0" from input "1.0.0"
+			//
+			// The regex is validated at compile time to catch configuration errors early.
+			re, err := regexp.Compile(*binary.ReleaseRegex)
+			if err != nil {
+				return Release{}, ReleaseAsset{}, fmt.Errorf("invalid releaseRegex pattern '%s': %w", *binary.ReleaseRegex, err)
+			}
+
+			// Check if version already matches the expected pattern
+			if !re.MatchString(version) {
+				// Version doesn't match - apply pattern as prefix to transform it
+				// e.g., "1.0.0" with pattern "v" becomes "v1.0.0"
+				tag = *binary.ReleaseRegex + version
+			}
+			// else: version already matches pattern, use as-is
 		}
 
 		url = fmt.Sprintf("https://api.github.com/repos/%s/releases/tags/%s", binary.ProviderPath, tag)

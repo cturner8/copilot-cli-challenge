@@ -71,11 +71,22 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.errorMessage = msg.err.Error()
 			m.successMessage = ""
 		} else {
-			// Return to binaries list and reload
-			m.currentView = viewBinariesList
+			// Return to the view we came from (binaries list or versions)
+			returnView := m.installReturnView
+			if returnView == viewState(0) {
+				returnView = viewBinariesList // Default to binaries list
+			}
+			m.currentView = returnView
+			m.installVersionInput.Reset()
+			m.installBinaryID = ""
 			m.errorMessage = ""
 			m.successMessage = fmt.Sprintf("Successfully installed %s version %s", msg.binary.Name, msg.installation.Version)
+
+			// Reload appropriate data based on return view
 			m.loading = true
+			if returnView == viewVersions && m.selectedBinary != nil {
+				return m, loadVersions(m.dbService, m.selectedBinary.ID)
+			}
 			return m, loadBinaries(m.dbService)
 		}
 		return m, nil
@@ -91,8 +102,11 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			} else {
 				m.successMessage = fmt.Sprintf("Updated %s from %s to %s", msg.binaryID, msg.oldVersion, msg.newVersion)
 			}
-			// Reload binaries list
+			// Reload appropriate data based on current view
 			m.loading = true
+			if m.currentView == viewVersions && m.selectedBinary != nil {
+				return m, loadVersions(m.dbService, m.selectedBinary.ID)
+			}
 			return m, loadBinaries(m.dbService)
 		}
 		return m, nil
@@ -119,6 +133,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.errorMessage = ""
 			if msg.hasUpdate {
 				m.successMessage = fmt.Sprintf("⬆ Update available for %s: %s → %s", msg.binaryID, msg.currentVersion, msg.latestVersion)
+			} else if msg.latestInstalled {
+				m.successMessage = fmt.Sprintf("✓ %s: latest version (%s) installed but not active (current: %s)", msg.binaryID, msg.latestVersion, msg.currentVersion)
 			} else {
 				m.successMessage = fmt.Sprintf("✓ %s is up to date (%s)", msg.binaryID, msg.currentVersion)
 			}
@@ -276,6 +292,7 @@ func (m model) updateBinariesList(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		if len(m.binaries) > 0 && m.selectedIndex < len(m.binaries) {
 			m.currentView = viewInstallBinary
 			m.installBinaryID = m.binaries[m.selectedIndex].Binary.UserID
+			m.installReturnView = viewBinariesList
 			m.installVersionInput.Focus()
 			m.errorMessage = ""
 			m.successMessage = ""
@@ -353,6 +370,34 @@ func (m model) updateVersions(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		if len(m.installations) > 0 && m.selectedVersionIdx < len(m.installations) {
 			selectedInstallation := m.installations[m.selectedVersionIdx]
 			return m, switchVersion(m.dbService, m.selectedBinary, selectedInstallation)
+		}
+
+	case keyInstall:
+		// Install a new version
+		if m.selectedBinary != nil {
+			m.currentView = viewInstallBinary
+			m.installBinaryID = m.selectedBinary.UserID
+			m.installReturnView = viewVersions
+			m.installVersionInput.Focus()
+			m.errorMessage = ""
+			m.successMessage = ""
+		}
+
+	case keyUpdate:
+		// Update to latest version
+		if m.selectedBinary != nil {
+			m.errorMessage = ""
+			m.successMessage = ""
+			return m, updateBinary(m.dbService, m.selectedBinary.UserID)
+		}
+
+	case keyCheck:
+		// Check for updates
+		if m.selectedBinary != nil {
+			m.errorMessage = ""
+			m.successMessage = ""
+			m.loading = true
+			return m, checkForUpdates(m.dbService, m.selectedBinary.UserID)
 		}
 
 	case keyDelete, keyDelete2:
@@ -693,7 +738,7 @@ func switchVersion(dbService *repository.Service, binary *database.Binary, insta
 		}
 
 		// Update the symlink
-		symlinkPath, err := versionSvc.SetActiveVersion(installation.InstalledPath, customInstallPath, binary.Name)
+		symlinkPath, err := versionSvc.SetActiveVersion(installation.InstalledPath, customInstallPath, binary.Name, binary.Alias)
 		if err != nil {
 			return versionSwitchedMsg{err: fmt.Errorf("failed to set active version: %w", err)}
 		}
@@ -735,8 +780,12 @@ func (m model) updateInstallBinary(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 
 	switch msg.String() {
 	case keyEsc:
-		// Cancel and return to binaries list
-		m.currentView = viewBinariesList
+		// Cancel and return to the view we came from
+		returnView := m.installReturnView
+		if returnView == viewState(0) {
+			returnView = viewBinariesList
+		}
+		m.currentView = returnView
 		m.installVersionInput.Reset()
 		m.installBinaryID = ""
 		m.errorMessage = ""
@@ -886,6 +935,8 @@ func checkForUpdates(dbService *repository.Service, binaryID string) tea.Cmd {
 			}
 		}
 
+		latestVersion := release.TagName
+
 		// Get current active version
 		currentVersion := "none"
 		activeVersion, err := dbService.Versions.Get(binaryConfig.ID)
@@ -896,15 +947,20 @@ func checkForUpdates(dbService *repository.Service, binaryID string) tea.Cmd {
 			}
 		}
 
-		latestVersion := release.TagName
-		hasUpdate := currentVersion != latestVersion && currentVersion != "none"
+		// Check if latest version is already installed (even if not active)
+		_, err = dbService.Installations.Get(binaryConfig.ID, latestVersion)
+		isLatestInstalled := err == nil
+
+		// Determine if update is needed: latest not installed, or current is not latest
+		hasUpdate := !isLatestInstalled && currentVersion != latestVersion && currentVersion != "none"
 
 		return updateCheckMsg{
-			binaryID:       binaryID,
-			currentVersion: currentVersion,
-			latestVersion:  latestVersion,
-			hasUpdate:      hasUpdate,
-			err:            nil,
+			binaryID:        binaryID,
+			currentVersion:  currentVersion,
+			latestVersion:   latestVersion,
+			hasUpdate:       hasUpdate,
+			latestInstalled: isLatestInstalled && currentVersion != latestVersion,
+			err:             nil,
 		}
 	}
 }
