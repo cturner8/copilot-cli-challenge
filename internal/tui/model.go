@@ -60,16 +60,17 @@ type model struct {
 
 // parsedBinaryConfig represents a binary configuration parsed from a URL
 type parsedBinaryConfig struct {
-	userID       string
-	name         string
-	provider     string
-	path         string
-	format       string
-	version      string
-	assetName    string
-	installPath  string
-	assetRegex   string
-	releaseRegex string
+	userID        string
+	name          string
+	provider      string
+	path          string
+	format        string
+	version       string
+	assetName     string
+	installPath   string
+	assetRegex    string
+	releaseRegex  string
+	authenticated bool
 }
 
 func initialModel(dbService *repository.Service, cfg *config.Config) model {

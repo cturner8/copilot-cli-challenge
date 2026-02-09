@@ -54,7 +54,7 @@ func TestAddBinaryFromURL(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			binary, err := AddBinaryFromURL(tt.url, dbService)
+			binary, err := AddBinaryFromURL(tt.url, false, dbService)
 			if tt.expectError {
 				if err == nil {
 					t.Error("Expected error but got none")
@@ -86,13 +86,13 @@ func TestAddBinaryFromURL_Duplicate(t *testing.T) {
 	url := "https://github.com/cli/cli/releases/download/v2.30.0/gh_2.30.0_linux_amd64.tar.gz"
 
 	// Add binary first time
-	binary1, err := AddBinaryFromURL(url, dbService)
+	binary1, err := AddBinaryFromURL(url, false, dbService)
 	if err != nil {
 		t.Fatalf("First add failed: %v", err)
 	}
 
 	// Add same binary again - should return existing one
-	binary2, err := AddBinaryFromURL(url, dbService)
+	binary2, err := AddBinaryFromURL(url, false, dbService)
 	if err != nil {
 		t.Fatalf("Second add failed: %v", err)
 	}
@@ -108,7 +108,7 @@ func TestRemoveBinary(t *testing.T) {
 
 	// Add a binary first
 	url := "https://github.com/cli/cli/releases/download/v2.30.0/gh_2.30.0_linux_amd64.tar.gz"
-	binary, err := AddBinaryFromURL(url, dbService)
+	binary, err := AddBinaryFromURL(url, false, dbService)
 	if err != nil {
 		t.Fatalf("Failed to add binary: %v", err)
 	}
@@ -151,7 +151,7 @@ func TestListBinariesWithDetails(t *testing.T) {
 
 	// Add a binary
 	url := "https://github.com/cli/cli/releases/download/v2.30.0/gh_2.30.0_linux_amd64.tar.gz"
-	_, err = AddBinaryFromURL(url, dbService)
+	_, err = AddBinaryFromURL(url, false, dbService)
 	if err != nil {
 		t.Fatalf("Failed to add binary: %v", err)
 	}
@@ -172,7 +172,7 @@ func TestGetBinaryByID(t *testing.T) {
 
 	// Add a binary
 	url := "https://github.com/cli/cli/releases/download/v2.30.0/gh_2.30.0_linux_amd64.tar.gz"
-	added, err := AddBinaryFromURL(url, dbService)
+	added, err := AddBinaryFromURL(url, false, dbService)
 	if err != nil {
 		t.Fatalf("Failed to add binary: %v", err)
 	}

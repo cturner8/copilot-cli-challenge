@@ -19,7 +19,8 @@ var (
 
 func NewCommand() *cobra.Command {
 	var (
-		url string
+		url           string
+		authenticated bool
 	)
 
 	cmd := &cobra.Command{
@@ -37,7 +38,7 @@ The binary will be registered in the database but not installed until you run 'b
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// Case 1: URL provided as flag
 			if url != "" {
-				binary, err := binarySvc.AddBinaryFromURL(url, DBService)
+				binary, err := binarySvc.AddBinaryFromURL(url, authenticated, DBService)
 				if err != nil {
 					return fmt.Errorf("failed to add binary from URL: %w", err)
 				}
@@ -49,7 +50,7 @@ The binary will be registered in the database but not installed until you run 'b
 			if len(args) > 0 && len(args[0]) > 0 {
 				// Check if it's a URL (starts with http)
 				if strings.HasPrefix(args[0], "http://") || strings.HasPrefix(args[0], "https://") {
-					binary, err := binarySvc.AddBinaryFromURL(args[0], DBService)
+					binary, err := binarySvc.AddBinaryFromURL(args[0], authenticated, DBService)
 					if err != nil {
 						return fmt.Errorf("failed to add binary from URL: %w", err)
 					}
@@ -71,6 +72,7 @@ The binary will be registered in the database but not installed until you run 'b
 	}
 
 	cmd.Flags().StringVarP(&url, "url", "u", "", "GitHub release URL for the binary")
+	cmd.Flags().BoolVarP(&authenticated, "authenticated", "a", false, "Use GitHub token authentication for private repos")
 
 	return cmd
 }

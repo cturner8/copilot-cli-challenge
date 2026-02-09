@@ -12,7 +12,7 @@ import (
 )
 
 // AddBinaryFromURL adds a binary by parsing a GitHub release URL
-func AddBinaryFromURL(rawURL string, dbService *repository.Service) (*database.Binary, error) {
+func AddBinaryFromURL(rawURL string, authenticated bool, dbService *repository.Service) (*database.Binary, error) {
 	// Parse the GitHub release URL
 	parsed, err := url.ParseGitHubReleaseURL(rawURL)
 	if err != nil {
@@ -32,6 +32,7 @@ func AddBinaryFromURL(rawURL string, dbService *repository.Service) (*database.B
 		Format:        parsed.Format,
 		ConfigVersion: 0,        // TUI-added binaries have ConfigVersion=0
 		Source:        "manual", // User-added binaries are marked as manual
+		Authenticated: authenticated,
 	}
 
 	// Compute config digest
