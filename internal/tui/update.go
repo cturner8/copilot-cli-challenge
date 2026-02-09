@@ -118,6 +118,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.errorMessage = ""
 			if msg.hasUpdate {
 				m.successMessage = fmt.Sprintf("⬆ Update available for %s: %s → %s", msg.binaryID, msg.currentVersion, msg.latestVersion)
+			} else if msg.latestInstalled {
+				m.successMessage = fmt.Sprintf("✓ %s: latest version (%s) installed but not active (current: %s)", msg.binaryID, msg.latestVersion, msg.currentVersion)
 			} else {
 				m.successMessage = fmt.Sprintf("✓ %s is up to date (%s)", msg.binaryID, msg.currentVersion)
 			}
@@ -865,6 +867,8 @@ func checkForUpdates(dbService *repository.Service, binaryID string) tea.Cmd {
 			}
 		}
 
+		latestVersion := release.TagName
+
 		// Get current active version
 		currentVersion := "none"
 		activeVersion, err := dbService.Versions.Get(binaryConfig.ID)
@@ -875,15 +879,20 @@ func checkForUpdates(dbService *repository.Service, binaryID string) tea.Cmd {
 			}
 		}
 
-		latestVersion := release.TagName
-		hasUpdate := currentVersion != latestVersion && currentVersion != "none"
+		// Check if latest version is already installed (even if not active)
+		_, err = dbService.Installations.Get(binaryConfig.ID, latestVersion)
+		isLatestInstalled := err == nil
+
+		// Determine if update is needed: latest not installed, or current is not latest
+		hasUpdate := !isLatestInstalled && currentVersion != latestVersion && currentVersion != "none"
 
 		return updateCheckMsg{
-			binaryID:       binaryID,
-			currentVersion: currentVersion,
-			latestVersion:  latestVersion,
-			hasUpdate:      hasUpdate,
-			err:            nil,
+			binaryID:        binaryID,
+			currentVersion:  currentVersion,
+			latestVersion:   latestVersion,
+			hasUpdate:       hasUpdate,
+			latestInstalled: isLatestInstalled && currentVersion != latestVersion,
+			err:             nil,
 		}
 	}
 }
