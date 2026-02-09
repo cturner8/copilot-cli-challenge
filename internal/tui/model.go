@@ -26,8 +26,9 @@ type model struct {
 	loading       bool
 
 	// Versions view state
-	selectedBinary *database.Binary
-	installations  []*database.Installation
+	selectedBinary     *database.Binary
+	installations      []*database.Installation
+	selectedVersionIdx int
 
 	// Add binary view state - URL input
 	urlTextInput textinput.Model
@@ -37,8 +38,24 @@ type model struct {
 	formInputs   []textinput.Model
 	focusedField int
 
+	// Install binary view state
+	installBinaryID      string
+	installVersionInput  textinput.Model
+	installingInProgress bool
+
+	// Remove confirmation state
+	confirmingRemove bool
+	removeBinaryID   string
+	removeWithFiles  bool
+
+	// Import binary view state
+	importPathInput textinput.Model
+	importNameInput textinput.Model
+	importFocusIdx  int
+
 	// Error state
-	errorMessage string
+	errorMessage   string
+	successMessage string
 }
 
 // parsedBinaryConfig represents a binary configuration parsed from a URL
@@ -62,12 +79,32 @@ func initialModel(dbService *repository.Service, cfg *config.Config) model {
 	urlInput.CharLimit = 256
 	urlInput.Width = 80
 
+	// Create version text input for install view
+	versionInput := textinput.New()
+	versionInput.Placeholder = "latest"
+	versionInput.CharLimit = 64
+	versionInput.Width = 40
+
+	// Create text inputs for import view
+	importPathInput := textinput.New()
+	importPathInput.Placeholder = "/usr/local/bin/binary"
+	importPathInput.CharLimit = 256
+	importPathInput.Width = 60
+
+	importNameInput := textinput.New()
+	importNameInput.Placeholder = "binary-name"
+	importNameInput.CharLimit = 64
+	importNameInput.Width = 40
+
 	return model{
-		dbService:    dbService,
-		config:       cfg,
-		currentView:  viewBinariesList,
-		loading:      true,
-		urlTextInput: urlInput,
-		formInputs:   []textinput.Model{},
+		dbService:           dbService,
+		config:              cfg,
+		currentView:         viewBinariesList,
+		loading:             true,
+		urlTextInput:        urlInput,
+		formInputs:          []textinput.Model{},
+		installVersionInput: versionInput,
+		importPathInput:     importPathInput,
+		importNameInput:     importNameInput,
 	}
 }

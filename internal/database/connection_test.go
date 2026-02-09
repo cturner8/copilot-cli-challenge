@@ -3,6 +3,7 @@ package database
 import (
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 )
 
@@ -35,13 +36,38 @@ func TestGetDefaultDBPath(t *testing.T) {
 		t.Fatalf("Failed to get default DB path: %v", err)
 	}
 
-	// Verify path contains expected components
+	// Verify path is absolute
 	if !filepath.IsAbs(path) {
 		t.Error("DB path is not absolute")
 	}
 
-	if !contains(path, ".local") || !contains(path, "share") || !contains(path, ".binmate") {
-		t.Errorf("DB path does not match expected pattern: %s", path)
+	// Verify path contains 'binmate' directory
+	if !contains(path, "binmate") {
+		t.Errorf("DB path should contain 'binmate' directory: %s", path)
+	}
+
+	// Verify path ends with user.db
+	if filepath.Base(path) != "user.db" {
+		t.Errorf("DB path should end with 'user.db', got: %s", filepath.Base(path))
+	}
+
+	// Platform-specific checks
+	switch runtime.GOOS {
+	case "windows":
+		// On Windows, should be in LocalAppData
+		if !contains(path, "AppData") && !contains(path, "Local") {
+			t.Logf("Note: Expected Windows path in LocalAppData, got: %s", path)
+		}
+	case "darwin", "linux":
+		// On macOS and Linux, should contain .local/share
+		if !contains(path, ".local") || !contains(path, "share") {
+			t.Errorf("macOS/Linux DB path should contain '.local/share': %s", path)
+		}
+	default:
+		// Other Unix-like systems should also use .local/share
+		if !contains(path, ".local") || !contains(path, "share") {
+			t.Errorf("Unix DB path should contain '.local/share': %s", path)
+		}
 	}
 }
 

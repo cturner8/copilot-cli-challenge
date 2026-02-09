@@ -14,6 +14,22 @@ bd close <id>         # Complete work
 bd sync               # Sync with git
 ```
 
+### Starting a new work session
+
+**MANDATORY WORKFLOW:**
+
+1. **Checkout dev branch** - Switch back to the `dev` branch
+2. **Pull from remote**:
+   ```bash
+   git pull
+   git status  # MUST show "up to date with origin"
+   ```
+3. **Create a new session branch** - Create a new session branch for the current task. Branch name should be in the form `{type}/{issue id}`. For example:
+
+- `bug/bm-nhs` - bug task
+- `feature/bm-nhs` - feature task
+- `task/bm-nhs` - generic task
+
 ### Landing the Plane (Session Completion)
 
 **When ending a work session**, you MUST complete ALL steps below. Work is NOT complete until `git push` succeeds.
@@ -21,7 +37,7 @@ bd sync               # Sync with git
 **MANDATORY WORKFLOW:**
 
 1. **File issues for remaining work** - Create issues for anything that needs follow-up
-2. **Run quality gates** (if code changed) - Tests, linters, builds
+2. **Run quality gates** (if code changed) - Tests, linters, builds, formatter
 3. **Update issue status** - Close finished work, update in-progress items
 4. **PUSH TO REMOTE** - This is MANDATORY:
    ```bash
@@ -157,6 +173,7 @@ bd sync               # Sync with git
 - Keep packages focused and single-purpose
 - Prefer small, composable functions
 - Use meaningful variable and function names
+- When changing or adding new `go` files, run `go fmt` on changes files
 
 ### Configuration Schema
 

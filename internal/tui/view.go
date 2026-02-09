@@ -10,6 +10,10 @@ func (m model) View() string {
 		return m.renderAddBinaryURL()
 	case viewAddBinaryForm:
 		return m.renderAddBinaryForm()
+	case viewInstallBinary:
+		return m.renderInstallBinary()
+	case viewImportBinary:
+		return m.renderImportBinary()
 	case viewDownloads:
 		return m.renderDownloads()
 	case viewConfiguration:

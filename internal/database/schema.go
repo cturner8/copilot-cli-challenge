@@ -26,13 +26,16 @@ CREATE TABLE IF NOT EXISTS binaries (
     config_digest TEXT NOT NULL DEFAULT '',
     created_at INTEGER NOT NULL,
     updated_at INTEGER NOT NULL,
-    config_version INTEGER NOT NULL DEFAULT 1
+    config_version INTEGER NOT NULL DEFAULT 1,
+    source TEXT NOT NULL DEFAULT 'manual',
+    authenticated INTEGER NOT NULL DEFAULT 0
 );
 
 CREATE INDEX IF NOT EXISTS idx_binaries_user_id ON binaries(user_id);
 CREATE INDEX IF NOT EXISTS idx_binaries_provider ON binaries(provider);
 CREATE INDEX IF NOT EXISTS idx_binaries_name ON binaries(name);
 CREATE INDEX IF NOT EXISTS idx_binaries_alias ON binaries(alias) WHERE alias IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_binaries_source ON binaries(source);
 
 -- Installations table
 CREATE TABLE IF NOT EXISTS installations (
