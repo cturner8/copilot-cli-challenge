@@ -70,11 +70,22 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.errorMessage = msg.err.Error()
 			m.successMessage = ""
 		} else {
-			// Return to binaries list and reload
-			m.currentView = viewBinariesList
+			// Return to the view we came from (binaries list or versions)
+			returnView := m.installReturnView
+			if returnView == viewState(0) {
+				returnView = viewBinariesList // Default to binaries list
+			}
+			m.currentView = returnView
+			m.installVersionInput.Reset()
+			m.installBinaryID = ""
 			m.errorMessage = ""
 			m.successMessage = fmt.Sprintf("Successfully installed %s version %s", msg.binary.Name, msg.installation.Version)
+
+			// Reload appropriate data based on return view
 			m.loading = true
+			if returnView == viewVersions && m.selectedBinary != nil {
+				return m, loadVersions(m.dbService, m.selectedBinary.ID)
+			}
 			return m, loadBinaries(m.dbService)
 		}
 		return m, nil
@@ -90,8 +101,11 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			} else {
 				m.successMessage = fmt.Sprintf("Updated %s from %s to %s", msg.binaryID, msg.oldVersion, msg.newVersion)
 			}
-			// Reload binaries list
+			// Reload appropriate data based on current view
 			m.loading = true
+			if m.currentView == viewVersions && m.selectedBinary != nil {
+				return m, loadVersions(m.dbService, m.selectedBinary.ID)
+			}
 			return m, loadBinaries(m.dbService)
 		}
 		return m, nil
@@ -275,6 +289,7 @@ func (m model) updateBinariesList(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		if len(m.binaries) > 0 && m.selectedIndex < len(m.binaries) {
 			m.currentView = viewInstallBinary
 			m.installBinaryID = m.binaries[m.selectedIndex].Binary.UserID
+			m.installReturnView = viewBinariesList
 			m.installVersionInput.Focus()
 			m.errorMessage = ""
 			m.successMessage = ""
@@ -352,6 +367,34 @@ func (m model) updateVersions(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		if len(m.installations) > 0 && m.selectedVersionIdx < len(m.installations) {
 			selectedInstallation := m.installations[m.selectedVersionIdx]
 			return m, switchVersion(m.dbService, m.selectedBinary, selectedInstallation)
+		}
+
+	case keyInstall:
+		// Install a new version
+		if m.selectedBinary != nil {
+			m.currentView = viewInstallBinary
+			m.installBinaryID = m.selectedBinary.UserID
+			m.installReturnView = viewVersions
+			m.installVersionInput.Focus()
+			m.errorMessage = ""
+			m.successMessage = ""
+		}
+
+	case keyUpdate:
+		// Update to latest version
+		if m.selectedBinary != nil {
+			m.errorMessage = ""
+			m.successMessage = ""
+			return m, updateBinary(m.dbService, m.selectedBinary.UserID)
+		}
+
+	case keyCheck:
+		// Check for updates
+		if m.selectedBinary != nil {
+			m.errorMessage = ""
+			m.successMessage = ""
+			m.loading = true
+			return m, checkForUpdates(m.dbService, m.selectedBinary.UserID)
 		}
 
 	case keyDelete, keyDelete2:
@@ -714,8 +757,12 @@ func (m model) updateInstallBinary(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 
 	switch msg.String() {
 	case keyEsc:
-		// Cancel and return to binaries list
-		m.currentView = viewBinariesList
+		// Cancel and return to the view we came from
+		returnView := m.installReturnView
+		if returnView == viewState(0) {
+			returnView = viewBinariesList
+		}
+		m.currentView = returnView
 		m.installVersionInput.Reset()
 		m.installBinaryID = ""
 		m.errorMessage = ""
