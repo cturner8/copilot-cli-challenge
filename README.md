@@ -176,16 +176,64 @@ Configuration is stored in `~/.config/.binmate/config.json`:
 }
 ```
 
+### Global Configuration
+
+You can define global defaults that apply to all binaries unless overridden:
+
+```json
+{
+  "version": 1,
+  "global": {
+    "installPath": "/usr/local/bin",
+    "providers": {
+      "github": {
+        "authenticated": true
+      }
+    }
+  },
+  "binaries": [
+    {
+      "id": "gh",
+      "name": "gh",
+      "provider": "github",
+      "path": "cli/cli",
+      "format": ".tar.gz"
+    },
+    {
+      "id": "fzf",
+      "name": "fzf",
+      "provider": "github",
+      "path": "junegunn/fzf",
+      "format": ".tar.gz",
+      "installPath": "/opt/bin"
+    }
+  ]
+}
+```
+
+In this example:
+- All binaries will use `/usr/local/bin` as the install path by default
+- All binaries will use GitHub authentication by default to avoid rate limits
+- The `fzf` binary overrides the global install path with `/opt/bin`
+
 ### Configuration Fields
+
+#### Global Configuration
+
+- `global.installPath`: (optional) Default installation path for all binaries (e.g., `/usr/local/bin`)
+- `global.providers.<provider>.authenticated`: (optional) Default authentication setting for a provider
+
+#### Binary Configuration
 
 - `id`: Unique identifier for the binary
 - `name`: Display name of the binary
 - `provider`: Provider type (currently only "github" supported)
 - `path`: Repository path (e.g., "owner/repo")
 - `format`: Archive format (.tar.gz, .zip, .tgz)
-- `installPath`: (optional) Custom installation path
+- `installPath`: (optional) Custom installation path (overrides global.installPath)
 - `assetRegex`: (optional) Regex to filter release assets
 - `releaseRegex`: (optional) Regex to filter releases
+- `authenticated`: (optional) Use authentication for API calls (overrides provider default)
 
 ## Database
 
