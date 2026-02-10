@@ -14,7 +14,7 @@ builds:
     main: ./main.go
     binary: binmate
     env:
-      - CGO_ENABLED=1
+      - CGO_ENABLED=0
     goos:
       - linux
       - darwin
@@ -22,7 +22,7 @@ builds:
     goarch:
       - amd64
       - arm64
-    # Use flags for static linking where possible
+    # Use flags for static linking
     flags:
       - -trimpath
     ldflags:
@@ -30,32 +30,6 @@ builds:
       - -X main.version={{.Version}}
       - -X main.commit={{.Commit}}
       - -X main.date={{.Date}}
-    # Platform-specific build settings for CGO with Zig cross-compilation
-    overrides:
-      - goos: linux
-        goarch: amd64
-        env:
-          - CC=zig cc -target x86_64-linux-musl
-      - goos: linux
-        goarch: arm64
-        env:
-          - CC=zig cc -target aarch64-linux-musl
-      - goos: darwin
-        goarch: amd64
-        env:
-          - CC=zig cc -target x86_64-macos
-      - goos: darwin
-        goarch: arm64
-        env:
-          - CC=zig cc -target aarch64-macos
-      - goos: windows
-        goarch: amd64
-        env:
-          - CC=zig cc -target x86_64-windows-gnu
-      - goos: windows
-        goarch: arm64
-        env:
-          - CC=zig cc -target aarch64-windows-gnu
 
 archives:
   - id: binmate-archive
