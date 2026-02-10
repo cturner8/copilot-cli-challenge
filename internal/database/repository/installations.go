@@ -151,18 +151,33 @@ func (r *InstallationsRepository) Delete(id int64) error {
 
 // VerifyChecksum compares stored checksum with expected value
 func (r *InstallationsRepository) VerifyChecksum(id int64, expectedChecksum string) (bool, error) {
-	var storedChecksum string
+	var exists int
 	err := r.db.QueryRow(`
-SELECT checksum FROM installations WHERE id = ?
-`, id).Scan(&storedChecksum)
+		SELECT 1 FROM installations 
+		WHERE id = ? AND checksum = ?
+	`, id, expectedChecksum).Scan(&exists)
 
 	if err == sql.ErrNoRows {
-		return false, database.ErrNotFound
+		// Check if installation exists but checksum doesn't match
+		var storedChecksum string
+		checkErr := r.db.QueryRow(`
+			SELECT checksum FROM installations WHERE id = ?
+		`, id).Scan(&storedChecksum)
+
+		if checkErr == sql.ErrNoRows {
+			return false, database.ErrNotFound
+		}
+		if checkErr != nil {
+			return false, fmt.Errorf("failed to verify checksum: %w", checkErr)
+		}
+
+		// Installation exists but checksum doesn't match
+		return false, nil
 	}
 	if err != nil {
 		return false, fmt.Errorf("failed to verify checksum: %w", err)
 	}
 
-	// TODO: could this be set as a where filter?
-	return storedChecksum == expectedChecksum, nil
+	// Checksum matches
+	return true, nil
 }
