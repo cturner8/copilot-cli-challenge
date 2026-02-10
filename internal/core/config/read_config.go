@@ -29,6 +29,10 @@ func ReadConfig(flags ConfigFlags) Config {
 	v.SetDefault("version", 1)
 	v.SetDefault("binaries", []Binary{})
 	v.SetDefault("logLevel", logLevel)
+	v.SetDefault("global", GlobalConfig{
+		InstallPath: "",
+		Providers:   map[string]ProviderDefaults{},
+	})
 
 	homeDir, _ := os.UserConfigDir()
 

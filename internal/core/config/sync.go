@@ -11,17 +11,20 @@ func SyncToDatabase(config Config, dbService *repository.Service) error {
 	// Convert config binaries to repository format
 	configBinaries := make([]repository.ConfigBinary, len(config.Binaries))
 	for i, b := range config.Binaries {
+		// Merge global config with binary-specific config
+		merged := MergeBinaryWithGlobal(b, config.Global)
+
 		configBinaries[i] = repository.ConfigBinary{
-			ID:            b.Id,
-			Name:          b.Name,
-			Alias:         b.Alias,
-			Provider:      b.Provider,
-			Path:          b.Path,
-			InstallPath:   b.InstallPath,
-			Format:        b.Format,
-			AssetRegex:    b.AssetRegex,
-			ReleaseRegex:  b.ReleaseRegex,
-			Authenticated: b.Authenticated,
+			ID:            merged.Id,
+			Name:          merged.Name,
+			Alias:         merged.Alias,
+			Provider:      merged.Provider,
+			Path:          merged.Path,
+			InstallPath:   merged.InstallPath,
+			Format:        merged.Format,
+			AssetRegex:    merged.AssetRegex,
+			ReleaseRegex:  merged.ReleaseRegex,
+			Authenticated: merged.Authenticated,
 		}
 	}
 
@@ -41,18 +44,21 @@ func SyncBinary(binaryID string, config Config, dbService *repository.Service) e
 		return fmt.Errorf("binary not found in config: %w", err)
 	}
 
+	// Merge global config with binary-specific config
+	merged := MergeBinaryWithGlobal(binary, config.Global)
+
 	// Convert to repository format
 	configBinary := repository.ConfigBinary{
-		ID:            binary.Id,
-		Name:          binary.Name,
-		Alias:         binary.Alias,
-		Provider:      binary.Provider,
-		Path:          binary.Path,
-		InstallPath:   binary.InstallPath,
-		Format:        binary.Format,
-		AssetRegex:    binary.AssetRegex,
-		ReleaseRegex:  binary.ReleaseRegex,
-		Authenticated: binary.Authenticated,
+		ID:            merged.Id,
+		Name:          merged.Name,
+		Alias:         merged.Alias,
+		Provider:      merged.Provider,
+		Path:          merged.Path,
+		InstallPath:   merged.InstallPath,
+		Format:        merged.Format,
+		AssetRegex:    merged.AssetRegex,
+		ReleaseRegex:  merged.ReleaseRegex,
+		Authenticated: merged.Authenticated,
 	}
 
 	// Sync single binary to database
