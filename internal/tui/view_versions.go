@@ -95,6 +95,12 @@ func (m model) renderVersions() string {
 	b.WriteString(strings.Repeat("─", activeWidth+versionWidth+installedWidth+sizeWidth+pathWidth+columnPadding5))
 	b.WriteString("\n")
 
+	// Get date format once before loop
+	dateFormat := format.GetDefaultDateFormat()
+	if m.config != nil && m.config.DateFormat != "" {
+		dateFormat = m.config.DateFormat
+	}
+
 	// Table rows
 	for i, installation := range m.installations {
 		// Determine row style (selected or normal)
@@ -113,10 +119,6 @@ func (m model) renderVersions() string {
 		version := truncateText(installation.Version, versionWidth)
 
 		// Installed date
-		dateFormat := format.GetDefaultDateFormat()
-		if m.config != nil && m.config.DateFormat != "" {
-			dateFormat = m.config.DateFormat
-		}
 		installedDate := format.FormatTimestamp(installation.InstalledAt, dateFormat)
 
 		// File size (human-readable)
