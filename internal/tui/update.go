@@ -248,6 +248,40 @@ func (m model) updateBinariesList(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		return m, nil
 	}
 
+	// Handle search mode
+	if m.searchMode {
+		switch msg.String() {
+		case keyEsc:
+			// Exit search mode
+			m.searchMode = false
+			m.searchTextInput.Reset()
+			m.searchTextInput.Blur()
+			m.searchQuery = ""
+			m.filteredBinaries = []BinaryWithMetadata{}
+			m.selectedIndex = 0
+			return m, nil
+		case keyEnter:
+			// Apply search and exit input mode (but keep filtered view)
+			m.searchQuery = m.searchTextInput.Value()
+			m.searchTextInput.Blur()
+			m.filteredBinaries = filterBinaries(m.binaries, m.searchQuery)
+			m.selectedIndex = 0
+			if m.searchQuery == "" {
+				m.searchMode = false
+			}
+			return m, nil
+		default:
+			// Update search input
+			var cmd tea.Cmd
+			m.searchTextInput, cmd = m.searchTextInput.Update(msg)
+			// Live filter as user types
+			m.searchQuery = m.searchTextInput.Value()
+			m.filteredBinaries = filterBinaries(m.binaries, m.searchQuery)
+			m.selectedIndex = 0
+			return m, cmd
+		}
+	}
+
 	// Check for tab switching
 	if view, ok := getTabForKey(msg.String()); ok {
 		m.currentView = view
@@ -261,20 +295,35 @@ func (m model) updateBinariesList(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 
 	switch msg.String() {
 	case keyUp:
-		if m.selectedIndex > 0 {
+		// Navigate filtered or full list
+		listLen := len(m.binaries)
+		if m.searchQuery != "" {
+			listLen = len(m.filteredBinaries)
+		}
+		if m.selectedIndex > 0 && listLen > 0 {
 			m.selectedIndex--
 		}
 
 	case keyDown:
-		if m.selectedIndex < len(m.binaries)-1 {
+		// Navigate filtered or full list
+		listLen := len(m.binaries)
+		if m.searchQuery != "" {
+			listLen = len(m.filteredBinaries)
+		}
+		if listLen > 0 && m.selectedIndex < listLen-1 {
 			m.selectedIndex++
 		}
 
 	case keyEnter:
 		// Transition to versions view
-		if len(m.binaries) > 0 && m.selectedIndex < len(m.binaries) {
+		// Use filtered list if search is active
+		binariesToUse := m.binaries
+		if m.searchQuery != "" {
+			binariesToUse = m.filteredBinaries
+		}
+		if len(binariesToUse) > 0 && m.selectedIndex < len(binariesToUse) {
 			m.currentView = viewVersions
-			m.selectedBinary = m.binaries[m.selectedIndex].Binary
+			m.selectedBinary = binariesToUse[m.selectedIndex].Binary
 			m.loading = true
 			return m, loadVersions(m.dbService, m.selectedBinary.ID)
 		}
@@ -289,9 +338,13 @@ func (m model) updateBinariesList(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 
 	case keyInstall:
 		// Transition to install binary view
-		if len(m.binaries) > 0 && m.selectedIndex < len(m.binaries) {
+		binariesToUse := m.binaries
+		if m.searchQuery != "" {
+			binariesToUse = m.filteredBinaries
+		}
+		if len(binariesToUse) > 0 && m.selectedIndex < len(binariesToUse) {
 			m.currentView = viewInstallBinary
-			m.installBinaryID = m.binaries[m.selectedIndex].Binary.UserID
+			m.installBinaryID = binariesToUse[m.selectedIndex].Binary.UserID
 			m.installReturnView = viewBinariesList
 			m.installVersionInput.Focus()
 			m.errorMessage = ""
@@ -300,8 +353,12 @@ func (m model) updateBinariesList(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 
 	case keyUpdate:
 		// Update selected binary to latest version
-		if len(m.binaries) > 0 && m.selectedIndex < len(m.binaries) {
-			selectedBinary := m.binaries[m.selectedIndex]
+		binariesToUse := m.binaries
+		if m.searchQuery != "" {
+			binariesToUse = m.filteredBinaries
+		}
+		if len(binariesToUse) > 0 && m.selectedIndex < len(binariesToUse) {
+			selectedBinary := binariesToUse[m.selectedIndex]
 			m.errorMessage = ""
 			m.successMessage = ""
 			return m, updateBinary(m.dbService, selectedBinary.Binary.UserID)
@@ -318,17 +375,25 @@ func (m model) updateBinariesList(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 
 	case keyRemove:
 		// Show remove confirmation for selected binary
-		if len(m.binaries) > 0 && m.selectedIndex < len(m.binaries) {
+		binariesToUse := m.binaries
+		if m.searchQuery != "" {
+			binariesToUse = m.filteredBinaries
+		}
+		if len(binariesToUse) > 0 && m.selectedIndex < len(binariesToUse) {
 			m.confirmingRemove = true
-			m.removeBinaryID = m.binaries[m.selectedIndex].Binary.UserID
+			m.removeBinaryID = binariesToUse[m.selectedIndex].Binary.UserID
 			m.errorMessage = ""
 			m.successMessage = ""
 		}
 
 	case keyCheck:
 		// Check for updates for selected binary
-		if len(m.binaries) > 0 && m.selectedIndex < len(m.binaries) {
-			selectedBinary := m.binaries[m.selectedIndex]
+		binariesToUse := m.binaries
+		if m.searchQuery != "" {
+			binariesToUse = m.filteredBinaries
+		}
+		if len(binariesToUse) > 0 && m.selectedIndex < len(binariesToUse) {
+			selectedBinary := binariesToUse[m.selectedIndex]
 			m.errorMessage = ""
 			m.successMessage = ""
 			m.loading = true
@@ -342,6 +407,16 @@ func (m model) updateBinariesList(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		m.importNameInput.Reset()
 		m.importFocusIdx = 0
 		m.importPathInput.Focus()
+		m.errorMessage = ""
+		m.successMessage = ""
+
+	case keySearch:
+		// Enter search mode
+		m.searchMode = true
+		m.searchTextInput.Reset()
+		m.searchTextInput.Focus()
+		m.searchQuery = ""
+		m.filteredBinaries = m.binaries // Start with all binaries
 		m.errorMessage = ""
 		m.successMessage = ""
 

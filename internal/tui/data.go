@@ -2,6 +2,8 @@ package tui
 
 import (
 	"fmt"
+	"regexp"
+	"strings"
 
 	"cturner8/binmate/internal/database"
 	"cturner8/binmate/internal/database/repository"
@@ -61,4 +63,46 @@ func getActiveVersion(dbService *repository.Service, binaryID int64) (*database.
 		return nil, fmt.Errorf("failed to get active version: %w", err)
 	}
 	return installation, nil
+}
+
+// filterBinaries filters binaries by name using regex pattern
+func filterBinaries(binaries []BinaryWithMetadata, pattern string) []BinaryWithMetadata {
+	if pattern == "" {
+		return binaries
+	}
+
+	// Try to compile pattern as regex
+	// If it fails, treat as literal string
+	var filtered []BinaryWithMetadata
+	for _, binary := range binaries {
+		// Try regex match first
+		matched := false
+
+		// For simple patterns without regex special chars, do case-insensitive substring match
+		if !containsRegexChars(pattern) {
+			matched = strings.Contains(strings.ToLower(binary.Binary.Name), strings.ToLower(pattern)) ||
+				strings.Contains(strings.ToLower(binary.Binary.UserID), strings.ToLower(pattern))
+		} else {
+			// Try regex matching
+			if re, err := regexp.Compile("(?i)" + pattern); err == nil {
+				matched = re.MatchString(binary.Binary.Name) || re.MatchString(binary.Binary.UserID)
+			}
+		}
+
+		if matched {
+			filtered = append(filtered, binary)
+		}
+	}
+	return filtered
+}
+
+// containsRegexChars checks if string contains regex special characters
+func containsRegexChars(s string) bool {
+	specialChars := []string{".", "*", "+", "?", "^", "$", "[", "]", "(", ")", "{", "}", "|", "\\"}
+	for _, char := range specialChars {
+		if strings.Contains(s, char) {
+			return true
+		}
+	}
+	return false
 }

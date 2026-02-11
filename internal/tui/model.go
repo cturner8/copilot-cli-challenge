@@ -25,6 +25,13 @@ type model struct {
 	selectedIndex int
 	loading       bool
 
+	// Search state
+	searchMode       bool
+	searchQuery      string
+	searchTextInput  textinput.Model
+	filteredBinaries []BinaryWithMetadata
+	unfilteredIdx    int // Track original index in unfiltered list
+
 	// Versions view state
 	selectedBinary     *database.Binary
 	installations      []*database.Installation
@@ -98,6 +105,12 @@ func initialModel(dbService *repository.Service, cfg *config.Config) model {
 	importNameInput.CharLimit = 64
 	importNameInput.Width = 40
 
+	// Create search text input
+	searchInput := textinput.New()
+	searchInput.Placeholder = "Search by name (regex supported)..."
+	searchInput.CharLimit = 128
+	searchInput.Width = 60
+
 	return model{
 		dbService:           dbService,
 		config:              cfg,
@@ -108,5 +121,8 @@ func initialModel(dbService *repository.Service, cfg *config.Config) model {
 		installVersionInput: versionInput,
 		importPathInput:     importPathInput,
 		importNameInput:     importNameInput,
+		searchTextInput:     searchInput,
+		searchMode:          false,
+		filteredBinaries:    []BinaryWithMetadata{},
 	}
 }

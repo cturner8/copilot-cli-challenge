@@ -59,6 +59,27 @@ func (m model) renderBinariesList() string {
 		return b.String()
 	}
 
+	// Show search mode UI
+	if m.searchMode {
+		b.WriteString(headerStyle.Render("🔍 Search Binaries"))
+		b.WriteString("\n\n")
+		b.WriteString(m.searchTextInput.View())
+		b.WriteString("\n\n")
+		b.WriteString(helpStyle.Render("Type to search (regex supported) • Enter: apply filter • Esc: cancel"))
+		b.WriteString("\n\n")
+	}
+
+	// Determine which binaries list to display
+	binariesToShow := m.binaries
+	if m.searchQuery != "" {
+		binariesToShow = m.filteredBinaries
+		if !m.searchMode {
+			// Show search indicator when filter is active but not in input mode
+			b.WriteString(fmt.Sprintf("🔍 Filtered by: \"%s\" (%d results) • Press '/' to modify search\n\n",
+				m.searchQuery, len(binariesToShow)))
+		}
+	}
+
 	// Calculate proportional column widths based on available width
 	// Default to 80 if width not set
 	availableWidth := m.width
@@ -88,8 +109,8 @@ func (m model) renderBinariesList() string {
 	b.WriteString(strings.Repeat("─", nameWidth+providerWidth+versionWidth+countWidth+columnPadding4))
 	b.WriteString("\n")
 
-	// Table rows
-	for i, binary := range m.binaries {
+	// Table rows - use binariesToShow instead of m.binaries
+	for i, binary := range binariesToShow {
 		style := normalStyle
 		if i == m.selectedIndex {
 			style = selectedStyle
