@@ -50,9 +50,11 @@ type model struct {
 	removeWithFiles  bool
 
 	// Import binary view state
-	importPathInput textinput.Model
-	importNameInput textinput.Model
-	importFocusIdx  int
+	importPathInput    textinput.Model
+	importNameInput    textinput.Model
+	importURLInput     textinput.Model
+	importVersionInput textinput.Model
+	importFocusIdx     int
 
 	// Error state
 	errorMessage   string
@@ -98,6 +100,16 @@ func initialModel(dbService *repository.Service, cfg *config.Config) model {
 	importNameInput.CharLimit = 64
 	importNameInput.Width = 40
 
+	importURLInput := textinput.New()
+	importURLInput.Placeholder = "https://github.com/owner/repo/releases/download/v1.0.0/binary.tar.gz (optional)"
+	importURLInput.CharLimit = 256
+	importURLInput.Width = 80
+
+	importVersionInput := textinput.New()
+	importVersionInput.Placeholder = "v1.0.0 (optional, auto-extracted from URL)"
+	importVersionInput.CharLimit = 64
+	importVersionInput.Width = 50
+
 	return model{
 		dbService:           dbService,
 		config:              cfg,
@@ -108,5 +120,7 @@ func initialModel(dbService *repository.Service, cfg *config.Config) model {
 		installVersionInput: versionInput,
 		importPathInput:     importPathInput,
 		importNameInput:     importNameInput,
+		importURLInput:      importURLInput,
+		importVersionInput:  importVersionInput,
 	}
 }
