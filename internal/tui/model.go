@@ -38,10 +38,10 @@ type model struct {
 	sortAscending   bool
 
 	// Bulk operations state
-	bulkSelectMode     bool
-	selectedBinaries   map[int]bool // Map of selected indices in the current display
-	bulkRemoveCount    int          // Count of binaries to remove in bulk mode
-	bulkOperationInProgress bool    // Track if a bulk operation is running
+	bulkSelectMode          bool
+	selectedBinaries        map[int]bool // Map of selected indices in the current display
+	bulkRemoveCount         int          // Count of binaries to remove in bulk mode
+	bulkOperationInProgress bool         // Track if a bulk operation is running
 
 	// Versions view state
 	selectedBinary     *database.Binary
