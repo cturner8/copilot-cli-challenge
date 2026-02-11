@@ -50,7 +50,13 @@ func (m model) renderBinariesList() string {
 
 	// Show remove confirmation if active
 	if m.confirmingRemove {
-		b.WriteString(headerStyle.Render(fmt.Sprintf("Remove binary '%s'?", m.removeBinaryID)))
+		if m.bulkRemoveCount > 0 {
+			// Bulk removal confirmation
+			b.WriteString(headerStyle.Render(fmt.Sprintf("Remove %d selected binaries?", m.bulkRemoveCount)))
+		} else {
+			// Single binary removal confirmation
+			b.WriteString(headerStyle.Render(fmt.Sprintf("Remove binary '%s'?", m.removeBinaryID)))
+		}
 		b.WriteString("\n\n")
 		b.WriteString("Press 'y' to remove from database only\n")
 		b.WriteString("Press 'Y' (Shift+Y) to also delete files from disk\n")

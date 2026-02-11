@@ -300,6 +300,10 @@ func (m model) updateBinariesList(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 			} else {
 				m.activeFilters["provider"] = "github"
 			}
+			// Clear selections when filters change
+			if m.bulkSelectMode {
+				m.selectedBinaries = make(map[int]bool)
+			}
 			return m, nil
 		case "2":
 			// Cycle format filter (.tar.gz -> .zip -> none)
@@ -311,6 +315,10 @@ func (m model) updateBinariesList(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 				}
 			} else {
 				m.activeFilters["format"] = ".tar.gz"
+			}
+			// Clear selections when filters change
+			if m.bulkSelectMode {
+				m.selectedBinaries = make(map[int]bool)
 			}
 			return m, nil
 		case "3":
@@ -324,10 +332,18 @@ func (m model) updateBinariesList(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 			} else {
 				m.activeFilters["status"] = "installed"
 			}
+			// Clear selections when filters change
+			if m.bulkSelectMode {
+				m.selectedBinaries = make(map[int]bool)
+			}
 			return m, nil
 		case "c":
 			// Clear all filters
 			m.activeFilters = make(map[string]string)
+			// Clear selections when filters change
+			if m.bulkSelectMode {
+				m.selectedBinaries = make(map[int]bool)
+			}
 			m.successMessage = "All filters cleared"
 			return m, nil
 		case keyEsc:
@@ -349,6 +365,10 @@ func (m model) updateBinariesList(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 			m.searchQuery = ""
 			m.filteredBinaries = []BinaryWithMetadata{}
 			m.selectedIndex = 0
+			// Clear selections when search changes
+			if m.bulkSelectMode {
+				m.selectedBinaries = make(map[int]bool)
+			}
 			return m, nil
 		case keyEnter:
 			// Apply search and exit input mode (but keep filtered view)
@@ -356,6 +376,10 @@ func (m model) updateBinariesList(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 			m.searchTextInput.Blur()
 			m.filteredBinaries = filterBinaries(m.binaries, m.searchQuery)
 			m.selectedIndex = 0
+			// Clear selections when search changes
+			if m.bulkSelectMode {
+				m.selectedBinaries = make(map[int]bool)
+			}
 			if m.searchQuery == "" {
 				m.searchMode = false
 			}
@@ -368,6 +392,10 @@ func (m model) updateBinariesList(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 			m.searchQuery = m.searchTextInput.Value()
 			m.filteredBinaries = filterBinaries(m.binaries, m.searchQuery)
 			m.selectedIndex = 0
+			// Clear selections when search changes
+			if m.bulkSelectMode {
+				m.selectedBinaries = make(map[int]bool)
+			}
 			return m, cmd
 		}
 	}
@@ -469,15 +497,17 @@ func (m model) updateBinariesList(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 
 		// If in bulk mode and items are selected, prepare to remove all selected
 		if m.bulkSelectMode && len(m.selectedBinaries) > 0 {
-			// For bulk remove, we'll show a special confirmation
+			// For bulk remove, track the count separately
 			m.confirmingRemove = true
-			m.removeBinaryID = fmt.Sprintf("%d selected binaries", len(m.selectedBinaries))
+			m.bulkRemoveCount = len(m.selectedBinaries)
+			m.removeBinaryID = "" // Clear single binary ID for bulk operations
 			m.errorMessage = ""
 			m.successMessage = ""
 		} else if len(binariesToShow) > 0 && m.selectedIndex < len(binariesToShow) {
 			// Single remove
 			m.confirmingRemove = true
 			m.removeBinaryID = binariesToShow[m.selectedIndex].Binary.UserID
+			m.bulkRemoveCount = 0 // Clear bulk count for single operations
 			m.errorMessage = ""
 			m.successMessage = ""
 		}
