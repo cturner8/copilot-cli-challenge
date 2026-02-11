@@ -123,7 +123,7 @@ func RemoveBinary(binaryID string, dbService *repository.Service, removeFiles bo
 
 // ListBinariesWithDetails retrieves all binaries with version information
 func ListBinariesWithDetails(dbService *repository.Service) ([]*repository.BinaryWithVersionDetails, error) {
-	return dbService.Binaries.ListWithVersionDetails("No active version")
+	return dbService.Binaries.ListWithVersionDetails("none")
 }
 
 // GetBinaryByID retrieves a binary by its user ID

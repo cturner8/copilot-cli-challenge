@@ -67,7 +67,7 @@ Examples:
 						continue
 					}
 
-					if b.ActiveVersion == "No active version" {
+					if b.ActiveVersion == "none" {
 						fmt.Fprintf(cmd.OutOrStdout(), "ℹ %s: No version installed (latest: %s)\n", b.Binary.Name, release.TagName)
 						updatesAvailable++
 					} else if b.ActiveVersion != release.TagName {
