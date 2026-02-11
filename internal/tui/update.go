@@ -229,16 +229,58 @@ func (m model) updateBinariesList(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		switch msg.String() {
 		case "y":
 			// Remove without files
-			binaryID := m.removeBinaryID
-			m.confirmingRemove = false
-			m.removeBinaryID = ""
-			return m, removeBinary(m.dbService, binaryID, false)
+			// Check if bulk mode and multiple selections
+			if m.bulkSelectMode && len(m.selectedBinaries) > 0 {
+				binariesToShow := getDisplayBinaries(m.binaries, m.activeFilters, m.searchQuery, m.sortMode, m.sortAscending)
+				var cmds []tea.Cmd
+				for idx := range m.selectedBinaries {
+					if idx < len(binariesToShow) {
+						binaryID := binariesToShow[idx].Binary.UserID
+						cmds = append(cmds, removeBinary(m.dbService, binaryID, false))
+					}
+				}
+				m.confirmingRemove = false
+				m.removeBinaryID = ""
+				m.selectedBinaries = make(map[int]bool)
+				m.bulkSelectMode = false
+				if len(cmds) > 0 {
+					return m, tea.Batch(cmds...)
+				}
+				return m, nil
+			} else {
+				// Single remove
+				binaryID := m.removeBinaryID
+				m.confirmingRemove = false
+				m.removeBinaryID = ""
+				return m, removeBinary(m.dbService, binaryID, false)
+			}
 		case "Y":
 			// Remove with files
-			binaryID := m.removeBinaryID
-			m.confirmingRemove = false
-			m.removeBinaryID = ""
-			return m, removeBinary(m.dbService, binaryID, true)
+			// Check if bulk mode and multiple selections
+			if m.bulkSelectMode && len(m.selectedBinaries) > 0 {
+				binariesToShow := getDisplayBinaries(m.binaries, m.activeFilters, m.searchQuery, m.sortMode, m.sortAscending)
+				var cmds []tea.Cmd
+				for idx := range m.selectedBinaries {
+					if idx < len(binariesToShow) {
+						binaryID := binariesToShow[idx].Binary.UserID
+						cmds = append(cmds, removeBinary(m.dbService, binaryID, true))
+					}
+				}
+				m.confirmingRemove = false
+				m.removeBinaryID = ""
+				m.selectedBinaries = make(map[int]bool)
+				m.bulkSelectMode = false
+				if len(cmds) > 0 {
+					return m, tea.Batch(cmds...)
+				}
+				return m, nil
+			} else {
+				// Single remove
+				binaryID := m.removeBinaryID
+				m.confirmingRemove = false
+				m.removeBinaryID = ""
+				return m, removeBinary(m.dbService, binaryID, true)
+			}
 		case "n", keyEsc:
 			// Cancel
 			m.confirmingRemove = false
@@ -387,9 +429,25 @@ func (m model) updateBinariesList(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		}
 
 	case keyUpdate:
-		// Update selected binary to latest version
+		// Update selected binary(ies) to latest version
 		binariesToShow := getDisplayBinaries(m.binaries, m.activeFilters, m.searchQuery, m.sortMode, m.sortAscending)
-		if len(binariesToShow) > 0 && m.selectedIndex < len(binariesToShow) {
+		
+		// If in bulk mode and items are selected, update all selected
+		if m.bulkSelectMode && len(m.selectedBinaries) > 0 {
+			var selectedBinariesList []BinaryWithMetadata
+			for idx := range m.selectedBinaries {
+				if idx < len(binariesToShow) {
+					selectedBinariesList = append(selectedBinariesList, binariesToShow[idx])
+				}
+			}
+			if len(selectedBinariesList) > 0 {
+				m.errorMessage = ""
+				m.successMessage = ""
+				m.loading = true
+				return m, updateAllBinaries(m.dbService, selectedBinariesList)
+			}
+		} else if len(binariesToShow) > 0 && m.selectedIndex < len(binariesToShow) {
+			// Single update
 			selectedBinary := binariesToShow[m.selectedIndex]
 			m.errorMessage = ""
 			m.successMessage = ""
@@ -406,9 +464,18 @@ func (m model) updateBinariesList(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		}
 
 	case keyRemove:
-		// Show remove confirmation for selected binary
+		// Show remove confirmation for selected binary(ies)
 		binariesToShow := getDisplayBinaries(m.binaries, m.activeFilters, m.searchQuery, m.sortMode, m.sortAscending)
-		if len(binariesToShow) > 0 && m.selectedIndex < len(binariesToShow) {
+		
+		// If in bulk mode and items are selected, prepare to remove all selected
+		if m.bulkSelectMode && len(m.selectedBinaries) > 0 {
+			// For bulk remove, we'll show a special confirmation
+			m.confirmingRemove = true
+			m.removeBinaryID = fmt.Sprintf("%d selected binaries", len(m.selectedBinaries))
+			m.errorMessage = ""
+			m.successMessage = ""
+		} else if len(binariesToShow) > 0 && m.selectedIndex < len(binariesToShow) {
+			// Single remove
 			m.confirmingRemove = true
 			m.removeBinaryID = binariesToShow[m.selectedIndex].Binary.UserID
 			m.errorMessage = ""
@@ -474,6 +541,17 @@ func (m model) updateBinariesList(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 			direction = "descending"
 		}
 		m.successMessage = fmt.Sprintf("Sort order: %s", direction)
+
+	case keyBulkMode:
+		// Toggle bulk selection mode
+		m.bulkSelectMode = !m.bulkSelectMode
+		if !m.bulkSelectMode {
+			// Clear selections when exiting bulk mode
+			m.selectedBinaries = make(map[int]bool)
+			m.successMessage = "Bulk mode: OFF"
+		} else {
+			m.successMessage = "Bulk mode: ON (use Space to select, U to update all, R to remove all)"
+		}
 
 	case keyQuit, keyCtrlC:
 		return m, tea.Quit

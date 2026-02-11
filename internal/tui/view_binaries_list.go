@@ -73,7 +73,7 @@ func (m model) renderBinariesList() string {
 	if m.filterPanelOpen {
 		b.WriteString(headerStyle.Render("🔧 Filters"))
 		b.WriteString("\n\n")
-		
+
 		// Show current filters
 		if len(m.activeFilters) > 0 {
 			b.WriteString("Active filters:\n")
@@ -83,7 +83,7 @@ func (m model) renderBinariesList() string {
 		} else {
 			b.WriteString("No active filters\n")
 		}
-		
+
 		b.WriteString("\n")
 		b.WriteString("Filter by:\n")
 		b.WriteString("  1: Provider (github)\n")
@@ -97,7 +97,7 @@ func (m model) renderBinariesList() string {
 
 	// Determine which binaries list to display
 	binariesToShow := getDisplayBinaries(m.binaries, m.activeFilters, m.searchQuery, m.sortMode, m.sortAscending)
-	
+
 	// Display filter/sort indicators
 	var indicators []string
 	if m.searchQuery != "" && !m.searchMode {
@@ -118,7 +118,12 @@ func (m model) renderBinariesList() string {
 		sortDir = "↓"
 	}
 	indicators = append(indicators, fmt.Sprintf("📊 Sort: %s %s", m.sortMode, sortDir))
-	
+
+	// Show bulk mode indicator
+	if m.bulkSelectMode {
+		indicators = append(indicators, fmt.Sprintf("✓ Bulk Mode: %d selected", len(m.selectedBinaries)))
+	}
+
 	if len(indicators) > 0 {
 		b.WriteString(fmt.Sprintf("%s (%d results)\n\n", strings.Join(indicators, " • "), len(binariesToShow)))
 	}
@@ -159,7 +164,17 @@ func (m model) renderBinariesList() string {
 			style = selectedStyle
 		}
 
-		name := truncateText(binary.Binary.Name, nameWidth)
+		// Add selection indicator for bulk mode
+		selectionIndicator := ""
+		if m.bulkSelectMode {
+			if m.selectedBinaries[i] {
+				selectionIndicator = "☑ "
+			} else {
+				selectionIndicator = "☐ "
+			}
+		}
+
+		name := truncateText(selectionIndicator+binary.Binary.Name, nameWidth)
 		provider := truncateText(binary.Binary.Provider, providerWidth)
 		version := truncateText(binary.ActiveVersion, versionWidth)
 		count := fmt.Sprintf("%d", binary.InstallCount)

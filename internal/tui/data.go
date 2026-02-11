@@ -117,21 +117,21 @@ func applyFilters(binaries []BinaryWithMetadata, filters map[string]string) []Bi
 	var filtered []BinaryWithMetadata
 	for _, binary := range binaries {
 		match := true
-		
+
 		// Check provider filter
 		if provider, ok := filters["provider"]; ok && provider != "" {
 			if binary.Binary.Provider != provider {
 				match = false
 			}
 		}
-		
+
 		// Check format filter
 		if format, ok := filters["format"]; ok && format != "" {
 			if binary.Binary.Format != format {
 				match = false
 			}
 		}
-		
+
 		// Check installation status filter
 		if status, ok := filters["status"]; ok && status != "" {
 			if status == "installed" && binary.InstallCount == 0 {
@@ -140,7 +140,7 @@ func applyFilters(binaries []BinaryWithMetadata, filters map[string]string) []Bi
 				match = false
 			}
 		}
-		
+
 		if match {
 			filtered = append(filtered, binary)
 		}
@@ -152,7 +152,7 @@ func applyFilters(binaries []BinaryWithMetadata, filters map[string]string) []Bi
 func sortBinaries(binaries []BinaryWithMetadata, sortMode string, ascending bool) []BinaryWithMetadata {
 	sorted := make([]BinaryWithMetadata, len(binaries))
 	copy(sorted, binaries)
-	
+
 	sort.Slice(sorted, func(i, j int) bool {
 		var less bool
 		switch sortMode {
@@ -167,13 +167,13 @@ func sortBinaries(binaries []BinaryWithMetadata, sortMode string, ascending bool
 		default:
 			less = strings.ToLower(sorted[i].Binary.Name) < strings.ToLower(sorted[j].Binary.Name)
 		}
-		
+
 		if !ascending {
 			less = !less
 		}
 		return less
 	})
-	
+
 	return sorted
 }
 
@@ -183,14 +183,14 @@ func getDisplayBinaries(binaries []BinaryWithMetadata, activeFilters map[string]
 	if len(activeFilters) > 0 {
 		binaries = applyFilters(binaries, activeFilters)
 	}
-	
+
 	// Then apply search if active
 	if searchQuery != "" {
 		binaries = filterBinaries(binaries, searchQuery)
 	}
-	
+
 	// Finally apply sorting
 	binaries = sortBinaries(binaries, sortMode, sortAscending)
-	
+
 	return binaries
 }

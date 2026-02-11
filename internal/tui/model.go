@@ -38,6 +38,10 @@ type model struct {
 	sortMode        string            // "name", "provider", "updated", "count"
 	sortAscending   bool
 
+	// Bulk operations state
+	bulkSelectMode   bool
+	selectedBinaries map[int]bool // Map of selected indices in the current display
+
 	// Versions view state
 	selectedBinary     *database.Binary
 	installations      []*database.Installation
@@ -133,5 +137,7 @@ func initialModel(dbService *repository.Service, cfg *config.Config) model {
 		activeFilters:       make(map[string]string),
 		sortMode:            "name",
 		sortAscending:       true,
+		bulkSelectMode:      false,
+		selectedBinaries:    make(map[int]bool),
 	}
 }
