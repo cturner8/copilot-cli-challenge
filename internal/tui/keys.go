@@ -26,6 +26,9 @@ const (
 	keyImport    = "m" // 'm' for iMport
 	keySync      = "s" // 's' for sync (in config view)
 	keySearch    = "/" // '/' for search
+	keyFilter    = "f" // 'f' for filter
+	keySortOrder = "o" // 'o' for order/sort
+	keyNextSort  = "n" // 'n' for next sort mode
 
 	// Tab cycling keys
 	tab             = "tab"
@@ -40,7 +43,7 @@ const (
 func getHelpText(view viewState) string {
 	switch view {
 	case viewBinariesList:
-		return "↑/↓: navigate • enter: view versions • /: search • a: add binary • i: install • u: update • r: remove • c: check updates • m: import • 1-4/shift+tab/ctrl+shift+tab: switch tabs • q: quit"
+		return "↑/↓: navigate • enter: view versions • /: search • f: filter • o: sort order • n: next sort • a: add • i: install • u: update • r: remove • q: quit"
 	case viewVersions:
 		return "↑/↓: navigate • s/enter: switch version • i: install new version • u: update • c: check updates • d/delete: delete version • esc: back to list • q: quit"
 	case viewAddBinaryURL:

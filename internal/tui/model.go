@@ -32,6 +32,12 @@ type model struct {
 	filteredBinaries []BinaryWithMetadata
 	unfilteredIdx    int // Track original index in unfiltered list
 
+	// Filter and sort state
+	filterPanelOpen bool
+	activeFilters   map[string]string // e.g., "provider": "github", "format": ".tar.gz"
+	sortMode        string            // "name", "provider", "updated", "count"
+	sortAscending   bool
+
 	// Versions view state
 	selectedBinary     *database.Binary
 	installations      []*database.Installation
@@ -124,5 +130,8 @@ func initialModel(dbService *repository.Service, cfg *config.Config) model {
 		searchTextInput:     searchInput,
 		searchMode:          false,
 		filteredBinaries:    []BinaryWithMetadata{},
+		activeFilters:       make(map[string]string),
+		sortMode:            "name",
+		sortAscending:       true,
 	}
 }

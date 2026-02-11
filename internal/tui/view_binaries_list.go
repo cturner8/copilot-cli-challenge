@@ -69,15 +69,58 @@ func (m model) renderBinariesList() string {
 		b.WriteString("\n\n")
 	}
 
-	// Determine which binaries list to display
-	binariesToShow := m.binaries
-	if m.searchQuery != "" {
-		binariesToShow = m.filteredBinaries
-		if !m.searchMode {
-			// Show search indicator when filter is active but not in input mode
-			b.WriteString(fmt.Sprintf("🔍 Filtered by: \"%s\" (%d results) • Press '/' to modify search\n\n",
-				m.searchQuery, len(binariesToShow)))
+	// Show filter panel if open
+	if m.filterPanelOpen {
+		b.WriteString(headerStyle.Render("🔧 Filters"))
+		b.WriteString("\n\n")
+		
+		// Show current filters
+		if len(m.activeFilters) > 0 {
+			b.WriteString("Active filters:\n")
+			for key, value := range m.activeFilters {
+				b.WriteString(fmt.Sprintf("  %s: %s\n", key, value))
+			}
+		} else {
+			b.WriteString("No active filters\n")
 		}
+		
+		b.WriteString("\n")
+		b.WriteString("Filter by:\n")
+		b.WriteString("  1: Provider (github)\n")
+		b.WriteString("  2: Format (.tar.gz, .zip)\n")
+		b.WriteString("  3: Status (installed, not-installed)\n")
+		b.WriteString("  c: Clear all filters\n")
+		b.WriteString("  Esc: Close filter panel\n")
+		b.WriteString("\n")
+		return b.String()
+	}
+
+	// Determine which binaries list to display
+	binariesToShow := getDisplayBinaries(m.binaries, m.activeFilters, m.searchQuery, m.sortMode, m.sortAscending)
+	
+	// Display filter/sort indicators
+	var indicators []string
+	if m.searchQuery != "" && !m.searchMode {
+		indicators = append(indicators, fmt.Sprintf("🔍 Search: \"%s\"", m.searchQuery))
+	}
+	if len(m.activeFilters) > 0 {
+		filterStr := ""
+		for key, value := range m.activeFilters {
+			if filterStr != "" {
+				filterStr += ", "
+			}
+			filterStr += fmt.Sprintf("%s=%s", key, value)
+		}
+		indicators = append(indicators, fmt.Sprintf("🔧 Filters: %s", filterStr))
+	}
+	sortDir := "↑"
+	if !m.sortAscending {
+		sortDir = "↓"
+	}
+	indicators = append(indicators, fmt.Sprintf("📊 Sort: %s %s", m.sortMode, sortDir))
+	
+	if len(indicators) > 0 {
+		b.WriteString(fmt.Sprintf("%s (%d results)\n\n", strings.Join(indicators, " • "), len(binariesToShow)))
 	}
 
 	// Calculate proportional column widths based on available width
