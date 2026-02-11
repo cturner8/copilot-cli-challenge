@@ -142,11 +142,11 @@ func ImportBinary(path string, name string, dbService *repository.Service) (*dat
 
 // ImportBinaryWithOptions imports an existing binary with additional options
 // url: GitHub release URL to associate the binary with (optional)
-// version: explicit version string (optional, auto-generated if empty)
+// version: explicit version string (optional, auto-extracted from URL or auto-generated)
 // authenticated: whether to use GitHub token authentication
 // keepLocation: whether to keep the binary in its original location
 func ImportBinaryWithOptions(path string, name string, url string, version string, authenticated bool, keepLocation bool, dbService *repository.Service) (*database.Binary, error) {
-	// 1. Parse URL first if provided to extract name and other metadata
+	// 1. Parse URL first if provided to extract name, version, and other metadata
 	var provider, providerPath, format, binaryID string
 	if url != "" {
 		// Parse the GitHub release URL
@@ -163,6 +163,12 @@ func ImportBinaryWithOptions(path string, name string, url string, version strin
 		// Use name from parsed URL if not specified
 		if name == "" {
 			name = urlPkg.GenerateBinaryName(parsed.AssetName)
+		}
+
+		// Use version from parsed URL if not explicitly specified
+		if version == "" {
+			version = parsed.Version
+			log.Printf("Extracted version from URL: %s", version)
 		}
 	} else {
 		// Local import
@@ -202,9 +208,9 @@ func ImportBinaryWithOptions(path string, name string, url string, version strin
 		return nil, fmt.Errorf("failed to compute checksum: %w", err)
 	}
 
-	// 5. Determine version
+	// 5. Determine version (if still not set, use timestamp)
 	if version == "" {
-		// Default to timestamp-based version
+		// Default to timestamp-based version only if no URL was provided
 		version = fmt.Sprintf("imported-%d", time.Now().Unix())
 		log.Printf("No version provided, using: %s", version)
 	}

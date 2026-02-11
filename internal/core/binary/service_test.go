@@ -353,9 +353,9 @@ func TestImportBinaryWithOptions_GitHubURL(t *testing.T) {
 		t.Fatalf("Failed to create test binary: %v", err)
 	}
 
-	// Import with GitHub URL
+	// Import with GitHub URL (version should be auto-extracted)
 	url := "https://github.com/cli/cli/releases/download/v2.30.0/gh_2.30.0_linux_amd64.tar.gz"
-	binary, err := ImportBinaryWithOptions(testBinaryPath, "", url, "v2.30.0", false, false, dbService)
+	binary, err := ImportBinaryWithOptions(testBinaryPath, "", url, "", false, false, dbService)
 	if err != nil {
 		t.Fatalf("Failed to import binary with GitHub URL: %v", err)
 	}
@@ -378,6 +378,53 @@ func TestImportBinaryWithOptions_GitHubURL(t *testing.T) {
 	// Verify binary ID is extracted from asset name
 	if binary.UserID != "gh" {
 		t.Errorf("Expected UserID 'gh', got %q", binary.UserID)
+	}
+
+	// Verify version was auto-extracted from URL
+	installations, err := dbService.Installations.ListByBinary(binary.ID)
+	if err != nil {
+		t.Fatalf("Failed to list installations: %v", err)
+	}
+
+	if len(installations) != 1 {
+		t.Fatalf("Expected 1 installation, got %d", len(installations))
+	}
+
+	if installations[0].Version != "v2.30.0" {
+		t.Errorf("Expected version 'v2.30.0' (auto-extracted from URL), got %q", installations[0].Version)
+	}
+}
+
+func TestImportBinaryWithOptions_GitHubURL_ExplicitVersion(t *testing.T) {
+	dbService, cleanup := setupTestDB(t)
+	defer cleanup()
+
+	tmpDir := t.TempDir()
+	testBinaryPath := filepath.Join(tmpDir, "gh")
+	err := os.WriteFile(testBinaryPath, []byte("#!/bin/sh\necho test"), 0755)
+	if err != nil {
+		t.Fatalf("Failed to create test binary: %v", err)
+	}
+
+	// Import with GitHub URL and explicit version (should override URL version)
+	url := "https://github.com/cli/cli/releases/download/v2.30.0/gh_2.30.0_linux_amd64.tar.gz"
+	binary, err := ImportBinaryWithOptions(testBinaryPath, "", url, "v2.30.0-custom", false, false, dbService)
+	if err != nil {
+		t.Fatalf("Failed to import binary with explicit version: %v", err)
+	}
+
+	// Verify explicit version was used
+	installations, err := dbService.Installations.ListByBinary(binary.ID)
+	if err != nil {
+		t.Fatalf("Failed to list installations: %v", err)
+	}
+
+	if len(installations) != 1 {
+		t.Fatalf("Expected 1 installation, got %d", len(installations))
+	}
+
+	if installations[0].Version != "v2.30.0-custom" {
+		t.Errorf("Expected version 'v2.30.0-custom' (explicit), got %q", installations[0].Version)
 	}
 }
 
