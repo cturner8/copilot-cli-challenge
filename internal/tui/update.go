@@ -431,7 +431,7 @@ func (m model) updateBinariesList(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	case keyUpdate:
 		// Update selected binary(ies) to latest version
 		binariesToShow := getDisplayBinaries(m.binaries, m.activeFilters, m.searchQuery, m.sortMode, m.sortAscending)
-		
+
 		// If in bulk mode and items are selected, update all selected
 		if m.bulkSelectMode && len(m.selectedBinaries) > 0 {
 			var selectedBinariesList []BinaryWithMetadata
@@ -466,7 +466,7 @@ func (m model) updateBinariesList(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	case keyRemove:
 		// Show remove confirmation for selected binary(ies)
 		binariesToShow := getDisplayBinaries(m.binaries, m.activeFilters, m.searchQuery, m.sortMode, m.sortAscending)
-		
+
 		// If in bulk mode and items are selected, prepare to remove all selected
 		if m.bulkSelectMode && len(m.selectedBinaries) > 0 {
 			// For bulk remove, we'll show a special confirmation
