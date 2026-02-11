@@ -290,7 +290,7 @@ func TestImportBinaryWithOptions_CustomVersion(t *testing.T) {
 	}
 
 	// Import with custom version
-	binary, err := ImportBinaryWithOptions(testBinaryPath, "testbinary", "1.2.3", false, dbService)
+	binary, err := ImportBinaryWithOptions(testBinaryPath, "testbinary", "", "1.2.3", false, false, dbService)
 	if err != nil {
 		t.Fatalf("Failed to import binary: %v", err)
 	}
@@ -322,7 +322,7 @@ func TestImportBinaryWithOptions_KeepLocation(t *testing.T) {
 	}
 
 	// Import with keep location
-	binary, err := ImportBinaryWithOptions(testBinaryPath, "testbinary", "", true, dbService)
+	binary, err := ImportBinaryWithOptions(testBinaryPath, "testbinary", "", "", false, true, dbService)
 	if err != nil {
 		t.Fatalf("Failed to import binary: %v", err)
 	}
@@ -339,6 +339,45 @@ func TestImportBinaryWithOptions_KeepLocation(t *testing.T) {
 
 	if installations[0].InstalledPath != testBinaryPath {
 		t.Errorf("Expected installed path %q, got %q", testBinaryPath, installations[0].InstalledPath)
+	}
+}
+
+func TestImportBinaryWithOptions_GitHubURL(t *testing.T) {
+	dbService, cleanup := setupTestDB(t)
+	defer cleanup()
+
+	tmpDir := t.TempDir()
+	testBinaryPath := filepath.Join(tmpDir, "gh")
+	err := os.WriteFile(testBinaryPath, []byte("#!/bin/sh\necho test"), 0755)
+	if err != nil {
+		t.Fatalf("Failed to create test binary: %v", err)
+	}
+
+	// Import with GitHub URL
+	url := "https://github.com/cli/cli/releases/download/v2.30.0/gh_2.30.0_linux_amd64.tar.gz"
+	binary, err := ImportBinaryWithOptions(testBinaryPath, "", url, "v2.30.0", false, false, dbService)
+	if err != nil {
+		t.Fatalf("Failed to import binary with GitHub URL: %v", err)
+	}
+
+	// Verify provider is github
+	if binary.Provider != "github" {
+		t.Errorf("Expected provider 'github', got %q", binary.Provider)
+	}
+
+	// Verify provider path is set correctly
+	if binary.ProviderPath != "cli/cli" {
+		t.Errorf("Expected provider path 'cli/cli', got %q", binary.ProviderPath)
+	}
+
+	// Verify format is .tar.gz
+	if binary.Format != ".tar.gz" {
+		t.Errorf("Expected format '.tar.gz', got %q", binary.Format)
+	}
+
+	// Verify binary ID is extracted from asset name
+	if binary.UserID != "gh" {
+		t.Errorf("Expected UserID 'gh', got %q", binary.UserID)
 	}
 }
 

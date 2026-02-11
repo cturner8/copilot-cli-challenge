@@ -55,6 +55,12 @@ type (
 		err      error
 	}
 
+	// binaryImportedMsg is sent when a binary is imported
+	binaryImportedMsg struct {
+		binary *database.Binary
+		err    error
+	}
+
 	// updateCheckMsg is sent when update check is complete
 	updateCheckMsg struct {
 		binaryID        string

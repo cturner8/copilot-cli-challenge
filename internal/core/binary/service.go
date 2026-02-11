@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"cturner8/binmate/internal/core/crypto"
-	"cturner8/binmate/internal/core/url"
+	urlPkg "cturner8/binmate/internal/core/url"
 	v "cturner8/binmate/internal/core/version"
 	"cturner8/binmate/internal/database"
 	"cturner8/binmate/internal/database/repository"
@@ -19,14 +19,14 @@ import (
 // AddBinaryFromURL adds a binary by parsing a GitHub release URL
 func AddBinaryFromURL(rawURL string, authenticated bool, dbService *repository.Service) (*database.Binary, error) {
 	// Parse the GitHub release URL
-	parsed, err := url.ParseGitHubReleaseURL(rawURL)
+	parsed, err := urlPkg.ParseGitHubReleaseURL(rawURL)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse URL: %w", err)
 	}
 
 	// Generate binary ID and name
-	binaryID := url.GenerateBinaryID(parsed.AssetName)
-	binaryName := url.GenerateBinaryName(parsed.AssetName)
+	binaryID := urlPkg.GenerateBinaryID(parsed.AssetName)
+	binaryName := urlPkg.GenerateBinaryName(parsed.AssetName)
 
 	// Create binary definition
 	binary := &database.Binary{
@@ -137,17 +137,47 @@ func GetBinaryByID(binaryID string, dbService *repository.Service) (*database.Bi
 
 // ImportBinary imports an existing binary from the file system
 func ImportBinary(path string, name string, dbService *repository.Service) (*database.Binary, error) {
-	return ImportBinaryWithOptions(path, name, "", false, dbService)
+	return ImportBinaryWithOptions(path, name, "", "", false, false, dbService)
 }
 
 // ImportBinaryWithOptions imports an existing binary with additional options
-func ImportBinaryWithOptions(path string, name string, version string, keepLocation bool, dbService *repository.Service) (*database.Binary, error) {
-	// 1. Validate input
+// url: GitHub release URL to associate the binary with (optional)
+// version: explicit version string (optional, auto-generated if empty)
+// authenticated: whether to use GitHub token authentication
+// keepLocation: whether to keep the binary in its original location
+func ImportBinaryWithOptions(path string, name string, url string, version string, authenticated bool, keepLocation bool, dbService *repository.Service) (*database.Binary, error) {
+	// 1. Parse URL first if provided to extract name and other metadata
+	var provider, providerPath, format, binaryID string
+	if url != "" {
+		// Parse the GitHub release URL
+		parsed, err := urlPkg.ParseGitHubReleaseURL(url)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse GitHub URL: %w", err)
+		}
+
+		provider = "github"
+		providerPath = fmt.Sprintf("%s/%s", parsed.Owner, parsed.Repo)
+		format = parsed.Format
+		binaryID = urlPkg.GenerateBinaryID(parsed.AssetName)
+
+		// Use name from parsed URL if not specified
+		if name == "" {
+			name = urlPkg.GenerateBinaryName(parsed.AssetName)
+		}
+	} else {
+		// Local import
+		provider = "local"
+		providerPath = path
+		format = "binary"
+		binaryID = name
+	}
+
+	// 2. Validate input
 	if name == "" {
 		return nil, fmt.Errorf("binary name cannot be empty")
 	}
 
-	// 2. Verify the file exists and is accessible
+	// 3. Verify the file exists and is accessible
 	fileInfo, err := os.Stat(path)
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -166,21 +196,18 @@ func ImportBinaryWithOptions(path string, name string, version string, keepLocat
 		log.Printf("Warning: file %s is not marked as executable", path)
 	}
 
-	// 3. Compute checksum of the binary
+	// 4. Compute checksum of the binary
 	checksum, err := crypto.ComputeSHA256(path)
 	if err != nil {
 		return nil, fmt.Errorf("failed to compute checksum: %w", err)
 	}
 
-	// 4. Determine version
+	// 5. Determine version
 	if version == "" {
 		// Default to timestamp-based version
 		version = fmt.Sprintf("imported-%d", time.Now().Unix())
 		log.Printf("No version provided, using: %s", version)
 	}
-
-	// 5. Generate binary ID
-	binaryID := name
 
 	// 6. Check if binary already exists
 	existing, err := dbService.Binaries.GetByUserID(binaryID)
@@ -235,12 +262,12 @@ func ImportBinaryWithOptions(path string, name string, version string, keepLocat
 		binary = &database.Binary{
 			UserID:        binaryID,
 			Name:          name,
-			Provider:      "local",
-			ProviderPath:  path, // Store original path
-			Format:        "binary",
+			Provider:      provider,
+			ProviderPath:  providerPath,
+			Format:        format,
 			ConfigVersion: 0,
 			Source:        "manual",
-			Authenticated: false,
+			Authenticated: authenticated,
 		}
 
 		// Compute config digest
@@ -259,6 +286,10 @@ func ImportBinaryWithOptions(path string, name string, version string, keepLocat
 
 	// 9. Create installation record
 	sourceURL := fmt.Sprintf("file://%s", path)
+	if url != "" {
+		sourceURL = url
+	}
+
 	installation := &database.Installation{
 		Version:           version,
 		InstalledPath:     installedPath,

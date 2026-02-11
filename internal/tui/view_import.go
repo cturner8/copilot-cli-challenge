@@ -39,8 +39,6 @@ func (m model) renderImportBinary() string {
 	b.WriteString(m.importNameInput.View())
 	b.WriteString("\n\n")
 
-	b.WriteString(helpStyle.Render("Note: Import functionality is not yet fully implemented in the service layer"))
-	b.WriteString("\n")
 	b.WriteString(helpStyle.Render("tab: next field • enter: import • esc: cancel • q: quit"))
 
 	return b.String()

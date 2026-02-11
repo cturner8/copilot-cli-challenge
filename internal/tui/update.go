@@ -124,6 +124,23 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		return m, nil
 
+	case binaryImportedMsg:
+		if msg.err != nil {
+			m.errorMessage = msg.err.Error()
+			m.successMessage = ""
+		} else {
+			m.errorMessage = ""
+			m.successMessage = fmt.Sprintf("Binary %s imported successfully", msg.binary.UserID)
+			// Reset form and return to binaries list
+			m.importPathInput.Reset()
+			m.importNameInput.Reset()
+			m.importFocusIdx = 0
+			m.currentView = viewBinariesList
+			m.loading = true
+			return m, loadBinaries(m.dbService)
+		}
+		return m, nil
+
 	case updateCheckMsg:
 		m.loading = false
 		if msg.err != nil {
@@ -906,6 +923,24 @@ func removeBinary(dbService *repository.Service, binaryID string, removeFiles bo
 	}
 }
 
+// importBinary imports an existing binary from the file system
+func importBinary(dbService *repository.Service, path string, name string) tea.Cmd {
+	return func() tea.Msg {
+		// Use the binary service to import the binary
+		binary, err := binarySvc.ImportBinary(path, name, dbService)
+		if err != nil {
+			return binaryImportedMsg{
+				err: fmt.Errorf("failed to import binary: %w", err),
+			}
+		}
+
+		return binaryImportedMsg{
+			binary: binary,
+			err:    nil,
+		}
+	}
+}
+
 // checkForUpdates checks if updates are available for a binary
 func checkForUpdates(dbService *repository.Service, binaryID string) tea.Cmd {
 	return func() tea.Msg {
@@ -1007,10 +1042,10 @@ func (m model) updateImportBinary(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 			return m, nil
 		}
 
-		// Show message that import is not yet fully implemented
+		// Clear messages and trigger import
 		m.errorMessage = ""
-		m.successMessage = "Import functionality is pending service layer implementation"
-		return m, nil
+		m.successMessage = ""
+		return m, importBinary(m.dbService, path, name)
 
 	case keyQuit, keyCtrlC:
 		return m, tea.Quit
