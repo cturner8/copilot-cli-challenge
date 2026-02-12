@@ -45,7 +45,7 @@ const (
 func getHelpText(view viewState) string {
 	switch view {
 	case viewBinariesList:
-		return "↑/↓: navigate • enter: versions • /: search • f: filter • o: sort • b: bulk mode • space: select (bulk) • a: add • i: install • u: update • r: remove • q: quit"
+		return "↑/↓: navigate • enter: versions • /: search • f: filter • o: sort order • n: next sort • b: bulk • space: select (bulk) • a: add • i: install • u: update • r: remove • q: quit"
 	case viewVersions:
 		return "↑/↓: navigate • s/enter: switch version • i: install new version • u: update • c: check updates • d/delete: delete version • esc: back to list • q: quit"
 	case viewAddBinaryURL:

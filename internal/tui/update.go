@@ -354,7 +354,7 @@ func (m model) updateBinariesList(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		return m, nil
 	}
 
-	// Handle search mode
+	// Handle search mode - only process text input when actively typing
 	if m.searchMode {
 		switch msg.String() {
 		case keyEsc:
@@ -374,28 +374,18 @@ func (m model) updateBinariesList(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 			// Apply search and exit input mode (but keep filtered view)
 			m.searchQuery = m.searchTextInput.Value()
 			m.searchTextInput.Blur()
+			m.searchMode = false // Exit search mode to allow normal navigation
 			m.filteredBinaries = filterBinaries(m.binaries, m.searchQuery)
 			m.selectedIndex = 0
 			// Clear selections when search changes
 			if m.bulkSelectMode {
 				m.selectedBinaries = make(map[int]bool)
-			}
-			if m.searchQuery == "" {
-				m.searchMode = false
 			}
 			return m, nil
 		default:
 			// Update search input
 			var cmd tea.Cmd
 			m.searchTextInput, cmd = m.searchTextInput.Update(msg)
-			// Live filter as user types
-			m.searchQuery = m.searchTextInput.Value()
-			m.filteredBinaries = filterBinaries(m.binaries, m.searchQuery)
-			m.selectedIndex = 0
-			// Clear selections when search changes
-			if m.bulkSelectMode {
-				m.selectedBinaries = make(map[int]bool)
-			}
 			return m, cmd
 		}
 	}
@@ -409,6 +399,20 @@ func (m model) updateBinariesList(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	// Handle tab cycling
 	if updatedModel, handled := handleTabCycling(m, msg.String()); handled {
 		return updatedModel, nil
+	}
+
+	// Handle bulk selection toggle with space key
+	if msg.String() == keySpace && m.bulkSelectMode {
+		binariesToShow := getDisplayBinaries(m.binaries, m.activeFilters, m.searchQuery, m.sortMode, m.sortAscending)
+		if len(binariesToShow) > 0 && m.selectedIndex < len(binariesToShow) {
+			// Toggle selection
+			if m.selectedBinaries[m.selectedIndex] {
+				delete(m.selectedBinaries, m.selectedIndex)
+			} else {
+				m.selectedBinaries[m.selectedIndex] = true
+			}
+		}
+		return m, nil
 	}
 
 	switch msg.String() {
