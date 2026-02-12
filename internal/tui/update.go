@@ -16,6 +16,7 @@ import (
 	"cturner8/binmate/internal/database"
 	"cturner8/binmate/internal/database/repository"
 	"cturner8/binmate/internal/providers/github"
+	"cturner8/binmate/internal/tui/views"
 )
 
 const (
@@ -23,192 +24,192 @@ const (
 	ConfigVersionManual = 0
 )
 
-func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
-		m.width = msg.Width
-		m.height = msg.Height
+		m.Width = msg.Width
+		m.Height = msg.Height
 		return m, nil
 
 	case binariesLoadedMsg:
-		m.loading = false
+		m.Loading = false
 		if msg.err != nil {
-			m.errorMessage = msg.err.Error()
+			m.ErrorMessage = msg.err.Error()
 		} else {
-			m.binaries = msg.binaries
-			m.errorMessage = ""
+			m.Binaries = msg.binaries
+			m.ErrorMessage = ""
 		}
 		return m, nil
 
 	case versionsLoadedMsg:
-		m.loading = false
+		m.Loading = false
 		if msg.err != nil {
-			m.errorMessage = msg.err.Error()
+			m.ErrorMessage = msg.err.Error()
 		} else {
-			m.installations = msg.installations
-			m.errorMessage = ""
+			m.Installations = msg.installations
+			m.ErrorMessage = ""
 		}
 		return m, nil
 
 	case binarySavedMsg:
 		if msg.err != nil {
-			m.errorMessage = msg.err.Error()
+			m.ErrorMessage = msg.err.Error()
 		} else {
 			// Return to binaries list and reload
-			m.currentView = viewBinariesList
-			m.parsedBinary = nil
-			m.formInputs = []textinput.Model{}
-			m.errorMessage = ""
-			m.successMessage = fmt.Sprintf("Binary %s added successfully", msg.binary.Name)
-			m.loading = true
-			return m, loadBinaries(m.dbService)
+			m.CurrentView = views.BinariesList
+			m.ParsedBinary = nil
+			m.FormInputs = []textinput.Model{}
+			m.ErrorMessage = ""
+			m.SuccessMessage = fmt.Sprintf("Binary %s added successfully", msg.binary.Name)
+			m.Loading = true
+			return m, loadBinaries(m.DbService)
 		}
 		return m, nil
 
 	case binaryInstalledMsg:
-		m.installingInProgress = false
+		m.InstallingInProgress = false
 		if msg.err != nil {
-			m.errorMessage = msg.err.Error()
-			m.successMessage = ""
+			m.ErrorMessage = msg.err.Error()
+			m.SuccessMessage = ""
 		} else {
 			// Return to the view we came from (binaries list or versions)
-			returnView := m.installReturnView
-			if returnView == viewState(0) {
-				returnView = viewBinariesList // Default to binaries list
+			returnView := m.InstallReturnView
+			if returnView == views.ViewState(0) {
+				returnView = views.BinariesList // Default to binaries list
 			}
-			m.currentView = returnView
-			m.installVersionInput.Reset()
-			m.installBinaryID = ""
-			m.errorMessage = ""
-			m.successMessage = fmt.Sprintf("Successfully installed %s version %s", msg.binary.Name, msg.installation.Version)
+			m.CurrentView = returnView
+			m.InstallVersionInput.Reset()
+			m.InstallBinaryID = ""
+			m.ErrorMessage = ""
+			m.SuccessMessage = fmt.Sprintf("Successfully installed %s version %s", msg.binary.Name, msg.installation.Version)
 
 			// Reload appropriate data based on return view
-			m.loading = true
-			if returnView == viewVersions && m.selectedBinary != nil {
-				return m, loadVersions(m.dbService, m.selectedBinary.ID)
+			m.Loading = true
+			if returnView == views.Versions && m.SelectedBinary != nil {
+				return m, loadVersions(m.DbService, m.SelectedBinary.ID)
 			}
-			return m, loadBinaries(m.dbService)
+			return m, loadBinaries(m.DbService)
 		}
 		return m, nil
 
 	case binaryUpdatedMsg:
 		if msg.err != nil {
-			m.errorMessage = msg.err.Error()
-			m.successMessage = ""
+			m.ErrorMessage = msg.err.Error()
+			m.SuccessMessage = ""
 		} else {
-			m.errorMessage = ""
+			m.ErrorMessage = ""
 			if msg.oldVersion == msg.newVersion {
-				m.successMessage = fmt.Sprintf("%s is already up to date (%s)", msg.binaryID, msg.newVersion)
+				m.SuccessMessage = fmt.Sprintf("%s is already up to date (%s)", msg.binaryID, msg.newVersion)
 			} else {
-				m.successMessage = fmt.Sprintf("Updated %s from %s to %s", msg.binaryID, msg.oldVersion, msg.newVersion)
+				m.SuccessMessage = fmt.Sprintf("Updated %s from %s to %s", msg.binaryID, msg.oldVersion, msg.newVersion)
 			}
 			// Reload appropriate data based on current view
-			m.loading = true
-			if m.currentView == viewVersions && m.selectedBinary != nil {
-				return m, loadVersions(m.dbService, m.selectedBinary.ID)
+			m.Loading = true
+			if m.CurrentView == views.Versions && m.SelectedBinary != nil {
+				return m, loadVersions(m.DbService, m.SelectedBinary.ID)
 			}
-			return m, loadBinaries(m.dbService)
+			return m, loadBinaries(m.DbService)
 		}
 		return m, nil
 
 	case binaryRemovedMsg:
 		if msg.err != nil {
-			m.errorMessage = msg.err.Error()
-			m.successMessage = ""
+			m.ErrorMessage = msg.err.Error()
+			m.SuccessMessage = ""
 		} else {
-			m.errorMessage = ""
-			m.successMessage = fmt.Sprintf("Binary %s removed successfully", msg.binaryID)
+			m.ErrorMessage = ""
+			m.SuccessMessage = fmt.Sprintf("Binary %s removed successfully", msg.binaryID)
 			// Reload binaries list
-			m.loading = true
-			return m, loadBinaries(m.dbService)
+			m.Loading = true
+			return m, loadBinaries(m.DbService)
 		}
 		return m, nil
 
 	case updateCheckMsg:
-		m.loading = false
+		m.Loading = false
 		if msg.err != nil {
-			m.errorMessage = msg.err.Error()
-			m.successMessage = ""
+			m.ErrorMessage = msg.err.Error()
+			m.SuccessMessage = ""
 		} else {
-			m.errorMessage = ""
+			m.ErrorMessage = ""
 			if msg.hasUpdate {
-				m.successMessage = fmt.Sprintf("⬆ Update available for %s: %s → %s", msg.binaryID, msg.currentVersion, msg.latestVersion)
+				m.SuccessMessage = fmt.Sprintf("⬆ Update available for %s: %s → %s", msg.binaryID, msg.currentVersion, msg.latestVersion)
 			} else if msg.latestInstalled {
-				m.successMessage = fmt.Sprintf("✓ %s: latest version (%s) installed but not active (current: %s)", msg.binaryID, msg.latestVersion, msg.currentVersion)
+				m.SuccessMessage = fmt.Sprintf("✓ %s: latest version (%s) installed but not active (current: %s)", msg.binaryID, msg.latestVersion, msg.currentVersion)
 			} else {
-				m.successMessage = fmt.Sprintf("✓ %s is up to date (%s)", msg.binaryID, msg.currentVersion)
+				m.SuccessMessage = fmt.Sprintf("✓ %s is up to date (%s)", msg.binaryID, msg.currentVersion)
 			}
 		}
 		return m, nil
 
 	case configSyncedMsg:
-		m.loading = false
+		m.Loading = false
 		if msg.err != nil {
-			m.errorMessage = msg.err.Error()
-			m.successMessage = ""
+			m.ErrorMessage = msg.err.Error()
+			m.SuccessMessage = ""
 		} else {
-			m.errorMessage = ""
-			m.successMessage = "Configuration synced to database successfully"
+			m.ErrorMessage = ""
+			m.SuccessMessage = "Configuration synced to database successfully"
 			// Reload binaries list
-			return m, loadBinaries(m.dbService)
+			return m, loadBinaries(m.DbService)
 		}
 		return m, nil
 
 	case versionSwitchedMsg:
 		if msg.err != nil {
-			m.errorMessage = msg.err.Error()
-			m.successMessage = ""
+			m.ErrorMessage = msg.err.Error()
+			m.SuccessMessage = ""
 		} else {
-			m.errorMessage = ""
-			m.successMessage = fmt.Sprintf("Switched to version %s", msg.installation.Version)
+			m.ErrorMessage = ""
+			m.SuccessMessage = fmt.Sprintf("Switched to version %s", msg.installation.Version)
 			// Reload versions to update active indicator
-			m.loading = true
-			return m, loadVersions(m.dbService, m.selectedBinary.ID)
+			m.Loading = true
+			return m, loadVersions(m.DbService, m.SelectedBinary.ID)
 		}
 		return m, nil
 
 	case versionDeletedMsg:
 		if msg.err != nil {
-			m.errorMessage = msg.err.Error()
-			m.successMessage = ""
+			m.ErrorMessage = msg.err.Error()
+			m.SuccessMessage = ""
 		} else {
-			m.errorMessage = ""
-			m.successMessage = "Version deleted successfully"
+			m.ErrorMessage = ""
+			m.SuccessMessage = "Version deleted successfully"
 			// Reload versions list
-			m.loading = true
-			return m, loadVersions(m.dbService, m.selectedBinary.ID)
+			m.Loading = true
+			return m, loadVersions(m.DbService, m.SelectedBinary.ID)
 		}
 		return m, nil
 
 	case successMsg:
-		m.successMessage = msg.message
-		m.errorMessage = ""
+		m.SuccessMessage = msg.message
+		m.ErrorMessage = ""
 		return m, nil
 
 	case errorMsg:
-		m.errorMessage = msg.err.Error()
-		m.successMessage = ""
+		m.ErrorMessage = msg.err.Error()
+		m.SuccessMessage = ""
 		return m, nil
 
 	case tea.KeyMsg:
-		switch m.currentView {
-		case viewBinariesList:
+		switch m.CurrentView {
+		case views.BinariesList:
 			return m.updateBinariesList(msg)
-		case viewVersions:
+		case views.Versions:
 			return m.updateVersions(msg)
-		case viewAddBinaryURL:
+		case views.AddBinaryURL:
 			return m.updateAddBinaryURL(msg)
-		case viewAddBinaryForm:
+		case views.AddBinaryForm:
 			return m.updateAddBinaryForm(msg)
-		case viewInstallBinary:
+		case views.InstallBinary:
 			return m.updateInstallBinary(msg)
-		case viewImportBinary:
+		case views.ImportBinary:
 			return m.updateImportBinary(msg)
-		case viewDownloads:
+		case views.Downloads:
 			return m.updatePlaceholderView(msg)
-		case viewConfiguration:
+		case views.Configuration:
 			return m.updatePlaceholderView(msg)
-		case viewHelp:
+		case views.Help:
 			return m.updatePlaceholderView(msg)
 		}
 
@@ -223,26 +224,26 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 // updateBinariesList handles updates for the binaries list view
-func (m model) updateBinariesList(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
+func (m Model) updateBinariesList(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	// Handle remove confirmation if active
-	if m.confirmingRemove {
+	if m.ConfirmingRemove {
 		switch msg.String() {
 		case "y":
 			// Remove without files
-			binaryID := m.removeBinaryID
-			m.confirmingRemove = false
-			m.removeBinaryID = ""
-			return m, removeBinary(m.dbService, binaryID, false)
+			binaryID := m.RemoveBinaryID
+			m.ConfirmingRemove = false
+			m.RemoveBinaryID = ""
+			return m, removeBinary(m.DbService, binaryID, false)
 		case "Y":
 			// Remove with files
-			binaryID := m.removeBinaryID
-			m.confirmingRemove = false
-			m.removeBinaryID = ""
-			return m, removeBinary(m.dbService, binaryID, true)
+			binaryID := m.RemoveBinaryID
+			m.ConfirmingRemove = false
+			m.RemoveBinaryID = ""
+			return m, removeBinary(m.DbService, binaryID, true)
 		case "n", keyEsc:
 			// Cancel
-			m.confirmingRemove = false
-			m.removeBinaryID = ""
+			m.ConfirmingRemove = false
+			m.RemoveBinaryID = ""
 			return m, nil
 		}
 		return m, nil
@@ -250,7 +251,7 @@ func (m model) updateBinariesList(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 
 	// Check for tab switching
 	if view, ok := getTabForKey(msg.String()); ok {
-		m.currentView = view
+		m.CurrentView = view
 		return m, nil
 	}
 
@@ -261,89 +262,89 @@ func (m model) updateBinariesList(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 
 	switch msg.String() {
 	case keyUp:
-		if m.selectedIndex > 0 {
-			m.selectedIndex--
+		if m.SelectedIndex > 0 {
+			m.SelectedIndex--
 		}
 
 	case keyDown:
-		if m.selectedIndex < len(m.binaries)-1 {
-			m.selectedIndex++
+		if m.SelectedIndex < len(m.Binaries)-1 {
+			m.SelectedIndex++
 		}
 
 	case keyEnter:
 		// Transition to versions view
-		if len(m.binaries) > 0 && m.selectedIndex < len(m.binaries) {
-			m.currentView = viewVersions
-			m.selectedBinary = m.binaries[m.selectedIndex].Binary
-			m.loading = true
-			return m, loadVersions(m.dbService, m.selectedBinary.ID)
+		if len(m.Binaries) > 0 && m.SelectedIndex < len(m.Binaries) {
+			m.CurrentView = views.Versions
+			m.SelectedBinary = m.Binaries[m.SelectedIndex].Binary
+			m.Loading = true
+			return m, loadVersions(m.DbService, m.SelectedBinary.ID)
 		}
 
 	case keyAdd:
 		// Transition to add binary view
-		m.currentView = viewAddBinaryURL
-		m.urlTextInput.Reset()
-		m.urlTextInput.Focus()
-		m.errorMessage = ""
-		m.successMessage = ""
+		m.CurrentView = views.AddBinaryURL
+		m.UrlTextInput.Reset()
+		m.UrlTextInput.Focus()
+		m.ErrorMessage = ""
+		m.SuccessMessage = ""
 
 	case keyInstall:
 		// Transition to install binary view
-		if len(m.binaries) > 0 && m.selectedIndex < len(m.binaries) {
-			m.currentView = viewInstallBinary
-			m.installBinaryID = m.binaries[m.selectedIndex].Binary.UserID
-			m.installReturnView = viewBinariesList
-			m.installVersionInput.Focus()
-			m.errorMessage = ""
-			m.successMessage = ""
+		if len(m.Binaries) > 0 && m.SelectedIndex < len(m.Binaries) {
+			m.CurrentView = views.InstallBinary
+			m.InstallBinaryID = m.Binaries[m.SelectedIndex].Binary.UserID
+			m.InstallReturnView = views.BinariesList
+			m.InstallVersionInput.Focus()
+			m.ErrorMessage = ""
+			m.SuccessMessage = ""
 		}
 
 	case keyUpdate:
 		// Update selected binary to latest version
-		if len(m.binaries) > 0 && m.selectedIndex < len(m.binaries) {
-			selectedBinary := m.binaries[m.selectedIndex]
-			m.errorMessage = ""
-			m.successMessage = ""
-			return m, updateBinary(m.dbService, selectedBinary.Binary.UserID)
+		if len(m.Binaries) > 0 && m.SelectedIndex < len(m.Binaries) {
+			selectedBinary := m.Binaries[m.SelectedIndex]
+			m.ErrorMessage = ""
+			m.SuccessMessage = ""
+			return m, updateBinary(m.DbService, selectedBinary.Binary.UserID)
 		}
 
 	case keyUpdateAll:
 		// Update all binaries to latest version
-		if len(m.binaries) > 0 {
-			m.errorMessage = ""
-			m.successMessage = ""
-			m.loading = true
-			return m, updateAllBinaries(m.dbService, m.binaries)
+		if len(m.Binaries) > 0 {
+			m.ErrorMessage = ""
+			m.SuccessMessage = ""
+			m.Loading = true
+			return m, updateAllBinaries(m.DbService, m.Binaries)
 		}
 
 	case keyRemove:
 		// Show remove confirmation for selected binary
-		if len(m.binaries) > 0 && m.selectedIndex < len(m.binaries) {
-			m.confirmingRemove = true
-			m.removeBinaryID = m.binaries[m.selectedIndex].Binary.UserID
-			m.errorMessage = ""
-			m.successMessage = ""
+		if len(m.Binaries) > 0 && m.SelectedIndex < len(m.Binaries) {
+			m.ConfirmingRemove = true
+			m.RemoveBinaryID = m.Binaries[m.SelectedIndex].Binary.UserID
+			m.ErrorMessage = ""
+			m.SuccessMessage = ""
 		}
 
 	case keyCheck:
 		// Check for updates for selected binary
-		if len(m.binaries) > 0 && m.selectedIndex < len(m.binaries) {
-			selectedBinary := m.binaries[m.selectedIndex]
-			m.errorMessage = ""
-			m.successMessage = ""
-			m.loading = true
-			return m, checkForUpdates(m.dbService, selectedBinary.Binary.UserID)
+		if len(m.Binaries) > 0 && m.SelectedIndex < len(m.Binaries) {
+			selectedBinary := m.Binaries[m.SelectedIndex]
+			m.ErrorMessage = ""
+			m.SuccessMessage = ""
+			m.Loading = true
+			return m, checkForUpdates(m.DbService, selectedBinary.Binary.UserID)
 		}
 
 	case keyImport:
 		// Transition to import binary view
-		m.currentView = viewImportBinary
-		m.importPathInput.Reset()
-		m.importNameInput.Reset()
-		m.importFocusIdx = 0
-		m.importPathInput.Focus()
-		m.errorMessage = ""
-		m.successMessage = ""
+		m.CurrentView = views.ImportBinary
+		m.ImportPathInput.Reset()
+		m.ImportNameInput.Reset()
+		m.ImportFocusIdx = 0
+		m.ImportPathInput.Focus()
+		m.ErrorMessage = ""
+		m.SuccessMessage = ""
 
 	case keyQuit, keyCtrlC:
 		return m, tea.Quit
@@ -353,77 +354,77 @@ func (m model) updateBinariesList(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 }
 
 // updateVersions handles updates for the versions view
-func (m model) updateVersions(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
+func (m Model) updateVersions(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	switch msg.String() {
 	case keyUp:
-		if m.selectedVersionIdx > 0 {
-			m.selectedVersionIdx--
+		if m.SelectedVersionIdx > 0 {
+			m.SelectedVersionIdx--
 		}
 
 	case keyDown:
-		if m.selectedVersionIdx < len(m.installations)-1 {
-			m.selectedVersionIdx++
+		if m.SelectedVersionIdx < len(m.Installations)-1 {
+			m.SelectedVersionIdx++
 		}
 
 	case keySwitch, keyEnter:
 		// Switch to selected version
-		if len(m.installations) > 0 && m.selectedVersionIdx < len(m.installations) {
-			selectedInstallation := m.installations[m.selectedVersionIdx]
-			return m, switchVersion(m.dbService, m.selectedBinary, selectedInstallation)
+		if len(m.Installations) > 0 && m.SelectedVersionIdx < len(m.Installations) {
+			selectedInstallation := m.Installations[m.SelectedVersionIdx]
+			return m, switchVersion(m.DbService, m.SelectedBinary, selectedInstallation)
 		}
 
 	case keyInstall:
 		// Install a new version
-		if m.selectedBinary != nil {
-			m.currentView = viewInstallBinary
-			m.installBinaryID = m.selectedBinary.UserID
-			m.installReturnView = viewVersions
-			m.installVersionInput.Focus()
-			m.errorMessage = ""
-			m.successMessage = ""
+		if m.SelectedBinary != nil {
+			m.CurrentView = views.InstallBinary
+			m.InstallBinaryID = m.SelectedBinary.UserID
+			m.InstallReturnView = views.Versions
+			m.InstallVersionInput.Focus()
+			m.ErrorMessage = ""
+			m.SuccessMessage = ""
 		}
 
 	case keyUpdate:
 		// Update to latest version
-		if m.selectedBinary != nil {
-			m.errorMessage = ""
-			m.successMessage = ""
-			return m, updateBinary(m.dbService, m.selectedBinary.UserID)
+		if m.SelectedBinary != nil {
+			m.ErrorMessage = ""
+			m.SuccessMessage = ""
+			return m, updateBinary(m.DbService, m.SelectedBinary.UserID)
 		}
 
 	case keyCheck:
 		// Check for updates
-		if m.selectedBinary != nil {
-			m.errorMessage = ""
-			m.successMessage = ""
-			m.loading = true
-			return m, checkForUpdates(m.dbService, m.selectedBinary.UserID)
+		if m.SelectedBinary != nil {
+			m.ErrorMessage = ""
+			m.SuccessMessage = ""
+			m.Loading = true
+			return m, checkForUpdates(m.DbService, m.SelectedBinary.UserID)
 		}
 
 	case keyDelete, keyDelete2:
 		// Delete selected version
-		if len(m.installations) > 0 && m.selectedVersionIdx < len(m.installations) {
-			selectedInstallation := m.installations[m.selectedVersionIdx]
+		if len(m.Installations) > 0 && m.SelectedVersionIdx < len(m.Installations) {
+			selectedInstallation := m.Installations[m.SelectedVersionIdx]
 
 			// Check if this is the active version
-			activeVersion, _ := getActiveVersion(m.dbService, m.selectedBinary.ID)
+			activeVersion, _ := getActiveVersion(m.DbService, m.SelectedBinary.ID)
 			if activeVersion != nil && activeVersion.ID == selectedInstallation.ID {
-				m.errorMessage = "Cannot delete active version. Switch to another version first."
-				m.successMessage = ""
+				m.ErrorMessage = "Cannot delete active version. Switch to another version first."
+				m.SuccessMessage = ""
 				return m, nil
 			}
 
-			return m, deleteVersion(m.dbService, selectedInstallation)
+			return m, deleteVersion(m.DbService, selectedInstallation)
 		}
 
 	case keyEsc:
 		// Return to binaries list
-		m.currentView = viewBinariesList
-		m.selectedBinary = nil
-		m.installations = nil
-		m.selectedVersionIdx = 0
-		m.errorMessage = ""
-		m.successMessage = ""
+		m.CurrentView = views.BinariesList
+		m.SelectedBinary = nil
+		m.Installations = nil
+		m.SelectedVersionIdx = 0
+		m.ErrorMessage = ""
+		m.SuccessMessage = ""
 
 	case keyQuit, keyCtrlC:
 		return m, tea.Quit
@@ -433,31 +434,31 @@ func (m model) updateVersions(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 }
 
 // updateAddBinaryURL handles updates for the add binary URL view
-func (m model) updateAddBinaryURL(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
+func (m Model) updateAddBinaryURL(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	switch msg.String() {
 	case keyEsc:
 		// Cancel and return to binaries list
-		m.currentView = viewBinariesList
-		m.urlTextInput.Reset()
-		m.errorMessage = ""
+		m.CurrentView = views.BinariesList
+		m.UrlTextInput.Reset()
+		m.ErrorMessage = ""
 		return m, nil
 
 	case keyEnter:
 		// Parse URL and transition to form view
-		url := m.urlTextInput.Value()
+		url := m.UrlTextInput.Value()
 		if url == "" {
-			m.errorMessage = "Please enter a URL"
+			m.ErrorMessage = "Please enter a URL"
 			return m, nil
 		}
 
 		parsed, err := urlparser.ParseGitHubReleaseURL(url)
 		if err != nil {
-			m.errorMessage = fmt.Sprintf("Invalid URL: %v", err)
+			m.ErrorMessage = fmt.Sprintf("Invalid URL: %v", err)
 			return m, nil
 		}
 
 		// Create parsed binary config
-		m.parsedBinary = &parsedBinaryConfig{
+		m.ParsedBinary = &parsedBinaryConfig{
 			userID:    urlparser.GenerateBinaryID(parsed.AssetName),
 			name:      urlparser.GenerateBinaryName(parsed.AssetName),
 			provider:  "github",
@@ -468,13 +469,13 @@ func (m model) updateAddBinaryURL(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		}
 
 		// Create form inputs
-		m.formInputs = createFormInputs(m.parsedBinary)
-		m.focusedField = 0
-		m.formInputs[0].Focus()
+		m.FormInputs = createFormInputs(m.ParsedBinary)
+		m.FocusedField = 0
+		m.FormInputs[0].Focus()
 
 		// Transition to form view
-		m.currentView = viewAddBinaryForm
-		m.errorMessage = ""
+		m.CurrentView = views.AddBinaryForm
+		m.ErrorMessage = ""
 		return m, nil
 
 	case keyQuit, keyCtrlC:
@@ -483,33 +484,33 @@ func (m model) updateAddBinaryURL(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 
 	// Handle text input
 	var cmd tea.Cmd
-	m.urlTextInput, cmd = m.urlTextInput.Update(msg)
+	m.UrlTextInput, cmd = m.UrlTextInput.Update(msg)
 	return m, cmd
 }
 
 // updateAddBinaryForm handles updates for the add binary form view
-func (m model) updateAddBinaryForm(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
+func (m Model) updateAddBinaryForm(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	switch msg.String() {
 	case keyEsc:
 		// Cancel and return to binaries list
-		m.currentView = viewBinariesList
-		m.parsedBinary = nil
-		m.formInputs = []textinput.Model{}
-		m.errorMessage = ""
+		m.CurrentView = views.BinariesList
+		m.ParsedBinary = nil
+		m.FormInputs = []textinput.Model{}
+		m.ErrorMessage = ""
 		return m, nil
 
 	case keyTab:
 		// Move to next field
-		m.formInputs[m.focusedField].Blur()
-		m.focusedField = (m.focusedField + 1) % len(m.formInputs)
-		m.formInputs[m.focusedField].Focus()
+		m.FormInputs[m.FocusedField].Blur()
+		m.FocusedField = (m.FocusedField + 1) % len(m.FormInputs)
+		m.FormInputs[m.FocusedField].Focus()
 		return m, nil
 
 	case "shift+tab":
 		// Move to previous field
-		m.formInputs[m.focusedField].Blur()
-		m.focusedField = (m.focusedField - 1 + len(m.formInputs)) % len(m.formInputs)
-		m.formInputs[m.focusedField].Focus()
+		m.FormInputs[m.FocusedField].Blur()
+		m.FocusedField = (m.FocusedField - 1 + len(m.FormInputs)) % len(m.FormInputs)
+		m.FormInputs[m.FocusedField].Focus()
 		return m, nil
 
 	case keySave:
@@ -522,7 +523,7 @@ func (m model) updateAddBinaryForm(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 
 	// Handle text input for focused field
 	var cmd tea.Cmd
-	m.formInputs[m.focusedField], cmd = m.formInputs[m.focusedField].Update(msg)
+	m.FormInputs[m.FocusedField], cmd = m.FormInputs[m.FocusedField].Update(msg)
 	return m, cmd
 }
 
@@ -607,22 +608,22 @@ func createFormInputs(parsed *parsedBinaryConfig) []textinput.Model {
 }
 
 // saveBinary saves the binary configuration to the database
-func saveBinary(m model) tea.Cmd {
+func saveBinary(m Model) tea.Cmd {
 	return func() tea.Msg {
-		if m.parsedBinary == nil {
+		if m.ParsedBinary == nil {
 			return binarySavedMsg{err: fmt.Errorf("no binary data to save")}
 		}
 
 		// Get values from form inputs
-		userID := m.formInputs[0].Value()
-		name := m.formInputs[1].Value()
-		provider := m.formInputs[2].Value()
-		path := m.formInputs[3].Value()
-		format := m.formInputs[4].Value()
-		installPath := m.formInputs[5].Value()
-		assetRegex := m.formInputs[6].Value()
-		releaseRegex := m.formInputs[7].Value()
-		authenticatedStr := m.formInputs[8].Value()
+		userID := m.FormInputs[0].Value()
+		name := m.FormInputs[1].Value()
+		provider := m.FormInputs[2].Value()
+		path := m.FormInputs[3].Value()
+		format := m.FormInputs[4].Value()
+		installPath := m.FormInputs[5].Value()
+		assetRegex := m.FormInputs[6].Value()
+		releaseRegex := m.FormInputs[7].Value()
+		authenticatedStr := m.FormInputs[8].Value()
 
 		// Validate required fields
 		if userID == "" {
@@ -649,7 +650,7 @@ func saveBinary(m model) tea.Cmd {
 		}
 
 		// Check if binary already exists
-		existing, err := m.dbService.Binaries.GetByUserID(userID)
+		existing, err := m.DbService.Binaries.GetByUserID(userID)
 		if err != nil && err != database.ErrNotFound {
 			return binarySavedMsg{err: fmt.Errorf("error checking for existing binary: %w", err)}
 		}
@@ -686,7 +687,7 @@ func saveBinary(m model) tea.Cmd {
 			binary.ReleaseRegex = &releaseRegex
 		}
 
-		err = m.dbService.Binaries.Create(binary)
+		err = m.DbService.Binaries.Create(binary)
 		if err != nil {
 			return binarySavedMsg{err: fmt.Errorf("failed to create binary: %w", err)}
 		}
@@ -696,22 +697,22 @@ func saveBinary(m model) tea.Cmd {
 }
 
 // updatePlaceholderView handles updates for placeholder views (Downloads, Configuration, Help)
-func (m model) updatePlaceholderView(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
+func (m Model) updatePlaceholderView(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	// Configuration view: handle sync action
-	if m.currentView == viewConfiguration {
+	if m.CurrentView == views.Configuration {
 		switch msg.String() {
 		case keySync:
 			// Trigger sync
-			m.errorMessage = ""
-			m.successMessage = ""
-			m.loading = true
-			return m, syncConfig(m.dbService, m.config)
+			m.ErrorMessage = ""
+			m.SuccessMessage = ""
+			m.Loading = true
+			return m, syncConfig(m.DbService, m.Config)
 		}
 	}
 
 	// Check for tab switching
 	if view, ok := getTabForKey(msg.String()); ok {
-		m.currentView = view
+		m.CurrentView = view
 		return m, nil
 	}
 
@@ -768,9 +769,9 @@ func deleteVersion(dbService *repository.Service, installation *database.Install
 }
 
 // updateInstallBinary handles updates for the install binary view
-func (m model) updateInstallBinary(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
+func (m Model) updateInstallBinary(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	// Don't process keys if installing
-	if m.installingInProgress {
+	if m.InstallingInProgress {
 		switch msg.String() {
 		case keyQuit, keyCtrlC:
 			return m, tea.Quit
@@ -781,28 +782,28 @@ func (m model) updateInstallBinary(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	switch msg.String() {
 	case keyEsc:
 		// Cancel and return to the view we came from
-		returnView := m.installReturnView
-		if returnView == viewState(0) {
-			returnView = viewBinariesList
+		returnView := m.InstallReturnView
+		if returnView == views.ViewState(0) {
+			returnView = views.BinariesList
 		}
-		m.currentView = returnView
-		m.installVersionInput.Reset()
-		m.installBinaryID = ""
-		m.errorMessage = ""
-		m.successMessage = ""
+		m.CurrentView = returnView
+		m.InstallVersionInput.Reset()
+		m.InstallBinaryID = ""
+		m.ErrorMessage = ""
+		m.SuccessMessage = ""
 		return m, nil
 
 	case keyEnter:
 		// Start installation
-		version := m.installVersionInput.Value()
+		version := m.InstallVersionInput.Value()
 		if version == "" {
 			version = "latest"
 		}
 
-		m.installingInProgress = true
-		m.errorMessage = ""
-		m.successMessage = ""
-		return m, installBinary(m.dbService, m.installBinaryID, version)
+		m.InstallingInProgress = true
+		m.ErrorMessage = ""
+		m.SuccessMessage = ""
+		return m, installBinary(m.DbService, m.InstallBinaryID, version)
 
 	case keyQuit, keyCtrlC:
 		return m, tea.Quit
@@ -810,7 +811,7 @@ func (m model) updateInstallBinary(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 
 	// Handle text input
 	var cmd tea.Cmd
-	m.installVersionInput, cmd = m.installVersionInput.Update(msg)
+	m.InstallVersionInput, cmd = m.InstallVersionInput.Update(msg)
 	return m, cmd
 }
 
@@ -966,50 +967,50 @@ func checkForUpdates(dbService *repository.Service, binaryID string) tea.Cmd {
 }
 
 // updateImportBinary handles updates for the import binary view
-func (m model) updateImportBinary(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
+func (m Model) updateImportBinary(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	switch msg.String() {
 	case keyEsc:
 		// Cancel and return to binaries list
-		m.currentView = viewBinariesList
-		m.importPathInput.Reset()
-		m.importNameInput.Reset()
-		m.importFocusIdx = 0
-		m.errorMessage = ""
-		m.successMessage = ""
+		m.CurrentView = views.BinariesList
+		m.ImportPathInput.Reset()
+		m.ImportNameInput.Reset()
+		m.ImportFocusIdx = 0
+		m.ErrorMessage = ""
+		m.SuccessMessage = ""
 		return m, nil
 
 	case keyTab:
 		// Move to next field
-		if m.importFocusIdx == 0 {
-			m.importPathInput.Blur()
-			m.importNameInput.Focus()
-			m.importFocusIdx = 1
+		if m.ImportFocusIdx == 0 {
+			m.ImportPathInput.Blur()
+			m.ImportNameInput.Focus()
+			m.ImportFocusIdx = 1
 		} else {
-			m.importNameInput.Blur()
-			m.importPathInput.Focus()
-			m.importFocusIdx = 0
+			m.ImportNameInput.Blur()
+			m.ImportPathInput.Focus()
+			m.ImportFocusIdx = 0
 		}
 		return m, nil
 
 	case keyEnter:
 		// Attempt import
-		path := m.importPathInput.Value()
-		name := m.importNameInput.Value()
+		path := m.ImportPathInput.Value()
+		name := m.ImportNameInput.Value()
 
 		if path == "" {
-			m.errorMessage = "Binary path is required"
-			m.successMessage = ""
+			m.ErrorMessage = "Binary path is required"
+			m.SuccessMessage = ""
 			return m, nil
 		}
 		if name == "" {
-			m.errorMessage = "Binary name is required"
-			m.successMessage = ""
+			m.ErrorMessage = "Binary name is required"
+			m.SuccessMessage = ""
 			return m, nil
 		}
 
 		// Show message that import is not yet fully implemented
-		m.errorMessage = ""
-		m.successMessage = "Import functionality is pending service layer implementation"
+		m.ErrorMessage = ""
+		m.SuccessMessage = "Import functionality is pending service layer implementation"
 		return m, nil
 
 	case keyQuit, keyCtrlC:
@@ -1018,10 +1019,10 @@ func (m model) updateImportBinary(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 
 	// Handle text input for focused field
 	var cmd tea.Cmd
-	if m.importFocusIdx == 0 {
-		m.importPathInput, cmd = m.importPathInput.Update(msg)
+	if m.ImportFocusIdx == 0 {
+		m.ImportPathInput, cmd = m.ImportPathInput.Update(msg)
 	} else {
-		m.importNameInput, cmd = m.importNameInput.Update(msg)
+		m.ImportNameInput, cmd = m.ImportNameInput.Update(msg)
 	}
 	return m, cmd
 }

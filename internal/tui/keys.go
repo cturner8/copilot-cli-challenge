@@ -1,5 +1,7 @@
 package tui
 
+import "cturner8/binmate/internal/tui/views"
+
 // Key binding constants
 const (
 	// Navigation keys
@@ -36,21 +38,21 @@ const (
 )
 
 // getHelpText returns context-sensitive help text for the current view
-func getHelpText(view viewState) string {
+func getHelpText(view views.ViewState) string {
 	switch view {
-	case viewBinariesList:
+	case views.BinariesList:
 		return "↑/↓: navigate • enter: view versions • a: add binary • i: install • u: update • r: remove • c: check updates • m: import • 1-4/shift+tab/ctrl+shift+tab: switch tabs • q: quit"
-	case viewVersions:
+	case views.Versions:
 		return "↑/↓: navigate • s/enter: switch version • i: install new version • u: update • c: check updates • d/delete: delete version • esc: back to list • q: quit"
-	case viewAddBinaryURL:
+	case views.AddBinaryURL:
 		return "Type URL • enter: parse • esc: cancel • q: quit"
-	case viewAddBinaryForm:
+	case views.AddBinaryForm:
 		return "tab/shift+tab: navigate fields • ctrl+s: save • esc: cancel • q: quit"
-	case viewDownloads:
+	case views.Downloads:
 		return "1-4/shift+tab/ctrl+shift+tab: switch tabs • q: quit"
-	case viewConfiguration:
+	case views.Configuration:
 		return "s: sync config to database • 1-4/shift+tab/ctrl+shift+tab: switch tabs • q: quit"
-	case viewHelp:
+	case views.Help:
 		return "1-4/shift+tab/ctrl+shift+tab: switch tabs • q: quit"
 	default:
 		return "q: quit"

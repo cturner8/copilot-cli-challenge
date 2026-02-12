@@ -1,4 +1,4 @@
-package tui
+package views
 
 import (
 	"fmt"
@@ -8,7 +8,7 @@ import (
 )
 
 // renderBinariesList renders the binaries list view
-func (m model) renderBinariesList() string {
+func (m Model) RenderBinariesList() string {
 	var b strings.Builder
 
 	// Title
@@ -16,41 +16,41 @@ func (m model) renderBinariesList() string {
 	b.WriteString("\n\n")
 
 	// Tabs
-	b.WriteString(m.renderTabs())
+	b.WriteString(m.RenderTabsFn())
 
 	// Show loading state
-	if m.loading {
+	if m.Loading {
 		b.WriteString(loadingStyle.Render("Loading binaries..."))
 		b.WriteString("\n\n")
-		b.WriteString(helpStyle.Render(getHelpText(m.currentView)))
+		b.WriteString(helpStyle.Render(getHelpText(m.CurrentView)))
 		return b.String()
 	}
 
 	// Show empty state
-	if len(m.binaries) == 0 {
+	if len(m.Binaries) == 0 {
 		b.WriteString(emptyStateStyle.Render("No binaries configured"))
 		b.WriteString("\n\n")
 		b.WriteString(helpStyle.Render("Press 'a' to add a binary"))
 		b.WriteString("\n")
-		b.WriteString(helpStyle.Render(getHelpText(m.currentView)))
+		b.WriteString(helpStyle.Render(getHelpText(m.CurrentView)))
 		return b.String()
 	}
 
 	// Show error if any
-	if m.errorMessage != "" {
-		b.WriteString(errorStyle.Render("Error: " + m.errorMessage))
+	if m.ErrorMessage != "" {
+		b.WriteString(errorStyle.Render("Error: " + m.ErrorMessage))
 		b.WriteString("\n\n")
 	}
 
 	// Show success message if any
-	if m.successMessage != "" {
-		b.WriteString(successStyle.Render("✓ " + m.successMessage))
+	if m.SuccessMessage != "" {
+		b.WriteString(successStyle.Render("✓ " + m.SuccessMessage))
 		b.WriteString("\n\n")
 	}
 
 	// Show remove confirmation if active
-	if m.confirmingRemove {
-		b.WriteString(headerStyle.Render(fmt.Sprintf("Remove binary '%s'?", m.removeBinaryID)))
+	if m.ConfirmingRemove {
+		b.WriteString(headerStyle.Render(fmt.Sprintf("Remove binary '%s'?", m.RemoveBinaryID)))
 		b.WriteString("\n\n")
 		b.WriteString("Press 'y' to remove from database only\n")
 		b.WriteString("Press 'Y' (Shift+Y) to also delete files from disk\n")
@@ -61,7 +61,7 @@ func (m model) renderBinariesList() string {
 
 	// Calculate proportional column widths based on available width
 	// Default to 80 if width not set
-	availableWidth := m.width
+	availableWidth := m.Width
 	if availableWidth == 0 {
 		availableWidth = defaultTerminalWidth
 	}
@@ -89,9 +89,9 @@ func (m model) renderBinariesList() string {
 	b.WriteString("\n")
 
 	// Table rows
-	for i, binary := range m.binaries {
+	for i, binary := range m.Binaries {
 		style := normalStyle
-		if i == m.selectedIndex {
+		if i == m.SelectedIndex {
 			style = selectedStyle
 		}
 
@@ -112,7 +112,7 @@ func (m model) renderBinariesList() string {
 	}
 
 	b.WriteString("\n")
-	b.WriteString(helpStyle.Render(getHelpText(m.currentView)))
+	b.WriteString(helpStyle.Render(getHelpText(m.CurrentView)))
 
 	return b.String()
 }
