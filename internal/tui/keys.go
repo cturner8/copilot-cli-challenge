@@ -33,7 +33,7 @@ const (
 	keyBulkMode  = "b" // 'b' for bulk selection mode
 
 	// GitHub navigation keys (used in versions view)
-	keyReleaseNotes  = "r" // 'r' for release notes (overloaded with remove in different context)
+	keyReleaseNotes  = "l" // 'l' for release notes/logs
 	keyRepoInfo      = "g" // 'g' for GitHub repo info
 	keyAvailVersions = "v" // 'v' for view available versions
 
@@ -52,7 +52,7 @@ func getHelpText(view viewState) string {
 	case viewBinariesList:
 		return "↑/↓: navigate • enter: versions • /: search • f: filter • o: sort order • n: next sort • b: bulk • space: select (bulk) • a: add • i: install • u: update • r: remove • q: quit"
 	case viewVersions:
-		return "↑/↓: navigate • s/enter: switch version • i: install • u: update • c: check updates • d/delete: delete • g: repo info • v: available versions • esc: back • q: quit"
+		return "↑/↓: navigate • s/enter: switch • i: install • u: update • c: check • d: delete • l: release notes • g: repo info • v: versions • esc: back • q: quit"
 	case viewAddBinaryURL:
 		return "Type URL • enter: parse • esc: cancel • q: quit"
 	case viewAddBinaryForm:

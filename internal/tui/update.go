@@ -432,7 +432,9 @@ func (m model) updateBinariesList(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 
 	// Handle bulk selection toggle with space key BEFORE the main switch
 	// This prevents space from falling through to other handlers
-	if msg.String() == keySpace {
+	// Check both msg.String() and the actual rune to be absolutely sure
+	keyStr := msg.String()
+	if keyStr == keySpace || keyStr == " " {
 		if m.bulkSelectMode {
 			binariesToShow := getDisplayBinaries(m.binaries, m.activeFilters, m.searchQuery, m.sortMode, m.sortAscending)
 			if len(binariesToShow) > 0 && m.selectedIndex < len(binariesToShow) {
@@ -693,6 +695,20 @@ func (m model) updateVersions(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 			}
 
 			return m, deleteVersion(m.dbService, selectedInstallation)
+		}
+
+	case keyReleaseNotes:
+		// View release notes for selected version
+		if m.selectedBinary != nil && m.selectedBinary.Provider == "github" {
+			// Get the active version or selected version
+			version := "latest"
+			if len(m.installations) > 0 && m.selectedVersionIdx < len(m.installations) {
+				version = m.installations[m.selectedVersionIdx].Version
+			}
+			m.currentView = viewReleaseNotes
+			m.githubLoading = true
+			m.githubError = ""
+			return m, fetchReleaseNotes(m.selectedBinary, version)
 		}
 
 	case keyRepoInfo:
