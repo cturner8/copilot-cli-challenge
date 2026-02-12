@@ -190,6 +190,33 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.successMessage = ""
 		return m, nil
 
+	case githubRepoInfoMsg:
+		m.githubLoading = false
+		if msg.err != nil {
+			m.githubError = msg.err.Error()
+		} else {
+			m.githubRepoInfo = msg.info
+		}
+		return m, nil
+
+	case githubAvailableVersionsMsg:
+		m.githubLoading = false
+		if msg.err != nil {
+			m.githubError = msg.err.Error()
+		} else {
+			m.githubAvailableVers = msg.versions
+		}
+		return m, nil
+
+	case githubReleaseNotesMsg:
+		m.githubLoading = false
+		if msg.err != nil {
+			m.githubError = msg.err.Error()
+		} else {
+			m.githubReleaseInfo = msg.release
+		}
+		return m, nil
+
 	case tea.KeyMsg:
 		switch m.currentView {
 		case viewBinariesList:
@@ -210,6 +237,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m.updatePlaceholderView(msg)
 		case viewHelp:
 			return m.updatePlaceholderView(msg)
+		case viewReleaseNotes, viewAvailableVersions, viewRepositoryInfo:
+			return m.updateGitHubView(msg)
 		}
 
 		// Global key handlers
@@ -401,17 +430,22 @@ func (m model) updateBinariesList(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		return updatedModel, nil
 	}
 
-	// Handle bulk selection toggle with space key
-	if msg.String() == keySpace && m.bulkSelectMode {
-		binariesToShow := getDisplayBinaries(m.binaries, m.activeFilters, m.searchQuery, m.sortMode, m.sortAscending)
-		if len(binariesToShow) > 0 && m.selectedIndex < len(binariesToShow) {
-			// Toggle selection
-			if m.selectedBinaries[m.selectedIndex] {
-				delete(m.selectedBinaries, m.selectedIndex)
-			} else {
-				m.selectedBinaries[m.selectedIndex] = true
+	// Handle bulk selection toggle with space key BEFORE the main switch
+	// This prevents space from falling through to other handlers
+	if msg.String() == keySpace {
+		if m.bulkSelectMode {
+			binariesToShow := getDisplayBinaries(m.binaries, m.activeFilters, m.searchQuery, m.sortMode, m.sortAscending)
+			if len(binariesToShow) > 0 && m.selectedIndex < len(binariesToShow) {
+				// Toggle selection
+				if m.selectedBinaries[m.selectedIndex] {
+					delete(m.selectedBinaries, m.selectedIndex)
+				} else {
+					m.selectedBinaries[m.selectedIndex] = true
+				}
 			}
+			return m, nil
 		}
+		// If not in bulk mode, space does nothing (prevents accidental actions)
 		return m, nil
 	}
 
@@ -540,10 +574,13 @@ func (m model) updateBinariesList(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	case keySearch:
 		// Enter search mode
 		m.searchMode = true
-		m.searchTextInput.Reset()
+		// Preserve current search value if one exists
+		if m.searchQuery != "" {
+			m.searchTextInput.SetValue(m.searchQuery)
+		} else {
+			m.searchTextInput.Reset()
+		}
 		m.searchTextInput.Focus()
-		m.searchQuery = ""
-		m.filteredBinaries = m.binaries // Start with all binaries
 		m.errorMessage = ""
 		m.successMessage = ""
 
@@ -656,6 +693,24 @@ func (m model) updateVersions(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 			}
 
 			return m, deleteVersion(m.dbService, selectedInstallation)
+		}
+
+	case keyRepoInfo:
+		// View GitHub repository information
+		if m.selectedBinary != nil && m.selectedBinary.Provider == "github" {
+			m.currentView = viewRepositoryInfo
+			m.githubLoading = true
+			m.githubError = ""
+			return m, fetchRepositoryInfo(m.selectedBinary)
+		}
+
+	case keyAvailVersions:
+		// View available versions from GitHub
+		if m.selectedBinary != nil && m.selectedBinary.Provider == "github" {
+			m.currentView = viewAvailableVersions
+			m.githubLoading = true
+			m.githubError = ""
+			return m, fetchAvailableVersions(m.selectedBinary)
 		}
 
 	case keyEsc:
@@ -1278,4 +1333,105 @@ func syncConfig(dbService *repository.Service, cfg *configPkg.Config) tea.Cmd {
 
 		return configSyncedMsg{err: nil}
 	}
+}
+
+// updateGitHubView handles updates for GitHub-related views
+func (m model) updateGitHubView(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
+switch msg.String() {
+case keyEsc:
+// Return to versions view
+m.currentView = viewVersions
+m.githubReleaseInfo = nil
+m.githubAvailableVers = nil
+m.githubRepoInfo = nil
+m.githubError = ""
+return m, nil
+
+case keyQuit, keyCtrlC:
+return m, tea.Quit
+}
+
+return m, nil
+}
+
+// Message types for GitHub data fetching
+type githubRepoInfoMsg struct {
+info *githubRepositoryInfo
+err  error
+}
+
+type githubAvailableVersionsMsg struct {
+versions []githubReleaseInfo
+err      error
+}
+
+type githubReleaseNotesMsg struct {
+release *githubReleaseInfo
+err     error
+}
+
+// fetchRepositoryInfo fetches repository information from GitHub
+func fetchRepositoryInfo(binary *database.Binary) tea.Cmd {
+return func() tea.Msg {
+repoInfo, err := github.GetRepositoryInfo(binary)
+if err != nil {
+return githubRepoInfoMsg{err: err}
+}
+
+return githubRepoInfoMsg{
+info: &githubRepositoryInfo{
+Name:        repoInfo.Name,
+FullName:    repoInfo.FullName,
+Description: repoInfo.Description,
+Stars:       repoInfo.StargazersCount,
+Forks:       repoInfo.ForksCount,
+HTMLURL:     repoInfo.HTMLURL,
+},
+}
+}
+}
+
+// fetchAvailableVersions fetches available versions from GitHub
+func fetchAvailableVersions(binary *database.Binary) tea.Cmd {
+return func() tea.Msg {
+releases, err := github.ListAvailableVersions(binary, 20)
+if err != nil {
+return githubAvailableVersionsMsg{err: err}
+}
+
+var versions []githubReleaseInfo
+for _, release := range releases {
+versions = append(versions, githubReleaseInfo{
+Name:        release.Name,
+TagName:     release.TagName,
+Body:        release.Body,
+Prerelease:  release.Prerelease,
+PublishedAt: release.PublishedAt.Format("2006-01-02 15:04"),
+HTMLURL:     release.HTMLURL,
+})
+}
+
+return githubAvailableVersionsMsg{versions: versions}
+}
+}
+
+// fetchReleaseNotes fetches release notes from GitHub for a specific version
+func fetchReleaseNotes(binary *database.Binary, version string) tea.Cmd {
+return func() tea.Msg {
+releaseInfo, err := github.FetchReleaseNotes(binary, version)
+if err != nil {
+return githubReleaseNotesMsg{err: err}
+}
+
+return githubReleaseNotesMsg{
+release: &githubReleaseInfo{
+Name:        releaseInfo.Name,
+TagName:     releaseInfo.TagName,
+Body:        releaseInfo.Body,
+Prerelease:  releaseInfo.Prerelease,
+PublishedAt: releaseInfo.PublishedAt.Format("2006-01-02 15:04"),
+HTMLURL:     releaseInfo.HTMLURL,
+},
+}
+}
 }

@@ -32,6 +32,11 @@ const (
 	keySpace     = " " // space for toggle selection in bulk mode
 	keyBulkMode  = "b" // 'b' for bulk selection mode
 
+	// GitHub navigation keys (used in versions view)
+	keyReleaseNotes  = "r" // 'r' for release notes (overloaded with remove in different context)
+	keyRepoInfo      = "g" // 'g' for GitHub repo info
+	keyAvailVersions = "v" // 'v' for view available versions
+
 	// Tab cycling keys
 	tab             = "tab"
 	keyShiftTab     = "shift+tab"
@@ -47,7 +52,7 @@ func getHelpText(view viewState) string {
 	case viewBinariesList:
 		return "↑/↓: navigate • enter: versions • /: search • f: filter • o: sort order • n: next sort • b: bulk • space: select (bulk) • a: add • i: install • u: update • r: remove • q: quit"
 	case viewVersions:
-		return "↑/↓: navigate • s/enter: switch version • i: install new version • u: update • c: check updates • d/delete: delete version • esc: back to list • q: quit"
+		return "↑/↓: navigate • s/enter: switch version • i: install • u: update • c: check updates • d/delete: delete • g: repo info • v: available versions • esc: back • q: quit"
 	case viewAddBinaryURL:
 		return "Type URL • enter: parse • esc: cancel • q: quit"
 	case viewAddBinaryForm:
@@ -58,6 +63,8 @@ func getHelpText(view viewState) string {
 		return "s: sync config to database • 1-4/shift+tab/ctrl+shift+tab: switch tabs • q: quit"
 	case viewHelp:
 		return "1-4/shift+tab/ctrl+shift+tab: switch tabs • q: quit"
+	case viewReleaseNotes, viewAvailableVersions, viewRepositoryInfo:
+		return "esc: back • q: quit"
 	default:
 		return "q: quit"
 	}

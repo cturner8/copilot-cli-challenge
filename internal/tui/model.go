@@ -72,6 +72,13 @@ type model struct {
 	importNameInput textinput.Model
 	importFocusIdx  int
 
+	// GitHub views state
+	githubReleaseInfo    *githubReleaseInfo
+	githubAvailableVers  []githubReleaseInfo
+	githubRepoInfo       *githubRepositoryInfo
+	githubLoading        bool
+	githubError          string
+
 	// Error state
 	errorMessage   string
 	successMessage string
@@ -90,6 +97,26 @@ type parsedBinaryConfig struct {
 	assetRegex    string
 	releaseRegex  string
 	authenticated bool
+}
+
+// githubReleaseInfo holds GitHub release information for TUI display
+type githubReleaseInfo struct {
+	Name        string
+	TagName     string
+	Body        string
+	Prerelease  bool
+	PublishedAt string
+	HTMLURL     string
+}
+
+// githubRepositoryInfo holds GitHub repository information for TUI display
+type githubRepositoryInfo struct {
+	Name        string
+	FullName    string
+	Description string
+	Stars       int
+	Forks       int
+	HTMLURL     string
 }
 
 func initialModel(dbService *repository.Service, cfg *config.Config) model {
