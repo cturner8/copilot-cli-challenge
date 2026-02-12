@@ -73,11 +73,11 @@ type model struct {
 	importFocusIdx  int
 
 	// GitHub views state
-	githubReleaseInfo    *githubReleaseInfo
-	githubAvailableVers  []githubReleaseInfo
-	githubRepoInfo       *githubRepositoryInfo
-	githubLoading        bool
-	githubError          string
+	githubReleaseInfo   *githubReleaseInfo
+	githubAvailableVers []githubReleaseInfo
+	githubRepoInfo      *githubRepositoryInfo
+	githubLoading       bool
+	githubError         string
 
 	// Error state
 	errorMessage   string

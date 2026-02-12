@@ -1337,101 +1337,101 @@ func syncConfig(dbService *repository.Service, cfg *configPkg.Config) tea.Cmd {
 
 // updateGitHubView handles updates for GitHub-related views
 func (m model) updateGitHubView(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
-switch msg.String() {
-case keyEsc:
-// Return to versions view
-m.currentView = viewVersions
-m.githubReleaseInfo = nil
-m.githubAvailableVers = nil
-m.githubRepoInfo = nil
-m.githubError = ""
-return m, nil
+	switch msg.String() {
+	case keyEsc:
+		// Return to versions view
+		m.currentView = viewVersions
+		m.githubReleaseInfo = nil
+		m.githubAvailableVers = nil
+		m.githubRepoInfo = nil
+		m.githubError = ""
+		return m, nil
 
-case keyQuit, keyCtrlC:
-return m, tea.Quit
-}
+	case keyQuit, keyCtrlC:
+		return m, tea.Quit
+	}
 
-return m, nil
+	return m, nil
 }
 
 // Message types for GitHub data fetching
 type githubRepoInfoMsg struct {
-info *githubRepositoryInfo
-err  error
+	info *githubRepositoryInfo
+	err  error
 }
 
 type githubAvailableVersionsMsg struct {
-versions []githubReleaseInfo
-err      error
+	versions []githubReleaseInfo
+	err      error
 }
 
 type githubReleaseNotesMsg struct {
-release *githubReleaseInfo
-err     error
+	release *githubReleaseInfo
+	err     error
 }
 
 // fetchRepositoryInfo fetches repository information from GitHub
 func fetchRepositoryInfo(binary *database.Binary) tea.Cmd {
-return func() tea.Msg {
-repoInfo, err := github.GetRepositoryInfo(binary)
-if err != nil {
-return githubRepoInfoMsg{err: err}
-}
+	return func() tea.Msg {
+		repoInfo, err := github.GetRepositoryInfo(binary)
+		if err != nil {
+			return githubRepoInfoMsg{err: err}
+		}
 
-return githubRepoInfoMsg{
-info: &githubRepositoryInfo{
-Name:        repoInfo.Name,
-FullName:    repoInfo.FullName,
-Description: repoInfo.Description,
-Stars:       repoInfo.StargazersCount,
-Forks:       repoInfo.ForksCount,
-HTMLURL:     repoInfo.HTMLURL,
-},
-}
-}
+		return githubRepoInfoMsg{
+			info: &githubRepositoryInfo{
+				Name:        repoInfo.Name,
+				FullName:    repoInfo.FullName,
+				Description: repoInfo.Description,
+				Stars:       repoInfo.StargazersCount,
+				Forks:       repoInfo.ForksCount,
+				HTMLURL:     repoInfo.HTMLURL,
+			},
+		}
+	}
 }
 
 // fetchAvailableVersions fetches available versions from GitHub
 func fetchAvailableVersions(binary *database.Binary) tea.Cmd {
-return func() tea.Msg {
-releases, err := github.ListAvailableVersions(binary, 20)
-if err != nil {
-return githubAvailableVersionsMsg{err: err}
-}
+	return func() tea.Msg {
+		releases, err := github.ListAvailableVersions(binary, 20)
+		if err != nil {
+			return githubAvailableVersionsMsg{err: err}
+		}
 
-var versions []githubReleaseInfo
-for _, release := range releases {
-versions = append(versions, githubReleaseInfo{
-Name:        release.Name,
-TagName:     release.TagName,
-Body:        release.Body,
-Prerelease:  release.Prerelease,
-PublishedAt: release.PublishedAt.Format("2006-01-02 15:04"),
-HTMLURL:     release.HTMLURL,
-})
-}
+		var versions []githubReleaseInfo
+		for _, release := range releases {
+			versions = append(versions, githubReleaseInfo{
+				Name:        release.Name,
+				TagName:     release.TagName,
+				Body:        release.Body,
+				Prerelease:  release.Prerelease,
+				PublishedAt: release.PublishedAt.Format("2006-01-02 15:04"),
+				HTMLURL:     release.HTMLURL,
+			})
+		}
 
-return githubAvailableVersionsMsg{versions: versions}
-}
+		return githubAvailableVersionsMsg{versions: versions}
+	}
 }
 
 // fetchReleaseNotes fetches release notes from GitHub for a specific version
 func fetchReleaseNotes(binary *database.Binary, version string) tea.Cmd {
-return func() tea.Msg {
-releaseInfo, err := github.FetchReleaseNotes(binary, version)
-if err != nil {
-return githubReleaseNotesMsg{err: err}
-}
+	return func() tea.Msg {
+		releaseInfo, err := github.FetchReleaseNotes(binary, version)
+		if err != nil {
+			return githubReleaseNotesMsg{err: err}
+		}
 
-return githubReleaseNotesMsg{
-release: &githubReleaseInfo{
-Name:        releaseInfo.Name,
-TagName:     releaseInfo.TagName,
-Body:        releaseInfo.Body,
-Prerelease:  releaseInfo.Prerelease,
-PublishedAt: releaseInfo.PublishedAt.Format("2006-01-02 15:04"),
-HTMLURL:     releaseInfo.HTMLURL,
-},
-}
-}
+		return githubReleaseNotesMsg{
+			release: &githubReleaseInfo{
+				Name:        releaseInfo.Name,
+				TagName:     releaseInfo.TagName,
+				Body:        releaseInfo.Body,
+				Prerelease:  releaseInfo.Prerelease,
+				PublishedAt: releaseInfo.PublishedAt.Format("2006-01-02 15:04"),
+				HTMLURL:     releaseInfo.HTMLURL,
+			},
+		}
+	}
 }

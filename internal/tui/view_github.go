@@ -50,7 +50,7 @@ func (m model) renderReleaseNotes() string {
 		// Release body
 		b.WriteString(headerStyle.Render("Release Notes:"))
 		b.WriteString("\n\n")
-		
+
 		if release.Body != "" {
 			// Display release body with word wrapping
 			lines := strings.Split(release.Body, "\n")
@@ -109,11 +109,11 @@ func (m model) renderAvailableVersions() string {
 		if availableWidth == 0 {
 			availableWidth = defaultTerminalWidth
 		}
-		
+
 		versionWidth := 20
 		dateWidth := 20
 		typeWidth := 15
-		
+
 		// Headers
 		headers := []string{
 			tableHeaderStyle.Width(versionWidth).Render("Version"),
