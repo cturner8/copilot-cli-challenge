@@ -1,4 +1,4 @@
-package tui
+package views
 
 import (
 	"fmt"
@@ -6,32 +6,32 @@ import (
 )
 
 // renderDownloads renders the downloads view
-func (m model) renderDownloads() string {
+func (m Model) RenderDownloads() string {
 	var b strings.Builder
 
 	b.WriteString(titleStyle.Render("📦 Binmate - Binary Manager"))
 	b.WriteString("\n\n")
 
 	// Tabs
-	b.WriteString(m.renderTabs())
+	b.WriteString(m.RenderTabsFn())
 
 	// Show error if any
-	if m.errorMessage != "" {
-		b.WriteString(errorStyle.Render("Error: " + m.errorMessage))
+	if m.ErrorMessage != "" {
+		b.WriteString(errorStyle.Render("Error: " + m.ErrorMessage))
 		b.WriteString("\n\n")
 	}
 
 	// Show success message if any
-	if m.successMessage != "" {
-		b.WriteString(successStyle.Render("✓ " + m.successMessage))
+	if m.SuccessMessage != "" {
+		b.WriteString(successStyle.Render("✓ " + m.SuccessMessage))
 		b.WriteString("\n\n")
 	}
 
 	// Show loading state
-	if m.loading {
+	if m.Loading {
 		b.WriteString(loadingStyle.Render("Loading downloads..."))
 		b.WriteString("\n\n")
-		b.WriteString(helpStyle.Render(getHelpText(m.currentView)))
+		b.WriteString(helpStyle.Render(getHelpText(m.CurrentView)))
 		return b.String()
 	}
 
@@ -51,38 +51,38 @@ func (m model) renderDownloads() string {
 	b.WriteString(mutedStyle.Render("(Full implementation pending)"))
 	b.WriteString("\n\n")
 
-	b.WriteString(helpStyle.Render(getHelpText(m.currentView)))
+	b.WriteString(helpStyle.Render(getHelpText(m.CurrentView)))
 
 	return b.String()
 }
 
 // renderConfiguration renders the configuration view
-func (m model) renderConfiguration() string {
+func (m Model) RenderConfiguration() string {
 	var b strings.Builder
 
 	b.WriteString(titleStyle.Render("📦 Binmate - Binary Manager"))
 	b.WriteString("\n\n")
 
 	// Tabs
-	b.WriteString(m.renderTabs())
+	b.WriteString(m.RenderTabsFn())
 
 	// Show error if any
-	if m.errorMessage != "" {
-		b.WriteString(errorStyle.Render("Error: " + m.errorMessage))
+	if m.ErrorMessage != "" {
+		b.WriteString(errorStyle.Render("Error: " + m.ErrorMessage))
 		b.WriteString("\n\n")
 	}
 
 	// Show success message if any
-	if m.successMessage != "" {
-		b.WriteString(successStyle.Render("✓ " + m.successMessage))
+	if m.SuccessMessage != "" {
+		b.WriteString(successStyle.Render("✓ " + m.SuccessMessage))
 		b.WriteString("\n\n")
 	}
 
 	// Show loading state
-	if m.loading {
+	if m.Loading {
 		b.WriteString(loadingStyle.Render("Syncing configuration..."))
 		b.WriteString("\n\n")
-		b.WriteString(helpStyle.Render(getHelpText(m.currentView)))
+		b.WriteString(helpStyle.Render(getHelpText(m.CurrentView)))
 		return b.String()
 	}
 
@@ -90,31 +90,31 @@ func (m model) renderConfiguration() string {
 	b.WriteString(headerStyle.Render("Configuration Settings"))
 	b.WriteString("\n\n")
 
-	if m.config != nil {
-		b.WriteString(fmt.Sprintf("Version: %d\n", m.config.Version))
-		b.WriteString(fmt.Sprintf("Binaries in config: %d\n", len(m.config.Binaries)))
-		if m.config.DateFormat != "" {
-			b.WriteString(fmt.Sprintf("Date Format: %s\n", m.config.DateFormat))
+	if m.Config != nil {
+		b.WriteString(fmt.Sprintf("Version: %d\n", m.Config.Version))
+		b.WriteString(fmt.Sprintf("Binaries in config: %d\n", len(m.Config.Binaries)))
+		if m.Config.DateFormat != "" {
+			b.WriteString(fmt.Sprintf("Date Format: %s\n", m.Config.DateFormat))
 		}
-		if m.config.LogLevel != "" {
-			b.WriteString(fmt.Sprintf("Log Level: %s\n", m.config.LogLevel))
+		if m.Config.LogLevel != "" {
+			b.WriteString(fmt.Sprintf("Log Level: %s\n", m.Config.LogLevel))
 		}
 		b.WriteString("\n")
 
 		// Show first few binaries from config
-		if len(m.config.Binaries) > 0 {
+		if len(m.Config.Binaries) > 0 {
 			b.WriteString(headerStyle.Render("Configured Binaries:"))
 			b.WriteString("\n")
 			maxShow := 5
-			if len(m.config.Binaries) < maxShow {
-				maxShow = len(m.config.Binaries)
+			if len(m.Config.Binaries) < maxShow {
+				maxShow = len(m.Config.Binaries)
 			}
 			for i := 0; i < maxShow; i++ {
-				binary := m.config.Binaries[i]
+				binary := m.Config.Binaries[i]
 				b.WriteString(fmt.Sprintf("  • %s (%s)\n", binary.Name, binary.Id))
 			}
-			if len(m.config.Binaries) > maxShow {
-				b.WriteString(fmt.Sprintf("  ... and %d more\n", len(m.config.Binaries)-maxShow))
+			if len(m.Config.Binaries) > maxShow {
+				b.WriteString(fmt.Sprintf("  ... and %d more\n", len(m.Config.Binaries)-maxShow))
 			}
 		}
 	} else {
@@ -128,14 +128,14 @@ func (m model) renderConfiguration() string {
 }
 
 // renderHelp renders the help view
-func (m model) renderHelp() string {
+func (m Model) RenderHelp() string {
 	var b strings.Builder
 
 	b.WriteString(titleStyle.Render("📦 Binmate - Binary Manager"))
 	b.WriteString("\n\n")
 
 	// Tabs
-	b.WriteString(m.renderTabs())
+	b.WriteString(m.RenderTabsFn())
 
 	b.WriteString(headerStyle.Render("Welcome to Binmate"))
 	b.WriteString("\n\n")
@@ -190,7 +190,7 @@ func (m model) renderHelp() string {
 	b.WriteString("  • Success/error messages appear at the top of each view\n")
 	b.WriteString("\n")
 
-	b.WriteString(helpStyle.Render(getHelpText(m.currentView)))
+	b.WriteString(helpStyle.Render(getHelpText(m.CurrentView)))
 
 	return b.String()
 }

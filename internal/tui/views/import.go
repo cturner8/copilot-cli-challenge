@@ -1,25 +1,25 @@
-package tui
+package views
 
 import (
 	"strings"
 )
 
 // renderImportBinary renders the import binary view
-func (m model) renderImportBinary() string {
+func (m Model) RenderImportBinary() string {
 	var b strings.Builder
 
 	b.WriteString(titleStyle.Render("📦 Import Existing Binary"))
 	b.WriteString("\n\n")
 
 	// Show error if any
-	if m.errorMessage != "" {
-		b.WriteString(errorStyle.Render("Error: " + m.errorMessage))
+	if m.ErrorMessage != "" {
+		b.WriteString(errorStyle.Render("Error: " + m.ErrorMessage))
 		b.WriteString("\n\n")
 	}
 
 	// Show success message if any
-	if m.successMessage != "" {
-		b.WriteString(successStyle.Render("✓ " + m.successMessage))
+	if m.SuccessMessage != "" {
+		b.WriteString(successStyle.Render("✓ " + m.SuccessMessage))
 		b.WriteString("\n\n")
 	}
 
@@ -30,13 +30,13 @@ func (m model) renderImportBinary() string {
 	// Path input (focused if index 0)
 	b.WriteString(formLabelStyle.Render("Binary Path: "))
 	b.WriteString("\n")
-	b.WriteString(m.importPathInput.View())
+	b.WriteString(m.ImportPathInput.View())
 	b.WriteString("\n\n")
 
 	// Name input (focused if index 1)
 	b.WriteString(formLabelStyle.Render("Binary Name: "))
 	b.WriteString("\n")
-	b.WriteString(m.importNameInput.View())
+	b.WriteString(m.ImportNameInput.View())
 	b.WriteString("\n\n")
 
 	b.WriteString(helpStyle.Render("Note: Import functionality is not yet fully implemented in the service layer"))

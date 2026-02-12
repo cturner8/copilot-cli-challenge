@@ -4,59 +4,60 @@ import (
 	"cturner8/binmate/internal/core/config"
 	"cturner8/binmate/internal/database"
 	"cturner8/binmate/internal/database/repository"
+	"cturner8/binmate/internal/tui/views"
 
 	"github.com/charmbracelet/bubbles/textinput"
 )
 
-type model struct {
+type Model struct {
 	// Services
-	dbService *repository.Service
-	config    *config.Config
+	DbService *repository.Service
+	Config    *config.Config
 
 	// View state
-	currentView viewState
+	CurrentView views.ViewState
 
 	// Window dimensions
-	width  int
-	height int
+	Width  int
+	Height int
 
 	// Binaries list view state
-	binaries      []BinaryWithMetadata
-	selectedIndex int
-	loading       bool
+	Binaries      []BinaryWithMetadata
+	SelectedIndex int
+	Loading       bool
 
 	// Versions view state
-	selectedBinary     *database.Binary
-	installations      []*database.Installation
-	selectedVersionIdx int
+	SelectedBinary     *database.Binary
+	Installations      []*database.Installation
+	SelectedVersionIdx int
 
 	// Add binary view state - URL input
-	urlTextInput textinput.Model
+	UrlTextInput textinput.Model
 
 	// Add binary view state - Form
-	parsedBinary *parsedBinaryConfig
-	formInputs   []textinput.Model
-	focusedField int
+	ParsedBinary *parsedBinaryConfig
+	FormInputs   []textinput.Model
+	FocusedField int
 
 	// Install binary view state
-	installBinaryID      string
-	installVersionInput  textinput.Model
-	installingInProgress bool
-	installReturnView    viewState // Track which view to return to after install
+	InstallBinaryID      string
+	InstallVersionInput  textinput.Model
+	InstallingInProgress bool
+	InstallReturnView    views.ViewState // Track which view to return to after install
 
 	// Remove confirmation state
-	confirmingRemove bool
-	removeBinaryID   string
-	removeWithFiles  bool
+	ConfirmingRemove bool
+	RemoveBinaryID   string
+	RemoveWithFiles  bool
 
 	// Import binary view state
-	importPathInput textinput.Model
-	importNameInput textinput.Model
-	importFocusIdx  int
+	ImportPathInput textinput.Model
+	ImportNameInput textinput.Model
+	ImportFocusIdx  int
 
 	// Error state
-	errorMessage   string
-	successMessage string
+	ErrorMessage   string
+	SuccessMessage string
 }
 
 // parsedBinaryConfig represents a binary configuration parsed from a URL
@@ -74,7 +75,7 @@ type parsedBinaryConfig struct {
 	authenticated bool
 }
 
-func initialModel(dbService *repository.Service, cfg *config.Config) model {
+func initialModel(dbService *repository.Service, cfg *config.Config) Model {
 	// Create URL text input
 	urlInput := textinput.New()
 	urlInput.Placeholder = "https://github.com/owner/repo/releases/download/v1.0.0/binary.tar.gz"
@@ -98,15 +99,15 @@ func initialModel(dbService *repository.Service, cfg *config.Config) model {
 	importNameInput.CharLimit = 64
 	importNameInput.Width = 40
 
-	return model{
-		dbService:           dbService,
-		config:              cfg,
-		currentView:         viewBinariesList,
-		loading:             true,
-		urlTextInput:        urlInput,
-		formInputs:          []textinput.Model{},
-		installVersionInput: versionInput,
-		importPathInput:     importPathInput,
-		importNameInput:     importNameInput,
+	return Model{
+		DbService:           dbService,
+		Config:              cfg,
+		CurrentView:         views.BinariesList,
+		Loading:             true,
+		UrlTextInput:        urlInput,
+		FormInputs:          []textinput.Model{},
+		InstallVersionInput: versionInput,
+		ImportPathInput:     importPathInput,
+		ImportNameInput:     importNameInput,
 	}
 }

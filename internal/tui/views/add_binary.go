@@ -1,4 +1,4 @@
-package tui
+package views
 
 import (
 	"fmt"
@@ -6,14 +6,14 @@ import (
 )
 
 // renderAddBinaryURL renders the add binary URL input view
-func (m model) renderAddBinaryURL() string {
+func (m Model) RenderAddBinaryURL() string {
 	var b strings.Builder
 
 	b.WriteString(titleStyle.Render("➕ Add Binary - Enter GitHub Release URL"))
 	b.WriteString("\n\n")
 
-	if m.errorMessage != "" {
-		b.WriteString(errorStyle.Render("Error: " + m.errorMessage))
+	if m.ErrorMessage != "" {
+		b.WriteString(errorStyle.Render("Error: " + m.ErrorMessage))
 		b.WriteString("\n\n")
 	}
 
@@ -23,29 +23,29 @@ func (m model) renderAddBinaryURL() string {
 	b.WriteString("\n")
 	b.WriteString(formLabelStyle.Render("URL: "))
 	b.WriteString("\n")
-	b.WriteString(m.urlTextInput.View())
+	b.WriteString(m.UrlTextInput.View())
 	b.WriteString("\n\n")
-	b.WriteString(helpStyle.Render(getHelpText(m.currentView)))
+	b.WriteString(helpStyle.Render(getHelpText(m.CurrentView)))
 
 	return b.String()
 }
 
 // renderAddBinaryForm renders the add binary configuration form view
-func (m model) renderAddBinaryForm() string {
+func (m Model) RenderAddBinaryForm() string {
 	var b strings.Builder
 
 	b.WriteString(titleStyle.Render("➕ Add Binary - Configuration"))
 	b.WriteString("\n\n")
 
-	if m.errorMessage != "" {
-		b.WriteString(errorStyle.Render("Error: " + m.errorMessage))
+	if m.ErrorMessage != "" {
+		b.WriteString(errorStyle.Render("Error: " + m.ErrorMessage))
 		b.WriteString("\n\n")
 	}
 
-	if m.parsedBinary == nil {
+	if m.ParsedBinary == nil {
 		b.WriteString(emptyStateStyle.Render("No binary data available"))
 		b.WriteString("\n\n")
-		b.WriteString(helpStyle.Render(getHelpText(m.currentView)))
+		b.WriteString(helpStyle.Render(getHelpText(m.CurrentView)))
 		return b.String()
 	}
 
@@ -70,14 +70,14 @@ func (m model) renderAddBinaryForm() string {
 		labelStr := formLabelStyle.Render(fmt.Sprintf("%-15s: ", label))
 		b.WriteString(labelStr)
 
-		if i < len(m.formInputs) {
-			b.WriteString(m.formInputs[i].View())
+		if i < len(m.FormInputs) {
+			b.WriteString(m.FormInputs[i].View())
 		}
 		b.WriteString("\n")
 	}
 
 	b.WriteString("\n")
-	b.WriteString(helpStyle.Render(getHelpText(m.currentView)))
+	b.WriteString(helpStyle.Render(getHelpText(m.CurrentView)))
 
 	return b.String()
 }

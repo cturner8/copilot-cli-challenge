@@ -1,4 +1,4 @@
-package tui
+package views
 
 import (
 	"fmt"
@@ -10,63 +10,57 @@ import (
 )
 
 // renderVersions renders the versions detail view
-func (m model) renderVersions() string {
+func (m Model) RenderVersions() string {
 	var b strings.Builder
 
 	// Title
-	if m.selectedBinary != nil {
-		title := fmt.Sprintf("📦 %s - Installed Versions", m.selectedBinary.Name)
+	if m.SelectedBinary != nil {
+		title := fmt.Sprintf("📦 %s - Installed Versions", m.SelectedBinary.Name)
 		b.WriteString(titleStyle.Render(title))
 		b.WriteString("\n\n")
 
 		// Binary details
 		b.WriteString(headerStyle.Render("Binary Details:"))
 		b.WriteString("\n")
-		b.WriteString(fmt.Sprintf("Provider: %s\n", m.selectedBinary.Provider))
-		b.WriteString(fmt.Sprintf("Path: %s\n", m.selectedBinary.ProviderPath))
-		b.WriteString(fmt.Sprintf("Format: %s\n", m.selectedBinary.Format))
+		b.WriteString(fmt.Sprintf("Provider: %s\n", m.SelectedBinary.Provider))
+		b.WriteString(fmt.Sprintf("Path: %s\n", m.SelectedBinary.ProviderPath))
+		b.WriteString(fmt.Sprintf("Format: %s\n", m.SelectedBinary.Format))
 		b.WriteString("\n")
 	}
 
 	// Show loading state
-	if m.loading {
+	if m.Loading {
 		b.WriteString(loadingStyle.Render("Loading versions..."))
 		b.WriteString("\n\n")
-		b.WriteString(helpStyle.Render(getHelpText(m.currentView)))
+		b.WriteString(helpStyle.Render(getHelpText(m.CurrentView)))
 		return b.String()
 	}
 
 	// Show empty state
-	if len(m.installations) == 0 {
+	if len(m.Installations) == 0 {
 		b.WriteString(emptyStateStyle.Render("No versions installed"))
 		b.WriteString("\n\n")
-		b.WriteString(helpStyle.Render(getHelpText(m.currentView)))
+		b.WriteString(helpStyle.Render(getHelpText(m.CurrentView)))
 		return b.String()
 	}
 
 	// Show error if any
-	if m.errorMessage != "" {
-		b.WriteString(errorStyle.Render("Error: " + m.errorMessage))
+	if m.ErrorMessage != "" {
+		b.WriteString(errorStyle.Render("Error: " + m.ErrorMessage))
 		b.WriteString("\n\n")
 	}
 
 	// Show success message if any
-	if m.successMessage != "" {
-		b.WriteString(successStyle.Render("✓ " + m.successMessage))
+	if m.SuccessMessage != "" {
+		b.WriteString(successStyle.Render("✓ " + m.SuccessMessage))
 		b.WriteString("\n\n")
 	}
 
 	// Get active version
-	var activeInstallationID int64
-	if m.selectedBinary != nil {
-		activeVersion, _ := getActiveVersion(m.dbService, m.selectedBinary.ID)
-		if activeVersion != nil {
-			activeInstallationID = activeVersion.ID
-		}
-	}
+	activeInstallationID := m.ActiveInstallationID
 
 	// Calculate proportional column widths based on available width
-	availableWidth := m.width
+	availableWidth := m.Width
 	if availableWidth == 0 {
 		availableWidth = defaultTerminalWidth
 	}
@@ -97,15 +91,15 @@ func (m model) renderVersions() string {
 
 	// Get date format once before loop
 	dateFormat := format.GetDefaultDateFormat()
-	if m.config != nil && m.config.DateFormat != "" {
-		dateFormat = m.config.DateFormat
+	if m.Config != nil && m.Config.DateFormat != "" {
+		dateFormat = m.Config.DateFormat
 	}
 
 	// Table rows
-	for i, installation := range m.installations {
+	for i, installation := range m.Installations {
 		// Determine row style (selected or normal)
 		rowStyle := tableCellStyle
-		if i == m.selectedVersionIdx {
+		if i == m.SelectedVersionIdx {
 			rowStyle = selectedStyle
 		}
 
@@ -140,7 +134,7 @@ func (m model) renderVersions() string {
 	}
 
 	b.WriteString("\n")
-	b.WriteString(helpStyle.Render(getHelpText(m.currentView)))
+	b.WriteString(helpStyle.Render(getHelpText(m.CurrentView)))
 
 	return b.String()
 }

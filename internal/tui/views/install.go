@@ -1,4 +1,4 @@
-package tui
+package views
 
 import (
 	"fmt"
@@ -6,32 +6,32 @@ import (
 )
 
 // renderInstallBinary renders the install binary view
-func (m model) renderInstallBinary() string {
+func (m Model) RenderInstallBinary() string {
 	var b strings.Builder
 
 	// Get binary name if available
-	binaryName := m.installBinaryID
-	if len(m.binaries) > 0 && m.selectedIndex < len(m.binaries) {
-		binaryName = m.binaries[m.selectedIndex].Binary.Name
+	binaryName := m.InstallBinaryID
+	if len(m.Binaries) > 0 && m.SelectedIndex < len(m.Binaries) {
+		binaryName = m.Binaries[m.SelectedIndex].Binary.Name
 	}
 
 	b.WriteString(titleStyle.Render(fmt.Sprintf("📥 Install Binary - %s", binaryName)))
 	b.WriteString("\n\n")
 
 	// Show error if any
-	if m.errorMessage != "" {
-		b.WriteString(errorStyle.Render("Error: " + m.errorMessage))
+	if m.ErrorMessage != "" {
+		b.WriteString(errorStyle.Render("Error: " + m.ErrorMessage))
 		b.WriteString("\n\n")
 	}
 
 	// Show success message if any
-	if m.successMessage != "" {
-		b.WriteString(successStyle.Render("✓ " + m.successMessage))
+	if m.SuccessMessage != "" {
+		b.WriteString(successStyle.Render("✓ " + m.SuccessMessage))
 		b.WriteString("\n\n")
 	}
 
 	// Show installing progress
-	if m.installingInProgress {
+	if m.InstallingInProgress {
 		b.WriteString(loadingStyle.Render(fmt.Sprintf("Installing %s...", binaryName)))
 		b.WriteString("\n\n")
 		b.WriteString(helpStyle.Render("This may take a few moments depending on file size and network speed"))
@@ -43,7 +43,7 @@ func (m model) renderInstallBinary() string {
 	b.WriteString("\n")
 	b.WriteString(formLabelStyle.Render("Version: "))
 	b.WriteString("\n")
-	b.WriteString(m.installVersionInput.View())
+	b.WriteString(m.InstallVersionInput.View())
 	b.WriteString("\n\n")
 	b.WriteString(helpStyle.Render("Tip: Use 'latest' to install the most recent version"))
 	b.WriteString("\n\n")

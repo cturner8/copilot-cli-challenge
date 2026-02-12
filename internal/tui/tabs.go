@@ -1,6 +1,8 @@
 package tui
 
 import (
+	"cturner8/binmate/internal/tui/views"
+
 	"github.com/charmbracelet/lipgloss"
 )
 
@@ -23,29 +25,29 @@ var (
 
 // tabDefinition represents a tab in the UI
 type tabDefinition struct {
-	view  viewState
+	view  views.ViewState
 	label string
 }
 
 // availableTabs returns the list of tabs available in the main views
 var availableTabs = []tabDefinition{
-	{viewBinariesList, "📦 Binaries"},
-	{viewDownloads, "📥 Downloads"},
-	{viewConfiguration, "⚙️  Config"},
-	{viewHelp, "❓ Help"},
+	{views.BinariesList, "📦 Binaries"},
+	{views.Downloads, "📥 Downloads"},
+	{views.Configuration, "⚙️  Config"},
+	{views.Help, "❓ Help"},
 }
 
 // renderTabs renders the tab bar
-func (m model) renderTabs() string {
+func (m Model) renderTabs() string {
 	// Don't show tabs in add binary or versions views
-	if m.currentView == viewAddBinaryURL || m.currentView == viewAddBinaryForm || m.currentView == viewVersions {
+	if m.CurrentView == views.AddBinaryURL || m.CurrentView == views.AddBinaryForm || m.CurrentView == views.Versions {
 		return ""
 	}
 
 	var tabs []string
 	for _, tab := range availableTabs {
 		var style lipgloss.Style
-		if m.currentView == tab.view {
+		if m.CurrentView == tab.view {
 			style = activeTabStyle
 		} else {
 			style = inactiveTabStyle
@@ -58,23 +60,23 @@ func (m model) renderTabs() string {
 }
 
 // getTabForKey returns the view state for a given key press
-func getTabForKey(key string) (viewState, bool) {
+func getTabForKey(key string) (views.ViewState, bool) {
 	switch key {
 	case "1":
-		return viewBinariesList, true
+		return views.BinariesList, true
 	case "2":
-		return viewDownloads, true
+		return views.Downloads, true
 	case "3":
-		return viewConfiguration, true
+		return views.Configuration, true
 	case "4":
-		return viewHelp, true
+		return views.Help, true
 	default:
-		return viewBinariesList, false
+		return views.BinariesList, false
 	}
 }
 
 // getNextTab returns the next tab in the sequence
-func getNextTab(current viewState) viewState {
+func getNextTab(current views.ViewState) views.ViewState {
 	for i, tab := range availableTabs {
 		if tab.view == current {
 			// Return next tab, wrapping around to the beginning
@@ -87,7 +89,7 @@ func getNextTab(current viewState) viewState {
 }
 
 // getPreviousTab returns the previous tab in the sequence
-func getPreviousTab(current viewState) viewState {
+func getPreviousTab(current views.ViewState) views.ViewState {
 	for i, tab := range availableTabs {
 		if tab.view == current {
 			// Return previous tab, wrapping around to the end
@@ -101,13 +103,13 @@ func getPreviousTab(current viewState) viewState {
 
 // handleTabCycling handles shift+tab and ctrl+shift+tab for cycling between tabs
 // Returns true if a tab cycle key was pressed, along with the updated model
-func handleTabCycling(m model, key string) (model, bool) {
+func handleTabCycling(m Model, key string) (Model, bool) {
 	switch key {
 	case keyTab:
-		m.currentView = getNextTab(m.currentView)
+		m.CurrentView = getNextTab(m.CurrentView)
 		return m, true
 	case keyShiftTab:
-		m.currentView = getPreviousTab(m.currentView)
+		m.CurrentView = getPreviousTab(m.CurrentView)
 		return m, true
 	}
 	return m, false
