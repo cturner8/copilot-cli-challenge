@@ -20,6 +20,12 @@ func (m model) View() string {
 		return m.renderConfiguration()
 	case viewHelp:
 		return m.renderHelp()
+	case viewReleaseNotes:
+		return m.renderReleaseNotes()
+	case viewAvailableVersions:
+		return m.renderAvailableVersions()
+	case viewRepositoryInfo:
+		return m.renderRepositoryInfo()
 	default:
 		return "Unknown view"
 	}

@@ -13,6 +13,9 @@ const (
 	viewDownloads
 	viewConfiguration
 	viewHelp
+	viewReleaseNotes
+	viewAvailableVersions
+	viewRepositoryInfo
 )
 
 // String returns the string representation of the view state
@@ -36,6 +39,12 @@ func (v viewState) String() string {
 		return "Configuration"
 	case viewHelp:
 		return "Help"
+	case viewReleaseNotes:
+		return "Release Notes"
+	case viewAvailableVersions:
+		return "Available Versions"
+	case viewRepositoryInfo:
+		return "Repository Info"
 	default:
 		return "Unknown"
 	}

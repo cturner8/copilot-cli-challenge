@@ -25,6 +25,24 @@ type model struct {
 	selectedIndex int
 	loading       bool
 
+	// Search state
+	searchMode       bool
+	searchQuery      string
+	searchTextInput  textinput.Model
+	filteredBinaries []BinaryWithMetadata
+
+	// Filter and sort state
+	filterPanelOpen bool
+	activeFilters   map[string]string // e.g., "provider": "github", "format": ".tar.gz"
+	sortMode        string            // "name", "provider", "updated", "count"
+	sortAscending   bool
+
+	// Bulk operations state
+	bulkSelectMode          bool
+	selectedBinaries        map[int]bool // Map of selected indices in the current display
+	bulkRemoveCount         int          // Count of binaries to remove in bulk mode
+	bulkOperationInProgress bool         // Track if a bulk operation is running
+
 	// Versions view state
 	selectedBinary     *database.Binary
 	installations      []*database.Installation
@@ -54,6 +72,13 @@ type model struct {
 	importNameInput textinput.Model
 	importFocusIdx  int
 
+	// GitHub views state
+	githubReleaseInfo   *githubReleaseInfo
+	githubAvailableVers []githubReleaseInfo
+	githubRepoInfo      *githubRepositoryInfo
+	githubLoading       bool
+	githubError         string
+
 	// Error state
 	errorMessage   string
 	successMessage string
@@ -72,6 +97,26 @@ type parsedBinaryConfig struct {
 	assetRegex    string
 	releaseRegex  string
 	authenticated bool
+}
+
+// githubReleaseInfo holds GitHub release information for TUI display
+type githubReleaseInfo struct {
+	Name        string
+	TagName     string
+	Body        string
+	Prerelease  bool
+	PublishedAt string
+	HTMLURL     string
+}
+
+// githubRepositoryInfo holds GitHub repository information for TUI display
+type githubRepositoryInfo struct {
+	Name        string
+	FullName    string
+	Description string
+	Stars       int
+	Forks       int
+	HTMLURL     string
 }
 
 func initialModel(dbService *repository.Service, cfg *config.Config) model {
@@ -98,6 +143,12 @@ func initialModel(dbService *repository.Service, cfg *config.Config) model {
 	importNameInput.CharLimit = 64
 	importNameInput.Width = 40
 
+	// Create search text input
+	searchInput := textinput.New()
+	searchInput.Placeholder = "Search by name (regex supported)..."
+	searchInput.CharLimit = 128
+	searchInput.Width = 60
+
 	return model{
 		dbService:           dbService,
 		config:              cfg,
@@ -108,5 +159,13 @@ func initialModel(dbService *repository.Service, cfg *config.Config) model {
 		installVersionInput: versionInput,
 		importPathInput:     importPathInput,
 		importNameInput:     importNameInput,
+		searchTextInput:     searchInput,
+		searchMode:          false,
+		filteredBinaries:    []BinaryWithMetadata{},
+		activeFilters:       make(map[string]string),
+		sortMode:            "name",
+		sortAscending:       true,
+		bulkSelectMode:      false,
+		selectedBinaries:    make(map[int]bool),
 	}
 }
