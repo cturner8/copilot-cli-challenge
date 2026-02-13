@@ -224,6 +224,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.githubError = msg.err.Error()
 		} else {
 			m.githubAvailableVers = msg.versions
+			m.selectedAvailableVersionIdx = 0
 		}
 		return m, nil
 
@@ -743,6 +744,7 @@ func (m model) updateVersions(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		// View available versions from GitHub
 		if m.selectedBinary != nil && m.selectedBinary.Provider == "github" {
 			m.currentView = viewAvailableVersions
+			m.selectedAvailableVersionIdx = 0
 			m.githubLoading = true
 			m.githubError = ""
 			return m, fetchAvailableVersions(m.selectedBinary)
@@ -1434,12 +1436,45 @@ func syncConfig(dbService *repository.Service, cfg *configPkg.Config) tea.Cmd {
 // updateGitHubView handles updates for GitHub-related views
 func (m model) updateGitHubView(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	switch msg.String() {
+	case keyUp:
+		if m.currentView == viewAvailableVersions && m.selectedAvailableVersionIdx > 0 {
+			m.selectedAvailableVersionIdx--
+		}
+		return m, nil
+
+	case keyDown:
+		if m.currentView == viewAvailableVersions && m.selectedAvailableVersionIdx < len(m.githubAvailableVers)-1 {
+			m.selectedAvailableVersionIdx++
+		}
+		return m, nil
+
+	case keyInstall:
+		if m.currentView == viewAvailableVersions &&
+			m.selectedBinary != nil &&
+			len(m.githubAvailableVers) > 0 &&
+			m.selectedAvailableVersionIdx < len(m.githubAvailableVers) {
+			selectedRelease := m.githubAvailableVers[m.selectedAvailableVersionIdx]
+			version := selectedRelease.TagName
+			if version == "" {
+				version = "latest"
+			}
+			m.currentView = viewInstallBinary
+			m.installBinaryID = m.selectedBinary.UserID
+			m.installReturnView = viewVersions
+			m.installVersionInput.SetValue(version)
+			m.installVersionInput.Focus()
+			m.errorMessage = ""
+			m.successMessage = ""
+		}
+		return m, nil
+
 	case keyEsc:
 		// Return to versions view
 		m.currentView = viewVersions
 		m.githubReleaseInfo = nil
 		m.githubAvailableVers = nil
 		m.githubRepoInfo = nil
+		m.selectedAvailableVersionIdx = 0
 		m.githubError = ""
 		return m, nil
 
