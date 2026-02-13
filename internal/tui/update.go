@@ -237,6 +237,16 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		return m, nil
 
+	case githubRepoStarredMsg:
+		if msg.err != nil {
+			m.githubError = msg.err.Error()
+			m.successMessage = ""
+		} else {
+			m.githubError = ""
+			m.successMessage = "Repository starred successfully"
+		}
+		return m, nil
+
 	case tea.KeyMsg:
 		switch m.currentView {
 		case viewBinariesList:
@@ -1471,6 +1481,14 @@ func (m model) updateGitHubView(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		}
 		return m, nil
 
+	case keySwitch:
+		if m.currentView == viewRepositoryInfo && m.selectedBinary != nil && m.selectedBinary.Provider == "github" {
+			m.errorMessage = ""
+			m.successMessage = ""
+			return m, starRepository(m.selectedBinary)
+		}
+		return m, nil
+
 	case keyEsc:
 		// Return to versions view
 		m.currentView = viewVersions
@@ -1502,6 +1520,20 @@ type githubAvailableVersionsMsg struct {
 type githubReleaseNotesMsg struct {
 	release *githubReleaseInfo
 	err     error
+}
+
+type githubRepoStarredMsg struct {
+	err error
+}
+
+// starRepository stars a GitHub repository for the authenticated user.
+func starRepository(binary *database.Binary) tea.Cmd {
+	return func() tea.Msg {
+		if err := github.StarRepository(binary); err != nil {
+			return githubRepoStarredMsg{err: fmt.Errorf("failed to star repository: %w", err)}
+		}
+		return githubRepoStarredMsg{err: nil}
+	}
 }
 
 // fetchRepositoryInfo fetches repository information from GitHub

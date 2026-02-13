@@ -276,10 +276,7 @@ internal/
 ## Copilot Agents
 
 The project utilises custom copilot agents from the [awesome-copilot](https://github.com/github/awesome-copilot/blob/main/docs/README.agents.md) repository:
-- Context7 Expert
 - Critical Thinking
-- Devils Advocate
-- Gilfoyle
 - Go MCP Server Development Expert (revised slightly to be a generic go agent, see [go-expert.agent.md](./.github/agents/go-expert.agent.md))
 - SQLite Database Administrator (revised from PostgreSQL Database Administrator agent, see [sqlite-dba.agent.md](./.github/agents/sqlite-dba.agent.md))
 
@@ -287,7 +284,11 @@ The project utilises custom copilot agents from the [awesome-copilot](https://gi
 
 This project utilised the following GitHub Copilot models:
 
-- Claude Opus 4.5
-- Claude Sonnet 4.5
-- Claude Haiku 4.5
-- OpenAI GPT 5.1 Codex Max (xhigh reasoning mode)
+- Claude 
+  - Opus 4.5
+  - Opus 4.6
+  - Sonnet 4.5
+  - Haiku 4.5
+- OpenAI
+  - GPT 5.2 Codex (high reasoning mode)
+  - GPT 5.3 Codex (high reasoning mode)

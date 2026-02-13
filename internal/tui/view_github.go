@@ -182,11 +182,17 @@ func (m model) renderRepositoryInfo() string {
 	b.WriteString(titleStyle.Render("ℹ️  Repository Information"))
 	b.WriteString("\n\n")
 
+	// Show success message if any
+	if m.successMessage != "" {
+		b.WriteString(successStyle.Render("✓ " + m.successMessage))
+		b.WriteString("\n\n")
+	}
+
 	// Show loading state
 	if m.githubLoading {
 		b.WriteString(loadingStyle.Render("Loading repository information..."))
 		b.WriteString("\n\n")
-		b.WriteString(helpStyle.Render("esc: back • q: quit"))
+		b.WriteString(helpStyle.Render(getHelpText(m.currentView)))
 		return b.String()
 	}
 
@@ -194,7 +200,7 @@ func (m model) renderRepositoryInfo() string {
 	if m.githubError != "" {
 		b.WriteString(errorStyle.Render("Error: " + m.githubError))
 		b.WriteString("\n\n")
-		b.WriteString(helpStyle.Render("esc: back • q: quit"))
+		b.WriteString(helpStyle.Render(getHelpText(m.currentView)))
 		return b.String()
 	}
 
@@ -232,7 +238,7 @@ func (m model) renderRepositoryInfo() string {
 	}
 
 	b.WriteString("\n")
-	b.WriteString(helpStyle.Render("esc: back • q: quit"))
+	b.WriteString(helpStyle.Render(getHelpText(m.currentView)))
 
 	return b.String()
 }
