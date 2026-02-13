@@ -48,10 +48,13 @@ bd sync               # Sync with git
    ```
 5. **Clean up** - Clear stashes, prune remote branches
 6. **Verify** - All changes committed AND pushed
-7. **Hand off** - Provide context for next session
+7. **Hand off** 
+  - Provide context for next session
+  - Provide user with a GitHub PR link to start the PR process
 
 **CRITICAL RULES:**
 
+- Always use edit file tool for creating new files or updating existing files
 - Work is NOT complete until `git push` succeeds
 - NEVER stop before pushing - that leaves work stranded locally
 - NEVER say "ready to push when you are" - YOU must push

@@ -50,7 +50,7 @@ const (
 func getHelpText(view viewState) string {
 	switch view {
 	case viewBinariesList:
-		return "↑/↓: navigate • enter: versions • /: search • f: filter • o: sort order • n: next sort • b: bulk • space: select (bulk) • a: add • i: install • u: update • r: remove • q: quit"
+		return "↑/↓: navigate • enter: versions • /: search • f: filter • o: sort order • n: next sort • a: add • i: install • u: update • r: remove • q: quit"
 	case viewVersions:
 		return "↑/↓: navigate • s/enter: switch • i: install • u: update • c: check • d: delete • l: release notes • g: repo info • v: versions • esc: back • q: quit"
 	case viewAddBinaryURL:
@@ -58,11 +58,11 @@ func getHelpText(view viewState) string {
 	case viewAddBinaryForm:
 		return "tab/shift+tab: navigate fields • ctrl+s: save • esc: cancel • q: quit"
 	case viewDownloads:
-		return "1-4/shift+tab/ctrl+shift+tab: switch tabs • q: quit"
+		return "1-3/shift+tab/ctrl+shift+tab: switch tabs • q: quit"
 	case viewConfiguration:
-		return "s: sync config to database • 1-4/shift+tab/ctrl+shift+tab: switch tabs • q: quit"
+		return "s: sync config to database • 1-3/shift+tab/ctrl+shift+tab: switch tabs • q: quit"
 	case viewHelp:
-		return "1-4/shift+tab/ctrl+shift+tab: switch tabs • q: quit"
+		return "1-3/shift+tab/ctrl+shift+tab: switch tabs • q: quit"
 	case viewReleaseNotes, viewRepositoryInfo:
 		return "esc: back • q: quit"
 	case viewAvailableVersions:

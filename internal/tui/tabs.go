@@ -30,7 +30,6 @@ type tabDefinition struct {
 // availableTabs returns the list of tabs available in the main views
 var availableTabs = []tabDefinition{
 	{viewBinariesList, "📦 Binaries"},
-	{viewDownloads, "📥 Downloads"},
 	{viewConfiguration, "⚙️  Config"},
 	{viewHelp, "❓ Help"},
 }
@@ -63,10 +62,8 @@ func getTabForKey(key string) (viewState, bool) {
 	case "1":
 		return viewBinariesList, true
 	case "2":
-		return viewDownloads, true
-	case "3":
 		return viewConfiguration, true
-	case "4":
+	case "3":
 		return viewHelp, true
 	default:
 		return viewBinariesList, false
