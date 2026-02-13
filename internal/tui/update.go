@@ -124,6 +124,25 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		return m, nil
 
+	case binaryImportedMsg:
+		if msg.err != nil {
+			m.errorMessage = msg.err.Error()
+			m.successMessage = ""
+		} else {
+			m.errorMessage = ""
+			m.successMessage = fmt.Sprintf("Binary %s imported successfully", msg.binary.UserID)
+			// Reset form and return to binaries list
+			m.importPathInput.Reset()
+			m.importNameInput.Reset()
+			m.importURLInput.Reset()
+			m.importVersionInput.Reset()
+			m.importFocusIdx = 0
+			m.currentView = viewBinariesList
+			m.loading = true
+			return m, loadBinaries(m.dbService)
+		}
+		return m, nil
+
 	case updateCheckMsg:
 		m.loading = false
 		if msg.err != nil {
@@ -1219,6 +1238,29 @@ func removeBinary(dbService *repository.Service, binaryID string, removeFiles bo
 	}
 }
 
+// importBinary imports an existing binary from the file system
+func importBinary(dbService *repository.Service, path string, name string) tea.Cmd {
+	return importBinaryWithOptions(dbService, path, name, "", "")
+}
+
+// importBinaryWithOptions imports an existing binary with optional URL and version
+func importBinaryWithOptions(dbService *repository.Service, path string, name string, url string, version string) tea.Cmd {
+	return func() tea.Msg {
+		// Use the binary service to import the binary
+		binary, err := binarySvc.ImportBinaryWithOptions(path, name, url, version, false, false, dbService)
+		if err != nil {
+			return binaryImportedMsg{
+				err: fmt.Errorf("failed to import binary: %w", err),
+			}
+		}
+
+		return binaryImportedMsg{
+			binary: binary,
+			err:    nil,
+		}
+	}
+}
+
 // checkForUpdates checks if updates are available for a binary
 func checkForUpdates(dbService *repository.Service, binaryID string) tea.Cmd {
 	return func() tea.Msg {
@@ -1286,21 +1328,52 @@ func (m model) updateImportBinary(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		m.currentView = viewBinariesList
 		m.importPathInput.Reset()
 		m.importNameInput.Reset()
+		m.importURLInput.Reset()
+		m.importVersionInput.Reset()
 		m.importFocusIdx = 0
 		m.errorMessage = ""
 		m.successMessage = ""
 		return m, nil
 
 	case keyTab:
-		// Move to next field
-		if m.importFocusIdx == 0 {
-			m.importPathInput.Blur()
-			m.importNameInput.Focus()
-			m.importFocusIdx = 1
-		} else {
-			m.importNameInput.Blur()
+		// Move to next field (0 -> 1 -> 2 -> 3 -> 0)
+		m.importPathInput.Blur()
+		m.importNameInput.Blur()
+		m.importURLInput.Blur()
+		m.importVersionInput.Blur()
+
+		m.importFocusIdx = (m.importFocusIdx + 1) % 4
+
+		switch m.importFocusIdx {
+		case 0:
 			m.importPathInput.Focus()
-			m.importFocusIdx = 0
+		case 1:
+			m.importNameInput.Focus()
+		case 2:
+			m.importURLInput.Focus()
+		case 3:
+			m.importVersionInput.Focus()
+		}
+		return m, nil
+
+	case keyShiftTab:
+		// Move to previous field (3 -> 2 -> 1 -> 0 -> 3)
+		m.importPathInput.Blur()
+		m.importNameInput.Blur()
+		m.importURLInput.Blur()
+		m.importVersionInput.Blur()
+
+		m.importFocusIdx = (m.importFocusIdx - 1 + 4) % 4
+
+		switch m.importFocusIdx {
+		case 0:
+			m.importPathInput.Focus()
+		case 1:
+			m.importNameInput.Focus()
+		case 2:
+			m.importURLInput.Focus()
+		case 3:
+			m.importVersionInput.Focus()
 		}
 		return m, nil
 
@@ -1308,22 +1381,24 @@ func (m model) updateImportBinary(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		// Attempt import
 		path := m.importPathInput.Value()
 		name := m.importNameInput.Value()
+		url := m.importURLInput.Value()
+		version := m.importVersionInput.Value()
 
 		if path == "" {
 			m.errorMessage = "Binary path is required"
 			m.successMessage = ""
 			return m, nil
 		}
-		if name == "" {
-			m.errorMessage = "Binary name is required"
+		if name == "" && url == "" {
+			m.errorMessage = "Either binary name or GitHub URL is required"
 			m.successMessage = ""
 			return m, nil
 		}
 
-		// Show message that import is not yet fully implemented
+		// Clear messages and trigger import
 		m.errorMessage = ""
-		m.successMessage = "Import functionality is pending service layer implementation"
-		return m, nil
+		m.successMessage = ""
+		return m, importBinaryWithOptions(m.dbService, path, name, url, version)
 
 	case keyQuit, keyCtrlC:
 		return m, tea.Quit
@@ -1331,10 +1406,15 @@ func (m model) updateImportBinary(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 
 	// Handle text input for focused field
 	var cmd tea.Cmd
-	if m.importFocusIdx == 0 {
+	switch m.importFocusIdx {
+	case 0:
 		m.importPathInput, cmd = m.importPathInput.Update(msg)
-	} else {
+	case 1:
 		m.importNameInput, cmd = m.importNameInput.Update(msg)
+	case 2:
+		m.importURLInput, cmd = m.importURLInput.Update(msg)
+	case 3:
+		m.importVersionInput, cmd = m.importVersionInput.Update(msg)
 	}
 	return m, cmd
 }

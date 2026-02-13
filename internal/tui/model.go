@@ -68,9 +68,11 @@ type model struct {
 	removeWithFiles  bool
 
 	// Import binary view state
-	importPathInput textinput.Model
-	importNameInput textinput.Model
-	importFocusIdx  int
+	importPathInput    textinput.Model
+	importNameInput    textinput.Model
+	importURLInput     textinput.Model
+	importVersionInput textinput.Model
+	importFocusIdx     int
 
 	// GitHub views state
 	githubReleaseInfo   *githubReleaseInfo
@@ -143,6 +145,16 @@ func initialModel(dbService *repository.Service, cfg *config.Config) model {
 	importNameInput.CharLimit = 64
 	importNameInput.Width = 40
 
+	importURLInput := textinput.New()
+	importURLInput.Placeholder = "https://github.com/owner/repo/releases/download/v1.0.0/binary.tar.gz (optional)"
+	importURLInput.CharLimit = 256
+	importURLInput.Width = 80
+
+	importVersionInput := textinput.New()
+	importVersionInput.Placeholder = "v1.0.0 (optional, auto-extracted from URL)"
+	importVersionInput.CharLimit = 64
+	importVersionInput.Width = 50
+
 	// Create search text input
 	searchInput := textinput.New()
 	searchInput.Placeholder = "Search by name (regex supported)..."
@@ -159,6 +171,8 @@ func initialModel(dbService *repository.Service, cfg *config.Config) model {
 		installVersionInput: versionInput,
 		importPathInput:     importPathInput,
 		importNameInput:     importNameInput,
+		importURLInput:      importURLInput,
+		importVersionInput:  importVersionInput,
 		searchTextInput:     searchInput,
 		searchMode:          false,
 		filteredBinaries:    []BinaryWithMetadata{},

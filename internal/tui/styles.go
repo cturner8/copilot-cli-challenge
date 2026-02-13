@@ -91,6 +91,10 @@ var (
 				BorderStyle(lipgloss.NormalBorder()).
 				BorderForeground(primaryColor).
 				Padding(0, 1)
+
+	requiredStyle = lipgloss.NewStyle().
+			Foreground(errorColor).
+			Bold(true)
 )
 
 // Helper functions for consistent padding and spacing

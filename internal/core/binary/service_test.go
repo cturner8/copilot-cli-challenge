@@ -204,10 +204,255 @@ func TestImportBinary(t *testing.T) {
 	dbService, cleanup := setupTestDB(t)
 	defer cleanup()
 
-	// Import is not yet implemented
-	_, err := ImportBinary("/path/to/binary", "testbinary", dbService)
+	// Create a test binary file
+	tmpDir := t.TempDir()
+	testBinaryPath := filepath.Join(tmpDir, "testbinary")
+	err := os.WriteFile(testBinaryPath, []byte("#!/bin/sh\necho test"), 0755)
+	if err != nil {
+		t.Fatalf("Failed to create test binary: %v", err)
+	}
+
+	// Import the binary
+	binary, err := ImportBinary(testBinaryPath, "testbinary", dbService)
+	if err != nil {
+		t.Fatalf("Failed to import binary: %v", err)
+	}
+
+	if binary == nil {
+		t.Fatal("Expected binary but got nil")
+	}
+
+	if binary.Provider != "local" {
+		t.Errorf("Expected provider 'local', got %q", binary.Provider)
+	}
+
+	if binary.Source != "manual" {
+		t.Errorf("Expected source 'manual', got %q", binary.Source)
+	}
+
+	// Verify installation was created
+	installations, err := dbService.Installations.ListByBinary(binary.ID)
+	if err != nil {
+		t.Fatalf("Failed to list installations: %v", err)
+	}
+
+	if len(installations) != 1 {
+		t.Errorf("Expected 1 installation, got %d", len(installations))
+	}
+
+	// Verify version was set
+	version, err := dbService.Versions.Get(binary.ID)
+	if err != nil {
+		t.Fatalf("Failed to get version: %v", err)
+	}
+
+	if version.SymlinkPath == "" {
+		t.Error("Expected symlink path to be set")
+	}
+}
+
+func TestImportBinary_NonExistentFile(t *testing.T) {
+	dbService, cleanup := setupTestDB(t)
+	defer cleanup()
+
+	_, err := ImportBinary("/nonexistent/path/to/binary", "testbinary", dbService)
 	if err == nil {
-		t.Error("Expected error for unimplemented import, got none")
+		t.Error("Expected error for non-existent file, got none")
+	}
+}
+
+func TestImportBinary_EmptyName(t *testing.T) {
+	dbService, cleanup := setupTestDB(t)
+	defer cleanup()
+
+	tmpDir := t.TempDir()
+	testBinaryPath := filepath.Join(tmpDir, "testbinary")
+	err := os.WriteFile(testBinaryPath, []byte("#!/bin/sh\necho test"), 0755)
+	if err != nil {
+		t.Fatalf("Failed to create test binary: %v", err)
+	}
+
+	_, err = ImportBinary(testBinaryPath, "", dbService)
+	if err == nil {
+		t.Error("Expected error for empty name, got none")
+	}
+}
+
+func TestImportBinaryWithOptions_CustomVersion(t *testing.T) {
+	dbService, cleanup := setupTestDB(t)
+	defer cleanup()
+
+	tmpDir := t.TempDir()
+	testBinaryPath := filepath.Join(tmpDir, "testbinary")
+	err := os.WriteFile(testBinaryPath, []byte("#!/bin/sh\necho test"), 0755)
+	if err != nil {
+		t.Fatalf("Failed to create test binary: %v", err)
+	}
+
+	// Import with custom version
+	binary, err := ImportBinaryWithOptions(testBinaryPath, "testbinary", "", "1.2.3", false, false, dbService)
+	if err != nil {
+		t.Fatalf("Failed to import binary: %v", err)
+	}
+
+	// Verify version was set correctly
+	installations, err := dbService.Installations.ListByBinary(binary.ID)
+	if err != nil {
+		t.Fatalf("Failed to list installations: %v", err)
+	}
+
+	if len(installations) != 1 {
+		t.Fatalf("Expected 1 installation, got %d", len(installations))
+	}
+
+	if installations[0].Version != "1.2.3" {
+		t.Errorf("Expected version '1.2.3', got %q", installations[0].Version)
+	}
+}
+
+func TestImportBinaryWithOptions_KeepLocation(t *testing.T) {
+	dbService, cleanup := setupTestDB(t)
+	defer cleanup()
+
+	tmpDir := t.TempDir()
+	testBinaryPath := filepath.Join(tmpDir, "testbinary")
+	err := os.WriteFile(testBinaryPath, []byte("#!/bin/sh\necho test"), 0755)
+	if err != nil {
+		t.Fatalf("Failed to create test binary: %v", err)
+	}
+
+	// Import with keep location
+	binary, err := ImportBinaryWithOptions(testBinaryPath, "testbinary", "", "", false, true, dbService)
+	if err != nil {
+		t.Fatalf("Failed to import binary: %v", err)
+	}
+
+	// Verify installation uses original path
+	installations, err := dbService.Installations.ListByBinary(binary.ID)
+	if err != nil {
+		t.Fatalf("Failed to list installations: %v", err)
+	}
+
+	if len(installations) != 1 {
+		t.Fatalf("Expected 1 installation, got %d", len(installations))
+	}
+
+	if installations[0].InstalledPath != testBinaryPath {
+		t.Errorf("Expected installed path %q, got %q", testBinaryPath, installations[0].InstalledPath)
+	}
+}
+
+func TestImportBinaryWithOptions_GitHubURL(t *testing.T) {
+	dbService, cleanup := setupTestDB(t)
+	defer cleanup()
+
+	tmpDir := t.TempDir()
+	testBinaryPath := filepath.Join(tmpDir, "gh")
+	err := os.WriteFile(testBinaryPath, []byte("#!/bin/sh\necho test"), 0755)
+	if err != nil {
+		t.Fatalf("Failed to create test binary: %v", err)
+	}
+
+	// Import with GitHub URL (version should be auto-extracted)
+	url := "https://github.com/cli/cli/releases/download/v2.30.0/gh_2.30.0_linux_amd64.tar.gz"
+	binary, err := ImportBinaryWithOptions(testBinaryPath, "", url, "", false, false, dbService)
+	if err != nil {
+		t.Fatalf("Failed to import binary with GitHub URL: %v", err)
+	}
+
+	// Verify provider is github
+	if binary.Provider != "github" {
+		t.Errorf("Expected provider 'github', got %q", binary.Provider)
+	}
+
+	// Verify provider path is set correctly
+	if binary.ProviderPath != "cli/cli" {
+		t.Errorf("Expected provider path 'cli/cli', got %q", binary.ProviderPath)
+	}
+
+	// Verify format is .tar.gz
+	if binary.Format != ".tar.gz" {
+		t.Errorf("Expected format '.tar.gz', got %q", binary.Format)
+	}
+
+	// Verify binary ID is extracted from asset name
+	if binary.UserID != "gh" {
+		t.Errorf("Expected UserID 'gh', got %q", binary.UserID)
+	}
+
+	// Verify version was auto-extracted from URL
+	installations, err := dbService.Installations.ListByBinary(binary.ID)
+	if err != nil {
+		t.Fatalf("Failed to list installations: %v", err)
+	}
+
+	if len(installations) != 1 {
+		t.Fatalf("Expected 1 installation, got %d", len(installations))
+	}
+
+	if installations[0].Version != "v2.30.0" {
+		t.Errorf("Expected version 'v2.30.0' (auto-extracted from URL), got %q", installations[0].Version)
+	}
+}
+
+func TestImportBinaryWithOptions_GitHubURL_ExplicitVersion(t *testing.T) {
+	dbService, cleanup := setupTestDB(t)
+	defer cleanup()
+
+	tmpDir := t.TempDir()
+	testBinaryPath := filepath.Join(tmpDir, "gh")
+	err := os.WriteFile(testBinaryPath, []byte("#!/bin/sh\necho test"), 0755)
+	if err != nil {
+		t.Fatalf("Failed to create test binary: %v", err)
+	}
+
+	// Import with GitHub URL and explicit version (should override URL version)
+	url := "https://github.com/cli/cli/releases/download/v2.30.0/gh_2.30.0_linux_amd64.tar.gz"
+	binary, err := ImportBinaryWithOptions(testBinaryPath, "", url, "v2.30.0-custom", false, false, dbService)
+	if err != nil {
+		t.Fatalf("Failed to import binary with explicit version: %v", err)
+	}
+
+	// Verify explicit version was used
+	installations, err := dbService.Installations.ListByBinary(binary.ID)
+	if err != nil {
+		t.Fatalf("Failed to list installations: %v", err)
+	}
+
+	if len(installations) != 1 {
+		t.Fatalf("Expected 1 installation, got %d", len(installations))
+	}
+
+	if installations[0].Version != "v2.30.0-custom" {
+		t.Errorf("Expected version 'v2.30.0-custom' (explicit), got %q", installations[0].Version)
+	}
+}
+
+func TestImportBinary_Duplicate(t *testing.T) {
+	dbService, cleanup := setupTestDB(t)
+	defer cleanup()
+
+	tmpDir := t.TempDir()
+	testBinaryPath := filepath.Join(tmpDir, "testbinary")
+	err := os.WriteFile(testBinaryPath, []byte("#!/bin/sh\necho test"), 0755)
+	if err != nil {
+		t.Fatalf("Failed to create test binary: %v", err)
+	}
+
+	// Import first time
+	binary1, err := ImportBinary(testBinaryPath, "testbinary", dbService)
+	if err != nil {
+		t.Fatalf("First import failed: %v", err)
+	}
+
+	// Import same binary again - should return existing one
+	binary2, err := ImportBinary(testBinaryPath, "testbinary", dbService)
+	if err != nil {
+		t.Fatalf("Second import failed: %v", err)
+	}
+
+	if binary1.ID != binary2.ID {
+		t.Errorf("Expected same binary ID, got %d and %d", binary1.ID, binary2.ID)
 	}
 }
 
