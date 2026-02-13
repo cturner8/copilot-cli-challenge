@@ -8,14 +8,26 @@ import (
 	"path/filepath"
 )
 
-func DownloadAsset(url string, assetName string, authenticated bool) (string, error) {
+func DownloadAsset(providerPath string, assetId int, assetName string, authenticated bool) (string, error) {
 	// Create HTTP client with optional authentication
 	client, err := CreateHTTPClient(authenticated)
 	if err != nil {
 		return "", fmt.Errorf("failed to create HTTP client: %w", err)
 	}
 
-	response, err := client.Get(url)
+	// Get the asset via the GitHub API rather than the `BrowserDownloadUrl` to support authentication.
+	// BrowserDownloadUrl is a `github.com` URL which does not accept a bearer token.
+	url := fmt.Sprintf("https://api.github.com/repos/%s/releases/assets/%d", providerPath, assetId)
+
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return "", fmt.Errorf("failed to create request: %w", err)
+	}
+
+	// Set to `application/octet-stream` to return asset content directly
+	req.Header.Set("Accept", "application/octet-stream")
+
+	response, err := client.Do(req)
 	if err != nil {
 		return "", fmt.Errorf("download asset: %w", err)
 	}
