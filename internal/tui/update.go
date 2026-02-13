@@ -645,17 +645,6 @@ func (m model) updateBinariesList(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		}
 		m.successMessage = fmt.Sprintf("Sort order: %s", direction)
 
-	case keyBulkMode:
-		// Toggle bulk selection mode
-		m.bulkSelectMode = !m.bulkSelectMode
-		if !m.bulkSelectMode {
-			// Clear selections when exiting bulk mode
-			m.selectedBinaries = make(map[int]bool)
-			m.successMessage = "Bulk mode: OFF"
-		} else {
-			m.successMessage = "Bulk mode: ON (use Space to select, U to update all, R to remove all)"
-		}
-
 	case keyQuit, keyCtrlC:
 		return m, tea.Quit
 	}
@@ -1458,6 +1447,26 @@ func (m model) updateGitHubView(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		}
 		return m, nil
 
+	case keyInstall:
+		if m.currentView == viewAvailableVersions &&
+			m.selectedBinary != nil &&
+			len(m.githubAvailableVers) > 0 &&
+			m.selectedAvailableVersionIdx < len(m.githubAvailableVers) {
+			selectedRelease := m.githubAvailableVers[m.selectedAvailableVersionIdx]
+			version := selectedRelease.TagName
+			if version == "" {
+				version = "latest"
+			}
+			m.currentView = viewInstallBinary
+			m.installBinaryID = m.selectedBinary.UserID
+			m.installReturnView = viewVersions
+			m.installVersionInput.SetValue(version)
+			m.installVersionInput.Focus()
+			m.errorMessage = ""
+			m.successMessage = ""
+		}
+		return m, nil
+
 	case keyReleaseNotes, keyEnter:
 		if m.currentView == viewAvailableVersions &&
 			m.selectedBinary != nil &&
@@ -1469,22 +1478,6 @@ func (m model) updateGitHubView(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 			m.githubError = ""
 			m.githubReleaseInfo = nil
 			return m, fetchReleaseNotes(m.selectedBinary, selectedRelease.TagName)
-		}
-		return m, nil
-
-	case keyInstall:
-		if m.currentView == viewAvailableVersions &&
-			m.selectedBinary != nil &&
-			len(m.githubAvailableVers) > 0 &&
-			m.selectedAvailableVersionIdx < len(m.githubAvailableVers) {
-			selectedRelease := m.githubAvailableVers[m.selectedAvailableVersionIdx]
-			m.currentView = viewInstallBinary
-			m.installBinaryID = m.selectedBinary.UserID
-			m.installReturnView = viewVersions
-			m.installVersionInput.SetValue(selectedRelease.TagName)
-			m.installVersionInput.Focus()
-			m.errorMessage = ""
-			m.successMessage = ""
 		}
 		return m, nil
 
