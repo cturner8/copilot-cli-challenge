@@ -1457,6 +1457,20 @@ func (m model) updateGitHubView(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		}
 		return m, nil
 
+	case keyReleaseNotes, keyEnter:
+		if m.currentView == viewAvailableVersions &&
+			m.selectedBinary != nil &&
+			len(m.githubAvailableVers) > 0 &&
+			m.selectedAvailableVersionIdx < len(m.githubAvailableVers) {
+			selectedRelease := m.githubAvailableVers[m.selectedAvailableVersionIdx]
+			m.currentView = viewReleaseNotes
+			m.githubLoading = true
+			m.githubError = ""
+			m.githubReleaseInfo = nil
+			return m, fetchReleaseNotes(m.selectedBinary, selectedRelease.TagName)
+		}
+		return m, nil
+
 	case keyEsc:
 		// Return to versions view
 		m.currentView = viewVersions

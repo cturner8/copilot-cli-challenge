@@ -66,7 +66,7 @@ func getHelpText(view viewState) string {
 	case viewReleaseNotes, viewRepositoryInfo:
 		return "esc: back • q: quit"
 	case viewAvailableVersions:
-		return "↑/↓: navigate • i: install selected • esc: back • q: quit"
+		return "↑/↓: navigate • enter/l: release notes • i: install selected • esc: back • q: quit"
 	default:
 		return "q: quit"
 	}
