@@ -63,7 +63,7 @@ func getHelpText(view viewState) string {
 		return "s: sync config to database • 1-3/shift+tab/ctrl+shift+tab: switch tabs • q: quit"
 	case viewHelp:
 		return "1-3/shift+tab/ctrl+shift+tab: switch tabs • q: quit"
-	case viewReleaseNotes, viewRepositoryInfo:
+	case viewReleaseNotes:
 		return "esc: back • q: quit"
 	case viewAvailableVersions:
 		return "↑/↓: navigate • enter/l: release notes • i: install selected • esc: back • q: quit"
