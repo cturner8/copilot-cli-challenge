@@ -48,7 +48,9 @@ bd sync               # Sync with git
    ```
 5. **Clean up** - Clear stashes, prune remote branches
 6. **Verify** - All changes committed AND pushed
-7. **Hand off** - Provide context for next session
+7. **Hand off** 
+  - Provide context for next session
+  - Provide user with a GitHub PR link to start the PR process
 
 **CRITICAL RULES:**
 

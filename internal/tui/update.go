@@ -634,17 +634,6 @@ func (m model) updateBinariesList(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		}
 		m.successMessage = fmt.Sprintf("Sort order: %s", direction)
 
-	case keyBulkMode:
-		// Toggle bulk selection mode
-		m.bulkSelectMode = !m.bulkSelectMode
-		if !m.bulkSelectMode {
-			// Clear selections when exiting bulk mode
-			m.selectedBinaries = make(map[int]bool)
-			m.successMessage = "Bulk mode: OFF"
-		} else {
-			m.successMessage = "Bulk mode: ON (use Space to select, U to update all, R to remove all)"
-		}
-
 	case keyQuit, keyCtrlC:
 		return m, tea.Quit
 	}
