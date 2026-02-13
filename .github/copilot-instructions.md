@@ -54,6 +54,7 @@ bd sync               # Sync with git
 
 **CRITICAL RULES:**
 
+- Always use edit file tool for creating new files or updating existing files
 - Work is NOT complete until `git push` succeeds
 - NEVER stop before pushing - that leaves work stranded locally
 - NEVER say "ready to push when you are" - YOU must push

@@ -174,7 +174,7 @@ func (m model) renderHelp() string {
 	// General Navigation
 	b.WriteString(headerStyle.Render("🔄 General Navigation"))
 	b.WriteString("\n")
-	b.WriteString("  1-4      Switch between tabs directly\n")
+	b.WriteString("  1-3      Switch between tabs directly\n")
 	b.WriteString("  Tab      Cycle to next tab\n")
 	b.WriteString("  Shift+Tab Cycle to previous tab\n")
 	b.WriteString("  q        Quit application\n")
