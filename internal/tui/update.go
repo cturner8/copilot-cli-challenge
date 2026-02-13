@@ -224,6 +224,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.githubError = msg.err.Error()
 		} else {
 			m.githubAvailableVers = msg.versions
+			m.selectedAvailableVersionIdx = 0
 		}
 		return m, nil
 
@@ -233,6 +234,16 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.githubError = msg.err.Error()
 		} else {
 			m.githubReleaseInfo = msg.release
+		}
+		return m, nil
+
+	case githubRepoStarredMsg:
+		if msg.err != nil {
+			m.githubError = msg.err.Error()
+			m.successMessage = ""
+		} else {
+			m.githubError = ""
+			m.successMessage = "Repository starred successfully"
 		}
 		return m, nil
 
@@ -743,6 +754,7 @@ func (m model) updateVersions(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		// View available versions from GitHub
 		if m.selectedBinary != nil && m.selectedBinary.Provider == "github" {
 			m.currentView = viewAvailableVersions
+			m.selectedAvailableVersionIdx = 0
 			m.githubLoading = true
 			m.githubError = ""
 			return m, fetchAvailableVersions(m.selectedBinary)
@@ -1434,12 +1446,63 @@ func syncConfig(dbService *repository.Service, cfg *configPkg.Config) tea.Cmd {
 // updateGitHubView handles updates for GitHub-related views
 func (m model) updateGitHubView(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	switch msg.String() {
+	case keyUp:
+		if m.currentView == viewAvailableVersions && m.selectedAvailableVersionIdx > 0 {
+			m.selectedAvailableVersionIdx--
+		}
+		return m, nil
+
+	case keyDown:
+		if m.currentView == viewAvailableVersions && m.selectedAvailableVersionIdx < len(m.githubAvailableVers)-1 {
+			m.selectedAvailableVersionIdx++
+		}
+		return m, nil
+
+	case keyReleaseNotes, keyEnter:
+		if m.currentView == viewAvailableVersions &&
+			m.selectedBinary != nil &&
+			len(m.githubAvailableVers) > 0 &&
+			m.selectedAvailableVersionIdx < len(m.githubAvailableVers) {
+			selectedRelease := m.githubAvailableVers[m.selectedAvailableVersionIdx]
+			m.currentView = viewReleaseNotes
+			m.githubLoading = true
+			m.githubError = ""
+			m.githubReleaseInfo = nil
+			return m, fetchReleaseNotes(m.selectedBinary, selectedRelease.TagName)
+		}
+		return m, nil
+
+	case keyInstall:
+		if m.currentView == viewAvailableVersions &&
+			m.selectedBinary != nil &&
+			len(m.githubAvailableVers) > 0 &&
+			m.selectedAvailableVersionIdx < len(m.githubAvailableVers) {
+			selectedRelease := m.githubAvailableVers[m.selectedAvailableVersionIdx]
+			m.currentView = viewInstallBinary
+			m.installBinaryID = m.selectedBinary.UserID
+			m.installReturnView = viewVersions
+			m.installVersionInput.SetValue(selectedRelease.TagName)
+			m.installVersionInput.Focus()
+			m.errorMessage = ""
+			m.successMessage = ""
+		}
+		return m, nil
+
+	case keySwitch:
+		if m.currentView == viewRepositoryInfo && m.selectedBinary != nil && m.selectedBinary.Provider == "github" {
+			m.errorMessage = ""
+			m.successMessage = ""
+			return m, starRepository(m.selectedBinary)
+		}
+		return m, nil
+
 	case keyEsc:
 		// Return to versions view
 		m.currentView = viewVersions
 		m.githubReleaseInfo = nil
 		m.githubAvailableVers = nil
 		m.githubRepoInfo = nil
+		m.selectedAvailableVersionIdx = 0
 		m.githubError = ""
 		return m, nil
 
@@ -1464,6 +1527,20 @@ type githubAvailableVersionsMsg struct {
 type githubReleaseNotesMsg struct {
 	release *githubReleaseInfo
 	err     error
+}
+
+type githubRepoStarredMsg struct {
+	err error
+}
+
+// starRepository stars a GitHub repository for the authenticated user.
+func starRepository(binary *database.Binary) tea.Cmd {
+	return func() tea.Msg {
+		if err := github.StarRepository(binary); err != nil {
+			return githubRepoStarredMsg{err: fmt.Errorf("failed to star repository: %w", err)}
+		}
+		return githubRepoStarredMsg{err: nil}
+	}
 }
 
 // fetchRepositoryInfo fetches repository information from GitHub

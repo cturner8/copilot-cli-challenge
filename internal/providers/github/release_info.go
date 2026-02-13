@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"sort"
+	"strings"
 	"time"
 )
 
@@ -176,4 +177,41 @@ func GetRepositoryInfo(binary *database.Binary) (RepositoryInfo, error) {
 	}
 
 	return repoInfo, nil
+}
+
+// StarRepository stars the configured repository for the authenticated GitHub user.
+func StarRepository(binary *database.Binary) error {
+	if binary.ProviderPath == "" {
+		return fmt.Errorf("path is required for binary config")
+	}
+
+	pathParts := strings.Split(binary.ProviderPath, "/")
+	if len(pathParts) != 2 || pathParts[0] == "" || pathParts[1] == "" {
+		return fmt.Errorf("invalid GitHub repository path: %s", binary.ProviderPath)
+	}
+
+	url := fmt.Sprintf("https://api.github.com/user/starred/%s/%s", pathParts[0], pathParts[1])
+	req, err := http.NewRequest("PUT", url, nil)
+	if err != nil {
+		return fmt.Errorf("failed to create request: %w", err)
+	}
+
+	req.Header.Set("Accept", "application/vnd.github+json")
+	client, err := CreateHTTPClient(true)
+	if err != nil {
+		return fmt.Errorf("failed to create authenticated HTTP client: %w", err)
+	}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return fmt.Errorf("failed to star repository: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode == http.StatusNoContent || resp.StatusCode == http.StatusNotModified {
+		return nil
+	}
+
+	body, _ := io.ReadAll(resp.Body)
+	return fmt.Errorf("GitHub API returned %d: %s", resp.StatusCode, string(body))
 }
