@@ -19,7 +19,7 @@ func (m model) renderReleaseNotes() string {
 	if m.githubLoading {
 		b.WriteString(loadingStyle.Render("Loading release notes..."))
 		b.WriteString("\n\n")
-		b.WriteString(helpStyle.Render("esc: back • q: quit"))
+		b.WriteString(helpStyle.Render(getHelpText(m.currentView)))
 		return b.String()
 	}
 
@@ -27,7 +27,7 @@ func (m model) renderReleaseNotes() string {
 	if m.githubError != "" {
 		b.WriteString(errorStyle.Render("Error: " + m.githubError))
 		b.WriteString("\n\n")
-		b.WriteString(helpStyle.Render("esc: back • q: quit"))
+		b.WriteString(helpStyle.Render(getHelpText(m.currentView)))
 		return b.String()
 	}
 
@@ -44,7 +44,15 @@ func (m model) renderReleaseNotes() string {
 		b.WriteString("\n")
 		b.WriteString(fmt.Sprintf("Published: %s", release.PublishedAt))
 		b.WriteString("\n")
-		b.WriteString(fmt.Sprintf("URL: %s", release.HTMLURL))
+		contentWidth := m.width - 4
+		if contentWidth <= 0 {
+			contentWidth = defaultTerminalWidth - 4
+		}
+		if contentWidth < 20 {
+			contentWidth = 20
+		}
+
+		b.WriteString(lipgloss.NewStyle().Width(contentWidth).Render(fmt.Sprintf("URL: %s", release.HTMLURL)))
 		b.WriteString("\n\n")
 
 		// Release body
@@ -55,7 +63,11 @@ func (m model) renderReleaseNotes() string {
 			// Display release body with word wrapping
 			lines := strings.Split(release.Body, "\n")
 			for _, line := range lines {
-				b.WriteString(line)
+				if line == "" {
+					b.WriteString("\n")
+					continue
+				}
+				b.WriteString(lipgloss.NewStyle().Width(contentWidth).Render(line))
 				b.WriteString("\n")
 			}
 		} else {
@@ -68,7 +80,7 @@ func (m model) renderReleaseNotes() string {
 	}
 
 	b.WriteString("\n")
-	b.WriteString(helpStyle.Render("esc: back • q: quit"))
+	b.WriteString(helpStyle.Render(getHelpText(m.currentView)))
 
 	return b.String()
 }
@@ -90,7 +102,7 @@ func (m model) renderAvailableVersions() string {
 	if m.githubLoading {
 		b.WriteString(loadingStyle.Render("Loading available versions..."))
 		b.WriteString("\n\n")
-		b.WriteString(helpStyle.Render("esc: back • q: quit"))
+		b.WriteString(helpStyle.Render(getHelpText(m.currentView)))
 		return b.String()
 	}
 
@@ -98,7 +110,7 @@ func (m model) renderAvailableVersions() string {
 	if m.githubError != "" {
 		b.WriteString(errorStyle.Render("Error: " + m.githubError))
 		b.WriteString("\n\n")
-		b.WriteString(helpStyle.Render("esc: back • q: quit"))
+		b.WriteString(helpStyle.Render(getHelpText(m.currentView)))
 		return b.String()
 	}
 
@@ -128,7 +140,7 @@ func (m model) renderAvailableVersions() string {
 		b.WriteString("\n")
 
 		// Rows
-		for _, release := range m.githubAvailableVers {
+		for i, release := range m.githubAvailableVers {
 			version := truncateText(release.TagName, versionWidth)
 			date := truncateText(release.PublishedAt, dateWidth)
 			releaseType := "Release"
@@ -137,10 +149,15 @@ func (m model) renderAvailableVersions() string {
 			}
 			releaseType = truncateText(releaseType, typeWidth)
 
+			rowStyle := normalStyle
+			if i == m.selectedAvailableVersionIdx {
+				rowStyle = selectedStyle
+			}
+
 			row := []string{
-				normalStyle.Width(versionWidth).Render(version),
-				normalStyle.Width(dateWidth).Render(date),
-				normalStyle.Width(typeWidth).Render(releaseType),
+				rowStyle.Width(versionWidth).Render(version),
+				rowStyle.Width(dateWidth).Render(date),
+				rowStyle.Width(typeWidth).Render(releaseType),
 			}
 
 			b.WriteString(lipgloss.JoinHorizontal(lipgloss.Top, row...))
@@ -152,7 +169,7 @@ func (m model) renderAvailableVersions() string {
 	}
 
 	b.WriteString("\n")
-	b.WriteString(helpStyle.Render("esc: back • q: quit"))
+	b.WriteString(helpStyle.Render(getHelpText(m.currentView)))
 
 	return b.String()
 }
