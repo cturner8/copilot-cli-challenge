@@ -340,6 +340,15 @@ func TestImportBinaryWithOptions_KeepLocation(t *testing.T) {
 	if installations[0].InstalledPath != testBinaryPath {
 		t.Errorf("Expected installed path %q, got %q", testBinaryPath, installations[0].InstalledPath)
 	}
+
+	activeVersion, err := dbService.Versions.Get(binary.ID)
+	if err != nil {
+		t.Fatalf("Failed to get active version: %v", err)
+	}
+
+	if activeVersion.SymlinkPath != "" {
+		t.Errorf("Expected empty symlink path for keep-location import, got %q", activeVersion.SymlinkPath)
+	}
 }
 
 func TestImportBinaryWithOptions_GitHubURL(t *testing.T) {

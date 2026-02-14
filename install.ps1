@@ -185,18 +185,18 @@ function Invoke-AutoImport {
     if (Is-Truthy $SKIP_AUTO_IMPORT) {
         Log-Warn "Skipping automatic import because BINMATE_SKIP_AUTO_IMPORT is set"
         Log-Info "To import manually, run:"
-        Write-Host "    & `"$InstalledPath`" import `"$InstalledPath`" --url `"$DownloadUrl`" --version `"$Version`" --keep-location"
+        Write-Host "    & `"$InstalledPath`" import `"$InstalledPath`" --name `"$BINARY_NAME`" --url `"$DownloadUrl`" --version `"$Version`" --keep-location"
         return
     }
     
     Log-Info "Importing $BINARY_NAME for self-management..."
     try {
-        & $InstalledPath import $InstalledPath --url $DownloadUrl --version $Version --keep-location
+        & $InstalledPath import $InstalledPath --name $BINARY_NAME --url $DownloadUrl --version $Version --keep-location
         Log-Info "Automatic import completed"
     }
     catch {
         Log-Warn "Automatic import failed. To import manually, run:"
-        Write-Host "    & `"$InstalledPath`" import `"$InstalledPath`" --url `"$DownloadUrl`" --version `"$Version`" --keep-location"
+        Write-Host "    & `"$InstalledPath`" import `"$InstalledPath`" --name `"$BINARY_NAME`" --url `"$DownloadUrl`" --version `"$Version`" --keep-location"
     }
 }
 
@@ -221,7 +221,7 @@ function Main {
     
     # Strip 'v' prefix for archive name
     $versionNumber = $VERSION -replace '^v', ''
-    $archiveName = "${BINARY_NAME}_${versionNumber}_${platform}.zip"
+    $archiveName = "copilot-cli-challenge_${versionNumber}_${platform}.zip"
     $downloadUrl = "https://github.com/$GITHUB_REPO/releases/download/$VERSION/$archiveName"
     
     # Download and install

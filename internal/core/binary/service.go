@@ -311,15 +311,20 @@ func ImportBinaryWithOptions(path string, name string, url string, version strin
 		return nil, fmt.Errorf("failed to save installation: %w", err)
 	}
 
-	// 10. Create symlink
-	customInstallPath := ""
-	if binary.InstallPath != nil {
-		customInstallPath = *binary.InstallPath
-	}
+	// 10. Create symlink unless importing with keepLocation
+	symlinkPath := ""
+	if keepLocation {
+		log.Printf("Skipping symlink creation for keep-location import: %s", installedPath)
+	} else {
+		customInstallPath := ""
+		if binary.InstallPath != nil {
+			customInstallPath = *binary.InstallPath
+		}
 
-	symlinkPath, err := v.SetActiveVersion(installedPath, customInstallPath, binary.Name, binary.Alias)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create symlink: %w", err)
+		symlinkPath, err = v.SetActiveVersion(installedPath, customInstallPath, binary.Name, binary.Alias)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create symlink: %w", err)
+		}
 	}
 
 	// 11. Update active version

@@ -133,14 +133,14 @@ download_and_install() {
         # Verify checksum
         log_info "Verifying checksum..."
         cd "${tmp_dir}"
-        if command -v sha256sum >/dev/null 2>&1; then
-            if ! grep "${archive_name}" checksums.txt | sha256sum -c --status; then
+        if command -v shasum >/dev/null 2>&1; then
+            if ! grep "${archive_name}" checksums.txt | shasum -a 256 -c >/dev/null 2>&1; then
                 log_error "Checksum verification failed"
                 rm -rf "${tmp_dir}"
                 exit 1
             fi
-        elif command -v shasum >/dev/null 2>&1; then
-            if ! grep "${archive_name}" checksums.txt | shasum -a 256 -c --status; then
+        elif command -v sha256sum >/dev/null 2>&1; then
+            if ! grep "${archive_name}" checksums.txt | sha256sum -c >/dev/null 2>&1; then
                 log_error "Checksum verification failed"
                 rm -rf "${tmp_dir}"
                 exit 1
@@ -192,7 +192,7 @@ run_auto_import() {
     local download_url=$2
     local version=$3
     local import_command
-    import_command=$(printf '%q ' "${installed_path}" import "${installed_path}" --url "${download_url}" --version "${version}" --keep-location)
+    import_command=$(printf '%q ' "${installed_path}" import "${installed_path}" --name ${BINARY_NAME} --url "${download_url}" --version "${version}" --keep-location)
     import_command=${import_command% }
 
     if is_truthy "${SKIP_AUTO_IMPORT}"; then
@@ -203,7 +203,7 @@ run_auto_import() {
     fi
 
     log_info "Importing ${BINARY_NAME} for self-management..."
-    if "${installed_path}" import "${installed_path}" --url "${download_url}" --version "${version}" --keep-location; then
+    if "${installed_path}" import "${installed_path}" --name ${BINARY_NAME} --url "${download_url}" --version "${version}" --keep-location; then
         log_info "Automatic import completed"
         return 0
     fi
