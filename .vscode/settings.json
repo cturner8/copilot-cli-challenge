@@ -1,5 +1,6 @@
 {
     "chat.disableAIFeatures": true,
+    "git.branchProtection": ["main", "dev"],
     "[go]": {
         "editor.insertSpaces": false,
         "editor.formatOnSave": true,
