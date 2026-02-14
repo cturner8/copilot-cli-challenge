@@ -178,6 +178,7 @@ Configuration is stored in `~/.config/.binmate/config.json`:
 
 ```json
 {
+  "$schema": "https://raw.githubusercontent.com/cturner8/copilot-cli-challenge/main/schema.json",
   "version": 1,
   "binaries": [
     {
@@ -197,6 +198,7 @@ You can define global defaults that apply to all binaries unless overridden:
 
 ```json
 {
+  "$schema": "https://raw.githubusercontent.com/cturner8/copilot-cli-challenge/main/schema.json",
   "version": 1,
   "global": {
     "installPath": "/usr/local/bin",
