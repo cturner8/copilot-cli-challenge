@@ -221,7 +221,7 @@ function Main {
     
     # Strip 'v' prefix for archive name
     $versionNumber = $VERSION -replace '^v', ''
-    $archiveName = "${BINARY_NAME}_${versionNumber}_${platform}.zip"
+    $archiveName = "copilot-cli-challenge_${versionNumber}_${platform}.zip"
     $downloadUrl = "https://github.com/$GITHUB_REPO/releases/download/$VERSION/$archiveName"
     
     # Download and install
