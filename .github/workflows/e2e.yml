@@ -1,0 +1,162 @@
+name: End-to-End Tests
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to test (e.g., v1.0.0 or latest)'
+        required: true
+        default: 'latest'
+        type: string
+      platforms:
+        description: 'Platforms to test (comma-separated: linux,darwin,windows or "all")'
+        required: true
+        default: 'all'
+        type: string
+      architectures:
+        description: 'Architectures to test (comma-separated: amd64,arm64 or "all")'
+        required: true
+        default: 'all'
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  # Job to determine which platform/arch combinations to test
+  setup:
+    name: Setup Test Matrix
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - name: Set up matrix
+        id: set-matrix
+        run: |
+          # Parse inputs
+          PLATFORMS="${{ inputs.platforms }}"
+          ARCHS="${{ inputs.architectures }}"
+          
+          # Default to all if "all" specified
+          if [ "$PLATFORMS" = "all" ]; then
+            PLATFORMS="linux,darwin,windows"
+          fi
+          
+          if [ "$ARCHS" = "all" ]; then
+            ARCHS="amd64,arm64"
+          fi
+          
+          # Build matrix combinations
+          MATRIX_JSON='{"include":['
+          FIRST=true
+          
+          for OS in $(echo $PLATFORMS | tr ',' ' '); do
+            for ARCH in $(echo $ARCHS | tr ',' ' '); do
+              # Map OS to runner
+              case "$OS" in
+                linux)
+                  if [ "$ARCH" = "amd64" ]; then
+                    RUNNER="ubuntu-latest"
+                  elif [ "$ARCH" = "arm64" ]; then
+                    RUNNER="ubuntu-latest-arm64"
+                  else
+                    continue
+                  fi
+                  SCRIPT="e2e-test.sh"
+                  ;;
+                darwin)
+                  if [ "$ARCH" = "amd64" ]; then
+                    RUNNER="macos-13"
+                  elif [ "$ARCH" = "arm64" ]; then
+                    RUNNER="macos-latest"
+                  else
+                    continue
+                  fi
+                  SCRIPT="e2e-test.sh"
+                  ;;
+                windows)
+                  if [ "$ARCH" = "amd64" ]; then
+                    RUNNER="windows-latest"
+                  elif [ "$ARCH" = "arm64" ]; then
+                    RUNNER="windows-latest-arm64"
+                  else
+                    continue
+                  fi
+                  SCRIPT="e2e-test.ps1"
+                  ;;
+                *)
+                  continue
+                  ;;
+              esac
+              
+              # Add to matrix
+              if [ "$FIRST" = true ]; then
+                FIRST=false
+              else
+                MATRIX_JSON="$MATRIX_JSON,"
+              fi
+              
+              MATRIX_JSON="$MATRIX_JSON{\"os\":\"$OS\",\"arch\":\"$ARCH\",\"runner\":\"$RUNNER\",\"script\":\"$SCRIPT\"}"
+            done
+          done
+          
+          MATRIX_JSON="$MATRIX_JSON]}"
+          
+          echo "Matrix: $MATRIX_JSON"
+          echo "matrix=$MATRIX_JSON" >> $GITHUB_OUTPUT
+
+  # Job to run E2E tests
+  test:
+    name: Test ${{ matrix.os }}-${{ matrix.arch }}
+    needs: setup
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.setup.outputs.matrix) }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+      
+      - name: Run E2E tests (Unix)
+        if: matrix.os != 'windows'
+        run: |
+          chmod +x ${{ matrix.script }}
+          ./${{ matrix.script }} ${{ inputs.version }}
+        env:
+          BINMATE_VERSION: ${{ inputs.version }}
+      
+      - name: Run E2E tests (Windows)
+        if: matrix.os == 'windows'
+        shell: pwsh
+        run: |
+          ./${{ matrix.script }} -Version ${{ inputs.version }}
+        env:
+          BINMATE_VERSION: ${{ inputs.version }}
+      
+      - name: Upload test logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-test-logs-${{ matrix.os }}-${{ matrix.arch }}
+          path: |
+            *.log
+            test-*.txt
+          if-no-files-found: ignore
+          retention-days: 7
+
+  # Summary job
+  summary:
+    name: Test Summary
+    needs: test
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Check test results
+        run: |
+          if [ "${{ needs.test.result }}" != "success" ]; then
+            echo "❌ Some E2E tests failed"
+            exit 1
+          else
+            echo "✅ All E2E tests passed"
+          fi

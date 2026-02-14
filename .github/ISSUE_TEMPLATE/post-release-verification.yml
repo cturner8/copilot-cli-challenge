@@ -1,0 +1,226 @@
+name: Post-Release Verification
+description: Checklist for verifying a new release across all platforms
+title: "Post-Release Verification: [VERSION]"
+labels: ["release", "verification"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Post-Release Verification Checklist
+        
+        Use this issue to track verification of a new binmate release across all supported platforms and architectures.
+        
+        **Automated E2E Tests**: [Run E2E Workflow](https://github.com/cturner8/copilot-cli-challenge/actions/workflows/e2e.yml)
+  
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: The version being verified (e.g., v1.0.0)
+      placeholder: v1.0.0
+    validations:
+      required: true
+  
+  - type: input
+    id: release_url
+    attributes:
+      label: Release URL
+      description: Link to the GitHub release
+      placeholder: https://github.com/cturner8/copilot-cli-challenge/releases/tag/v1.0.0
+    validations:
+      required: false
+  
+  - type: markdown
+    attributes:
+      value: |
+        ---
+        
+        ## Linux - amd64
+  
+  - type: checkboxes
+    id: linux-amd64
+    attributes:
+      label: Linux amd64 Tests
+      options:
+        - label: Install via install.sh (latest)
+        - label: Install via install.sh (specific version)
+        - label: Binary executes and shows version
+        - label: Config command works
+        - label: List command works
+        - label: Sync command works
+        - label: Import command works
+        - label: Database created in correct location
+        - label: Help commands display correctly
+        - label: Error handling works (non-existent binary)
+  
+  - type: markdown
+    attributes:
+      value: |
+        ---
+        
+        ## Linux - arm64
+  
+  - type: checkboxes
+    id: linux-arm64
+    attributes:
+      label: Linux arm64 Tests
+      options:
+        - label: Install via install.sh (latest)
+        - label: Install via install.sh (specific version)
+        - label: Binary executes and shows version
+        - label: Config command works
+        - label: List command works
+        - label: Sync command works
+        - label: Import command works
+        - label: Database created in correct location
+        - label: Help commands display correctly
+        - label: Error handling works (non-existent binary)
+  
+  - type: markdown
+    attributes:
+      value: |
+        ---
+        
+        ## macOS - amd64 (Intel)
+  
+  - type: checkboxes
+    id: darwin-amd64
+    attributes:
+      label: macOS amd64 Tests
+      options:
+        - label: Install via install.sh (latest)
+        - label: Install via install.sh (specific version)
+        - label: Binary executes and shows version
+        - label: Config command works
+        - label: List command works
+        - label: Sync command works
+        - label: Import command works
+        - label: Database created in correct location
+        - label: Help commands display correctly
+        - label: Error handling works (non-existent binary)
+  
+  - type: markdown
+    attributes:
+      value: |
+        ---
+        
+        ## macOS - arm64 (Apple Silicon)
+  
+  - type: checkboxes
+    id: darwin-arm64
+    attributes:
+      label: macOS arm64 Tests
+      options:
+        - label: Install via install.sh (latest)
+        - label: Install via install.sh (specific version)
+        - label: Binary executes and shows version
+        - label: Config command works
+        - label: List command works
+        - label: Sync command works
+        - label: Import command works
+        - label: Database created in correct location
+        - label: Help commands display correctly
+        - label: Error handling works (non-existent binary)
+  
+  - type: markdown
+    attributes:
+      value: |
+        ---
+        
+        ## Windows - amd64
+  
+  - type: checkboxes
+    id: windows-amd64
+    attributes:
+      label: Windows amd64 Tests
+      options:
+        - label: Install via install.ps1 (latest)
+        - label: Install via install.ps1 (specific version)
+        - label: Binary executes and shows version
+        - label: Config command works
+        - label: List command works
+        - label: Sync command works
+        - label: Import command works
+        - label: Database created in correct location
+        - label: Help commands display correctly
+        - label: Error handling works (non-existent binary)
+  
+  - type: markdown
+    attributes:
+      value: |
+        ---
+        
+        ## Windows - arm64
+  
+  - type: checkboxes
+    id: windows-arm64
+    attributes:
+      label: Windows arm64 Tests
+      options:
+        - label: Install via install.ps1 (latest)
+        - label: Install via install.ps1 (specific version)
+        - label: Binary executes and shows version
+        - label: Config command works
+        - label: List command works
+        - label: Sync command works
+        - label: Import command works
+        - label: Database created in correct location
+        - label: Help commands display correctly
+        - label: Error handling works (non-existent binary)
+  
+  - type: markdown
+    attributes:
+      value: |
+        ---
+        
+        ## Additional Checks
+  
+  - type: checkboxes
+    id: additional
+    attributes:
+      label: Additional Verification
+      options:
+        - label: Release notes are accurate and complete
+        - label: Checksums file is present and valid
+        - label: All platform/arch binaries are present in release
+        - label: Installation instructions in README are up to date
+        - label: CHANGELOG is updated (if applicable)
+        - label: Documentation reflects any changes
+  
+  - type: textarea
+    id: automated-results
+    attributes:
+      label: Automated E2E Test Results
+      description: Link to or paste results from automated E2E workflow runs
+      placeholder: |
+        Link to workflow run: https://github.com/cturner8/copilot-cli-challenge/actions/runs/...
+        
+        All platforms: ✅ Passed
+    validations:
+      required: false
+  
+  - type: textarea
+    id: issues
+    attributes:
+      label: Issues Found
+      description: Document any issues discovered during verification
+      placeholder: Describe any problems or unexpected behavior
+    validations:
+      required: false
+  
+  - type: textarea
+    id: notes
+    attributes:
+      label: Additional Notes
+      description: Any other relevant information about this release verification
+    validations:
+      required: false
+  
+  - type: markdown
+    attributes:
+      value: |
+        ---
+        
+        ## Sign-off
+        
+        Once all tests are complete and any issues are resolved, close this issue to indicate the release has been verified.
