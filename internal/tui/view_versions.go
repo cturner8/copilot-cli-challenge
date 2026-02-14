@@ -96,10 +96,7 @@ func (m model) renderVersions() string {
 	b.WriteString("\n")
 
 	// Get date format once before loop
-	dateFormat := format.GetDefaultDateFormat()
-	if m.config != nil && m.config.DateFormat != "" {
-		dateFormat = m.config.DateFormat
-	}
+	dateFormat := getDateFormat(m.config)
 
 	// Table rows
 	for i, installation := range m.installations {

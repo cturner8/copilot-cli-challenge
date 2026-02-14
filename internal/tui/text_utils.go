@@ -1,5 +1,10 @@
 package tui
 
+import (
+	"strconv"
+	"strings"
+)
+
 const (
 	// Text truncation constants for table cells
 	// These represent the overhead for padding and ellipsis
@@ -58,4 +63,38 @@ func truncatePathEnd(path string, width int) string {
 	}
 
 	return path
+}
+
+// formatIntWithCommas formats an integer with thousands separators.
+func formatIntWithCommas(value int) string {
+	sign := ""
+	if value < 0 {
+		sign = "-"
+		value = -value
+	}
+
+	digits := strconv.Itoa(value)
+	if len(digits) <= 3 {
+		return sign + digits
+	}
+
+	var b strings.Builder
+	b.WriteString(sign)
+
+	prefixLen := len(digits) % 3
+	if prefixLen > 0 {
+		b.WriteString(digits[:prefixLen])
+		if len(digits) > prefixLen {
+			b.WriteByte(',')
+		}
+	}
+
+	for i := prefixLen; i < len(digits); i += 3 {
+		b.WriteString(digits[i : i+3])
+		if i+3 < len(digits) {
+			b.WriteByte(',')
+		}
+	}
+
+	return b.String()
 }

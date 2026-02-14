@@ -223,8 +223,8 @@ func (m model) renderRepositoryInfo() string {
 		// Stats
 		b.WriteString(headerStyle.Render("Statistics:"))
 		b.WriteString("\n")
-		b.WriteString(fmt.Sprintf("⭐ Stars: %d\n", repo.Stars))
-		b.WriteString(fmt.Sprintf("🔀 Forks: %d\n", repo.Forks))
+		b.WriteString(fmt.Sprintf("⭐ Stars: %s\n", formatIntWithCommas(repo.Stars)))
+		b.WriteString(fmt.Sprintf("🔀 Forks: %s\n", formatIntWithCommas(repo.Forks)))
 		b.WriteString("\n")
 
 		// URL

@@ -79,6 +79,7 @@ The `.goreleaser.yml` file configures:
 - **Archive Format**: tar.gz
 - **Checksums**: SHA256
 - **Changelog**: Auto-generated from git commits
+- **Build metadata**: version, commit, and build date injected via linker flags (`-X main.version`, `-X main.commit`, `-X main.date`)
 
 ## Troubleshooting
 
@@ -137,6 +138,23 @@ If automated release fails and you need to release manually:
    - Go to Releases → New Release
    - Upload binaries and checksums
    - Add release notes
+
+## Manual Release Build
+
+To verify a local build, run the following:
+
+basic build
+
+```bash
+go build -o /tmp/binmate
+```
+
+build with additional metadata flags (normally set automatically by `goreleaser`)
+
+```bash
+go build -o /tmp/binmate \
+   -ldflags "-X main.version=dev-local -X main.commit=$(git rev-parse --short HEAD) -X main.date=$(date -u +%Y-%m-%dT%H:%M:%SZ)" .
+```
 
 ## Post-Release
 

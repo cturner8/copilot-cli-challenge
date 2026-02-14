@@ -727,7 +727,7 @@ func (m model) updateVersions(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 			m.currentView = viewReleaseNotes
 			m.githubLoading = true
 			m.githubError = ""
-			return m, fetchReleaseNotes(m.selectedBinary, version)
+			return m, fetchReleaseNotes(m.selectedBinary, version, getDateFormat(m.config))
 		}
 
 	case keyRepoInfo:
@@ -746,7 +746,7 @@ func (m model) updateVersions(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 			m.selectedAvailableVersionIdx = 0
 			m.githubLoading = true
 			m.githubError = ""
-			return m, fetchAvailableVersions(m.selectedBinary)
+			return m, fetchAvailableVersions(m.selectedBinary, getDateFormat(m.config))
 		}
 
 	case keyEsc:
@@ -1477,7 +1477,7 @@ func (m model) updateGitHubView(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 			m.githubLoading = true
 			m.githubError = ""
 			m.githubReleaseInfo = nil
-			return m, fetchReleaseNotes(m.selectedBinary, selectedRelease.TagName)
+			return m, fetchReleaseNotes(m.selectedBinary, selectedRelease.TagName, getDateFormat(m.config))
 		}
 		return m, nil
 
@@ -1490,6 +1490,14 @@ func (m model) updateGitHubView(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		return m, nil
 
 	case keyEsc:
+		if m.currentView == viewReleaseNotes && len(m.githubAvailableVers) > 0 {
+			// Return to available versions when release notes was opened from there.
+			m.currentView = viewAvailableVersions
+			m.githubReleaseInfo = nil
+			m.githubError = ""
+			return m, nil
+		}
+
 		// Return to versions view
 		m.currentView = viewVersions
 		m.githubReleaseInfo = nil
@@ -1558,7 +1566,7 @@ func fetchRepositoryInfo(binary *database.Binary) tea.Cmd {
 }
 
 // fetchAvailableVersions fetches available versions from GitHub
-func fetchAvailableVersions(binary *database.Binary) tea.Cmd {
+func fetchAvailableVersions(binary *database.Binary, dateFormat string) tea.Cmd {
 	return func() tea.Msg {
 		releases, err := github.ListAvailableVersions(binary, 20)
 		if err != nil {
@@ -1572,7 +1580,7 @@ func fetchAvailableVersions(binary *database.Binary) tea.Cmd {
 				TagName:     release.TagName,
 				Body:        release.Body,
 				Prerelease:  release.Prerelease,
-				PublishedAt: release.PublishedAt.Format("2006-01-02 15:04"),
+				PublishedAt: release.PublishedAt.Format(dateFormat),
 				HTMLURL:     release.HTMLURL,
 			})
 		}
@@ -1582,7 +1590,7 @@ func fetchAvailableVersions(binary *database.Binary) tea.Cmd {
 }
 
 // fetchReleaseNotes fetches release notes from GitHub for a specific version
-func fetchReleaseNotes(binary *database.Binary, version string) tea.Cmd {
+func fetchReleaseNotes(binary *database.Binary, version string, dateFormat string) tea.Cmd {
 	return func() tea.Msg {
 		releaseInfo, err := github.FetchReleaseNotes(binary, version)
 		if err != nil {
@@ -1595,7 +1603,7 @@ func fetchReleaseNotes(binary *database.Binary, version string) tea.Cmd {
 				TagName:     releaseInfo.TagName,
 				Body:        releaseInfo.Body,
 				Prerelease:  releaseInfo.Prerelease,
-				PublishedAt: releaseInfo.PublishedAt.Format("2006-01-02 15:04"),
+				PublishedAt: releaseInfo.PublishedAt.Format(dateFormat),
 				HTMLURL:     releaseInfo.HTMLURL,
 			},
 		}
