@@ -57,8 +57,7 @@ checksum:
 changelog:
   sort: asc
   use: github
-  format: >-
-    {{ regexReplaceAll "\\(#([0-9]+)\\)" .Message "([#$1](https://github.com/cturner8/copilot-cli-challenge/pull/$1))" }}{{ if .AuthorUsername }} (@{{ .AuthorUsername }}){{ end }}
+  format: "{{ .Message }}{{ if .AuthorUsername }} (@{{ .AuthorUsername }}){{ end }}"
   filters:
     exclude:
       - '^docs:'
