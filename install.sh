@@ -192,7 +192,7 @@ run_auto_import() {
     local download_url=$2
     local version=$3
     local import_command
-    import_command=$(printf '%q ' "${installed_path}" import "${installed_path}" --url "${download_url}" --version "${version}" --keep-location)
+    import_command=$(printf '%q ' "${installed_path}" import "${installed_path}" --name ${BINARY_NAME} --url "${download_url}" --version "${version}" --keep-location)
     import_command=${import_command% }
 
     if is_truthy "${SKIP_AUTO_IMPORT}"; then
@@ -203,7 +203,7 @@ run_auto_import() {
     fi
 
     log_info "Importing ${BINARY_NAME} for self-management..."
-    if "${installed_path}" import "${installed_path}" --url "${download_url}" --version "${version}" --keep-location; then
+    if "${installed_path}" import "${installed_path}" --name ${BINARY_NAME} --url "${download_url}" --version "${version}" --keep-location; then
         log_info "Automatic import completed"
         return 0
     fi
