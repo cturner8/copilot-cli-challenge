@@ -133,14 +133,14 @@ download_and_install() {
         # Verify checksum
         log_info "Verifying checksum..."
         cd "${tmp_dir}"
-        if command -v sha256sum >/dev/null 2>&1; then
-            if ! grep "${archive_name}" checksums.txt | sha256sum -c --status; then
+        if command -v shasum >/dev/null 2>&1; then
+            if ! grep "${archive_name}" checksums.txt | shasum -a 256 -c >/dev/null 2>&1; then
                 log_error "Checksum verification failed"
                 rm -rf "${tmp_dir}"
                 exit 1
             fi
-        elif command -v shasum >/dev/null 2>&1; then
-            if ! grep "${archive_name}" checksums.txt | shasum -a 256 -c --status; then
+        elif command -v sha256sum >/dev/null 2>&1; then
+            if ! grep "${archive_name}" checksums.txt | sha256sum -c >/dev/null 2>&1; then
                 log_error "Checksum verification failed"
                 rm -rf "${tmp_dir}"
                 exit 1
