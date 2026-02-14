@@ -7,7 +7,7 @@
 #
 # Environment variables:
 #   BINMATE_VERSION     - Specific version to install (e.g., "v1.0.0" or "latest", default: "latest")
-#   BINMATE_INSTALL_DIR - Installation directory (default: "/usr/local/bin")
+#   BINMATE_INSTALL_DIR - Installation directory (default: "$HOME/.local/bin")
 #   BINMATE_SKIP_AUTO_IMPORT - Skip automatic post-install import (default: disabled)
 #
 
@@ -23,7 +23,7 @@ NC='\033[0m' # No Color
 GITHUB_REPO="cturner8/copilot-cli-challenge"
 BINARY_NAME="binmate"
 VERSION="${BINMATE_VERSION:-latest}"
-INSTALL_DIR="${BINMATE_INSTALL_DIR:-/usr/local/bin}"
+INSTALL_DIR="${BINMATE_INSTALL_DIR:-"$HOME/.local/bin"}"
 SKIP_AUTO_IMPORT="${BINMATE_SKIP_AUTO_IMPORT:-}"
 
 # Functions
@@ -230,7 +230,7 @@ main() {
         validate_version "$VERSION"
     fi
 
-    local archive_name="${BINARY_NAME}_${VERSION#v}_${platform}.tar.gz"
+    local archive_name="copilot-cli-challenge_${VERSION#v}_${platform}.tar.gz"
     local download_url="https://github.com/${GITHUB_REPO}/releases/download/${VERSION}/${archive_name}"
     
     # Download and install
