@@ -4,6 +4,7 @@ Copyright © 2026 cturner8
 package cmd
 
 import (
+	"fmt"
 	"log"
 	"os"
 
@@ -18,7 +19,9 @@ import (
 	switchcmd "cturner8/binmate/internal/cli/switch"
 	"cturner8/binmate/internal/cli/sync"
 	"cturner8/binmate/internal/cli/update"
+	versioncmd "cturner8/binmate/internal/cli/version"
 	"cturner8/binmate/internal/cli/versions"
+	"cturner8/binmate/internal/core/buildinfo"
 	"cturner8/binmate/internal/core/config"
 	"cturner8/binmate/internal/database"
 	"cturner8/binmate/internal/database/repository"
@@ -27,9 +30,13 @@ import (
 )
 
 var (
-	rootCmd   = root.NewCommand()
-	dbService *repository.Service
-	cfg       config.Config
+	rootCmd      = root.NewCommand()
+	dbService    *repository.Service
+	cfg          config.Config
+	showVersion  bool
+	buildVersion = buildinfo.DefaultVersion
+	buildCommit  = buildinfo.DefaultUnknown
+	buildDate    = buildinfo.DefaultUnknown
 )
 
 func Execute() {
@@ -39,18 +46,59 @@ func Execute() {
 	}
 }
 
+func SetBuildMetadata(version, commit, date string) {
+	buildVersion = version
+	buildCommit = commit
+	buildDate = date
+
+	versioncmd.BuildVersion = version
+	versioncmd.BuildCommit = commit
+	versioncmd.BuildDate = date
+}
+
 func init() {
 	var (
 		configPath string
 		logLevel   string
 	)
 
+	SetBuildMetadata(buildVersion, buildCommit, buildDate)
+
+	originalRootPreRunE := rootCmd.PreRunE
+	rootCmd.PreRunE = func(cmd *cobra.Command, args []string) error {
+		if showVersion {
+			return nil
+		}
+		if originalRootPreRunE != nil {
+			return originalRootPreRunE(cmd, args)
+		}
+		return nil
+	}
+
+	originalRootRunE := rootCmd.RunE
+	rootCmd.RunE = func(cmd *cobra.Command, args []string) error {
+		if showVersion {
+			info := buildinfo.Resolve(buildVersion, buildCommit, buildDate)
+			fmt.Fprintf(cmd.OutOrStdout(), "binmate %s\n", info.Version)
+			return nil
+		}
+		if originalRootRunE != nil {
+			return originalRootRunE(cmd, args)
+		}
+		return nil
+	}
+
 	// set global flags
 	rootCmd.PersistentFlags().StringVarP(&configPath, "config", "c", "", "(optional) path to the config file to use")
 	rootCmd.PersistentFlags().StringVarP(&logLevel, "log-level", "l", "", "(optional) controls verbosity of application logging")
+	rootCmd.Flags().BoolVarP(&showVersion, "version", "v", false, "show version")
 
 	// Setup database lifecycle hooks
 	rootCmd.PersistentPreRun = func(cmd *cobra.Command, args []string) {
+		if cmd == rootCmd && showVersion {
+			return
+		}
+
 		// Read config file
 		cfg = config.ReadConfig(config.ConfigFlags{
 			ConfigPath: configPath,
@@ -98,6 +146,9 @@ func init() {
 		configcmd.DBService = dbService
 		versions.Config = &cfg
 		versions.DBService = dbService
+		versioncmd.BuildVersion = buildVersion
+		versioncmd.BuildCommit = buildCommit
+		versioncmd.BuildDate = buildDate
 		check.Config = &cfg
 		check.DBService = dbService
 	}
@@ -121,5 +172,6 @@ func init() {
 	rootCmd.AddCommand(importcmd.NewCommand())
 	rootCmd.AddCommand(configcmd.NewCommand())
 	rootCmd.AddCommand(versions.NewCommand())
+	rootCmd.AddCommand(versioncmd.NewCommand())
 	rootCmd.AddCommand(check.NewCommand())
 }

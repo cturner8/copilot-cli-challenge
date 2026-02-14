@@ -157,6 +157,21 @@ Sync the configuration file with the database:
 binmate sync
 ```
 
+#### Version Information
+
+Show the current binmate version:
+
+```bash
+binmate --version
+binmate version
+```
+
+Show detailed build metadata:
+
+```bash
+binmate version --verbose
+```
+
 ## Configuration
 
 Configuration is stored in `~/.config/.binmate/config.json`:

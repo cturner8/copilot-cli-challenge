@@ -79,6 +79,7 @@ The `.goreleaser.yml` file configures:
 - **Archive Format**: tar.gz
 - **Checksums**: SHA256
 - **Changelog**: Auto-generated from git commits
+- **Build metadata**: version, commit, and build date injected via linker flags (`-X main.version`, `-X main.commit`, `-X main.date`)
 
 ## Troubleshooting
 
