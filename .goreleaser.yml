@@ -86,10 +86,21 @@ release:
   header: |
     ## Installation
     
+    ### Unix (Linux/macOS)
+    
     Use the install script:
     ```bash
     curl -fsSL https://raw.githubusercontent.com/cturner8/copilot-cli-challenge/main/install.sh | bash
     ```
+    
+    ### Windows (PowerShell)
+    
+    Use the PowerShell install script:
+    ```powershell
+    irm https://raw.githubusercontent.com/cturner8/copilot-cli-challenge/main/install.ps1 | iex
+    ```
+    
+    ### Manual Installation
     
     Or download the appropriate binary for your platform below.
   footer: |

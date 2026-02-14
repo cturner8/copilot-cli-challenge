@@ -23,6 +23,8 @@ Submission for the [2026 DEV GitHub Copilot CLI challenge](https://dev.to/devtea
 
 ### Using the Install Script (Recommended)
 
+#### Unix (Linux/macOS)
+
 Install the latest version using our install script:
 
 ```bash
@@ -47,6 +49,35 @@ Skip automatic post-install self-import:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/cturner8/copilot-cli-challenge/main/install.sh | BINMATE_SKIP_AUTO_IMPORT=1 bash
+```
+
+#### Windows (PowerShell)
+
+Install the latest version using our PowerShell install script:
+
+```powershell
+irm https://raw.githubusercontent.com/cturner8/copilot-cli-challenge/main/install.ps1 | iex
+```
+
+Install a specific version:
+
+```powershell
+$env:BINMATE_VERSION = "v1.0.0"
+irm https://raw.githubusercontent.com/cturner8/copilot-cli-challenge/main/install.ps1 | iex
+```
+
+Install to a custom directory:
+
+```powershell
+$env:BINMATE_INSTALL_DIR = "$env:LOCALAPPDATA\binmate\bin"
+irm https://raw.githubusercontent.com/cturner8/copilot-cli-challenge/main/install.ps1 | iex
+```
+
+Skip automatic post-install self-import:
+
+```powershell
+$env:BINMATE_SKIP_AUTO_IMPORT = "1"
+irm https://raw.githubusercontent.com/cturner8/copilot-cli-challenge/main/install.ps1 | iex
 ```
 
 ### Manual Installation

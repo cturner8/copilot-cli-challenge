@@ -48,11 +48,114 @@ Once the tag is pushed, the following happens automatically:
 
 1. Go to the [Releases page](https://github.com/cturner8/copilot-cli-challenge/releases)
 2. Verify the release was created successfully
-3. Test the install script:
-   ```bash
-   curl -fsSL https://raw.githubusercontent.com/cturner8/copilot-cli-challenge/main/install.sh | BINMATE_VERSION=v1.0.0 bash
-   ```
-4. Verify the installed binary works correctly
+3. Run post-release verification (see [Post-Release Verification](#post-release-verification) section below)
+
+## Post-Release Verification
+
+After a release is published, comprehensive end-to-end testing should be performed to ensure the release works correctly across all supported platforms and architectures.
+
+### Automated E2E Testing
+
+The repository includes automated E2E tests that can be run via GitHub Actions:
+
+1. Go to the [E2E Tests workflow](https://github.com/cturner8/copilot-cli-challenge/actions/workflows/e2e.yml)
+2. Click "Run workflow"
+3. Specify the version to test (e.g., `v1.0.0` or `latest`)
+4. Select platforms and architectures to test (or use `all` for comprehensive testing)
+5. Click "Run workflow" to start the tests
+
+The workflow will:
+- Test installation via install scripts (`install.sh` for Unix, `install.ps1` for Windows)
+- Run 24 core functionality tests on each platform/architecture
+- Upload test logs as artifacts
+- Report pass/fail status for each combination
+
+**Supported test combinations:**
+- Linux: amd64, arm64
+- macOS: amd64 (Intel), arm64 (Apple Silicon)
+- Windows: amd64, arm64
+
+### Manual Local Testing
+
+You can also run E2E tests locally on your machine:
+
+#### Unix (Linux/macOS)
+
+```bash
+# Test latest version
+./e2e-test.sh
+
+# Test specific version
+./e2e-test.sh v1.0.0
+
+# Or use environment variable
+BINMATE_VERSION=v1.0.0 ./e2e-test.sh
+```
+
+#### Windows (PowerShell)
+
+```powershell
+# Test latest version
+.\e2e-test.ps1
+
+# Test specific version
+.\e2e-test.ps1 -Version v1.0.0
+
+# Or use environment variable
+$env:BINMATE_VERSION = "v1.0.0"
+.\e2e-test.ps1
+```
+
+### Manual Installation Testing
+
+For manual verification:
+
+#### Unix (Linux/macOS)
+
+```bash
+# Test install.sh with latest version
+curl -fsSL https://raw.githubusercontent.com/cturner8/copilot-cli-challenge/main/install.sh | bash
+
+# Test install.sh with specific version
+curl -fsSL https://raw.githubusercontent.com/cturner8/copilot-cli-challenge/main/install.sh | BINMATE_VERSION=v1.0.0 bash
+
+# Test with custom install directory
+curl -fsSL https://raw.githubusercontent.com/cturner8/copilot-cli-challenge/main/install.sh | BINMATE_INSTALL_DIR=/tmp/binmate-test bash
+```
+
+#### Windows (PowerShell)
+
+```powershell
+# Test install.ps1 with latest version
+irm https://raw.githubusercontent.com/cturner8/copilot-cli-challenge/main/install.ps1 | iex
+
+# Test install.ps1 with specific version
+$env:BINMATE_VERSION = "v1.0.0"
+irm https://raw.githubusercontent.com/cturner8/copilot-cli-challenge/main/install.ps1 | iex
+
+# Test with custom install directory
+$env:BINMATE_INSTALL_DIR = "C:\Temp\binmate-test"
+irm https://raw.githubusercontent.com/cturner8/copilot-cli-challenge/main/install.ps1 | iex
+```
+
+### Issue Tracking
+
+To track verification progress, create a Post-Release Verification issue:
+
+1. Go to [Issues → New Issue](https://github.com/cturner8/copilot-cli-challenge/issues/new/choose)
+2. Select "Post-Release Verification" template
+3. Fill in the version and release URL
+4. Use the checklist to track testing progress for each platform
+5. Link to automated E2E test results
+6. Document any issues found
+7. Close the issue once all verification is complete
+
+The template includes comprehensive checklists for:
+- All 6 platform/architecture combinations
+- Installation testing
+- Core functionality testing
+- Error handling verification
+- Additional release quality checks
 
 ## Release Workflow Details
 
