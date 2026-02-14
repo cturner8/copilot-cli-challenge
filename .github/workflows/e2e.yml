@@ -125,6 +125,7 @@ jobs:
           ./${{ matrix.script }} ${{ inputs.version }}
         env:
           BINMATE_VERSION: ${{ inputs.version }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       
       - name: Run E2E tests (Windows)
         if: matrix.os == 'windows'
@@ -133,6 +134,7 @@ jobs:
           ./${{ matrix.script }} -Version ${{ inputs.version }}
         env:
           BINMATE_VERSION: ${{ inputs.version }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       
       - name: Upload test logs
         if: always()
