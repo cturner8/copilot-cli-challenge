@@ -8,6 +8,7 @@
 # Environment variables:
 #   BINMATE_VERSION     - Specific version to install (e.g., "v1.0.0" or "latest", default: "latest")
 #   BINMATE_INSTALL_DIR - Installation directory (default: "/usr/local/bin")
+#   BINMATE_SKIP_AUTO_IMPORT - Skip automatic post-install import (default: disabled)
 #
 
 set -e
@@ -23,6 +24,7 @@ GITHUB_REPO="cturner8/copilot-cli-challenge"
 BINARY_NAME="binmate"
 VERSION="${BINMATE_VERSION:-latest}"
 INSTALL_DIR="${BINMATE_INSTALL_DIR:-/usr/local/bin}"
+SKIP_AUTO_IMPORT="${BINMATE_SKIP_AUTO_IMPORT:-}"
 
 # Functions
 log_info() {
@@ -35,6 +37,17 @@ log_warn() {
 
 log_error() {
     echo -e "${RED}Error:${NC} $1" >&2
+}
+
+is_truthy() {
+    case "${1:-}" in
+        1|true|TRUE|yes|YES|on|ON)
+            return 0
+            ;;
+        *)
+            return 1
+            ;;
+    esac
 }
 
 detect_platform() {
@@ -96,8 +109,8 @@ validate_version() {
 download_and_install() {
     local version=$1
     local platform=$2
-    local archive_name="${BINARY_NAME}_${version#v}_${platform}.tar.gz"
-    local download_url="https://github.com/${GITHUB_REPO}/releases/download/${version}/${archive_name}"
+    local download_url=$3
+    local archive_name=$4
     local checksum_url="https://github.com/${GITHUB_REPO}/releases/download/${version}/checksums.txt"
     local tmp_dir
     tmp_dir=$(mktemp -d)
@@ -174,6 +187,31 @@ download_and_install() {
     rm -rf "${tmp_dir}"
 }
 
+run_auto_import() {
+    local installed_path=$1
+    local download_url=$2
+    local version=$3
+    local import_command
+    import_command=$(printf '%q ' "${installed_path}" import "${installed_path}" --url "${download_url}" --version "${version}" --keep-location)
+    import_command=${import_command% }
+
+    if is_truthy "${SKIP_AUTO_IMPORT}"; then
+        log_warn "Skipping automatic import because BINMATE_SKIP_AUTO_IMPORT is set"
+        log_info "To import manually, run:"
+        echo "    ${import_command}"
+        return 0
+    fi
+
+    log_info "Importing ${BINARY_NAME} for self-management..."
+    if "${installed_path}" import "${installed_path}" --url "${download_url}" --version "${version}" --keep-location; then
+        log_info "Automatic import completed"
+        return 0
+    fi
+
+    log_warn "Automatic import failed. To import manually, run:"
+    echo "    ${import_command}"
+}
+
 main() {
     log_info "binmate installer"
     echo
@@ -191,9 +229,13 @@ main() {
         log_info "Installing version: ${VERSION}"
         validate_version "$VERSION"
     fi
+
+    local archive_name="${BINARY_NAME}_${VERSION#v}_${platform}.tar.gz"
+    local download_url="https://github.com/${GITHUB_REPO}/releases/download/${VERSION}/${archive_name}"
     
     # Download and install
-    download_and_install "$VERSION" "$platform"
+    download_and_install "$VERSION" "$platform" "$download_url" "$archive_name"
+    run_auto_import "${INSTALL_DIR}/${BINARY_NAME}" "$download_url" "$VERSION"
     
     echo
     log_info "Successfully installed ${BINARY_NAME} ${VERSION} to ${INSTALL_DIR}/${BINARY_NAME}"

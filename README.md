@@ -29,6 +29,8 @@ Install the latest version using our install script:
 curl -fsSL https://raw.githubusercontent.com/cturner8/copilot-cli-challenge/main/install.sh | bash
 ```
 
+By default, the installer now auto-imports the installed `binmate` binary for self-management using its resolved release URL and version.
+
 Install a specific version:
 
 ```bash
@@ -39,6 +41,12 @@ Install to a custom directory:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/cturner8/copilot-cli-challenge/main/install.sh | BINMATE_INSTALL_DIR=$HOME/.local/bin bash
+```
+
+Skip automatic post-install self-import:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/cturner8/copilot-cli-challenge/main/install.sh | BINMATE_SKIP_AUTO_IMPORT=1 bash
 ```
 
 ### Manual Installation
