@@ -16,7 +16,7 @@ $ErrorActionPreference = "Stop"
 # Configuration
 $GITHUB_REPO = "cturner8/copilot-cli-challenge"
 $BINARY_NAME = "binmate"
-$VERSION = if ($env:BINMATE_VERSION) { $env:BINMATE_VERSION } else { "latest" }
+$script:VERSION = if ($env:BINMATE_VERSION) { $env:BINMATE_VERSION } else { "latest" }
 $INSTALL_DIR = if ($env:BINMATE_INSTALL_DIR) { $env:BINMATE_INSTALL_DIR } else { "$env:LOCALAPPDATA\binmate\bin" }
 $SKIP_AUTO_IMPORT = $env:BINMATE_SKIP_AUTO_IMPORT
 

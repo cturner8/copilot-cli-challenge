@@ -285,7 +285,11 @@ run_import_tests() {
     
     # Test 15: Import binmate itself
     log_test "Test 15: Import binmate binary"
-    local archive_url="https://github.com/cturner8/copilot-cli-challenge/releases/download/$VERSION/binmate_${VERSION#v}_$(uname -s | tr '[:upper:]' '[:lower:]')_$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/').tar.gz"
+    
+    # Construct platform string
+    local os_name=$(uname -s | tr '[:upper:]' '[:lower:]')
+    local arch_name=$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/')
+    local archive_url="https://github.com/cturner8/copilot-cli-challenge/releases/download/$VERSION/binmate_${VERSION#v}_${os_name}_${arch_name}.tar.gz"
     
     if "$BINMATE_BIN" import "$BINMATE_BIN" --url "$archive_url" --version "$VERSION" --keep-location >/dev/null 2>&1; then
         test_passed
