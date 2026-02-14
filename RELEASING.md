@@ -139,6 +139,23 @@ If automated release fails and you need to release manually:
    - Upload binaries and checksums
    - Add release notes
 
+## Manual Release Build
+
+To verify a local build, run the following:
+
+basic build
+
+```bash
+go build -o /tmp/binmate
+```
+
+build with additional metadata flags (normally set automatically by `goreleaser`)
+
+```bash
+go build -o /tmp/binmate \
+   -ldflags "-X main.version=dev-local -X main.commit=$(git rev-parse --short HEAD) -X main.date=$(date -u +%Y-%m-%dT%H:%M:%SZ)" .
+```
+
 ## Post-Release
 
 1. Announce the release in appropriate channels
