@@ -1,5 +1,5 @@
 {
-  "$schema": "./schema.json",
+  "$schema": "https://raw.githubusercontent.com/cturner8/copilot-cli-challenge/dev/schema.json",
   "version": 1,
   "global": {
     "installPath": "/usr/local/bin",
