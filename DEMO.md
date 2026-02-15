@@ -2,9 +2,7 @@
 
 ## Demo
 
-Short demo recording:
-
-![](./images/demo.mp4)
+Short demo recording: [demo.mp4](./images/demo.mp4)
 
 This demonstrates the following functionality:
 - first check current version of the `gh` CLI (initially not installed)
