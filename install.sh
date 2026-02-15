@@ -81,7 +81,7 @@ detect_platform() {
 }
 
 get_latest_version() {
-    log_info "Fetching latest version..."
+    log_info "Fetching latest version..." >&2
     local latest
     latest=$(curl -fsSL "https://api.github.com/repos/${GITHUB_REPO}/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
     
