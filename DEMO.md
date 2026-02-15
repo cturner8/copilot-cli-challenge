@@ -4,7 +4,7 @@
 
 Short demo recording:
 
-![](./images/demo.mov)
+![](./images/demo.mp4)
 
 This demonstrates the following functionality:
 - first check current version of the `gh` CLI (initially not installed)
