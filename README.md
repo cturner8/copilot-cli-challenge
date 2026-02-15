@@ -21,6 +21,8 @@ Submission for the [2026 DEV GitHub Copilot CLI challenge](https://dev.to/devtea
 - **Database Tracking**: SQLite database tracks all installations and versions
 - **Checksum Verification**: Ensures integrity of downloaded binaries
 
+See [demo.md](./DEMO.md) for a demo and screenshots.
+
 ## Installation
 
 ### Using the Install Script (Recommended)
