@@ -10,6 +10,8 @@ Submission for the [2026 DEV GitHub Copilot CLI challenge](https://dev.to/devtea
 
 **binmate** is a CLI/TUI application for managing binary installations from GitHub releases. It provides an easy way to install, manage, and switch between different versions of command-line tools.
 
+![cover image](./images/cover.png)
+
 ### Key Features
 
 - **Interactive TUI**: Browse and manage binaries with a Terminal User Interface
