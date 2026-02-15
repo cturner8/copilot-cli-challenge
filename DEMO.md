@@ -2,7 +2,7 @@
 
 ## Demo
 
-Short demo recording: [demo.mp4](./images/demo.mp4)
+Short demo recording: [binmate demo](https://youtu.be/i0yZUVkNmwQ)
 
 This demonstrates the following functionality:
 - first check current version of the `gh` CLI (initially not installed)
