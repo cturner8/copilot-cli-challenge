@@ -3,7 +3,7 @@
 ## What I Built
 <!-- Provide an overview of your application and what it means to you. -->
 
-**binmate** is a CLI/TUI application for managing binary installations from GitHub releases. It provides an easy way to install, manage, and switch between different versions of command-line tools.
+**[binmate](https://github.com/cturner8/copilot-cli-challenge)** is a CLI/TUI application for managing binary installations from GitHub releases. It provides an easy way to install, manage, and switch between different versions of command-line tools.
 
 ### Key Features
 
@@ -14,7 +14,15 @@
 - **Database Tracking**: SQLite database tracks all installations and versions
 - **Checksum Verification**: Ensures integrity of downloaded binaries
 
-**Source**
+### Tech Stack
+
+- Go
+- Bubble Tea
+- Lip Gloss
+- Cobra
+- Viper
+- SQLite
+
 [GitHub Repository](https://github.com/cturner8/copilot-cli-challenge)
 
 ## Demo
