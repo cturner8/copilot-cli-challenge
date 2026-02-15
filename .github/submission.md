@@ -36,8 +36,6 @@ Additionally, inspired by tools such as [nvm](https://github.com/nvm-sh/nvm) for
 
 ## Demo
 
-<!-- Share a link to your project and include a video walkthrough or screenshots showing your application in action. -->
-
 Demo and screenshots are available on [GitHub](https://github.com/cturner8/copilot-cli-challenge/blob/main/DEMO.md)
 
 [GitHub Repository](https://github.com/cturner8/copilot-cli-challenge)
@@ -55,7 +53,12 @@ Development of the application used the following GitHub Copilot CLI capabilitie
 - **MCP**
     - `context7` for providing up to date documentation for packages and libraries.
     - The `GitHub MCP` built into Copilot CLI was ideal for allowing the agent direct access to search public codebases, access to action workflow logs for troubleshooting, allowing follow up tasks and recommendations to be extracted from PR comments.
-- **Plan mode** to refine and improve implementation plans for new features before work begins.
+- **Plan mode** to refine and improve the following implementations:
+    - initial application architecture and structure
+    - database schema
+    - TUI functionality based on existing CLI functionality
+    - build and release action workflows
+    - end-to-end testing workflow (still in progress)
 - **Delegate to cloud agent** once an implementation plan is finalised, allowing Copilot to continue working on a task freeing me up to focus on something else. It was also useful in allowing development to continue in moments where I had less time available to spend at my desk.
 - **Code review** to identify any potential issues or areas for improvement in code changes, particularly helpful given I worked alone on the project.
 
