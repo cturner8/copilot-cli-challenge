@@ -34,7 +34,7 @@
 Development of the application used the following GitHub Copilot CLI capabilities:
 
 - **Agent instructions** for baseline codebase structure and standards, later extended to also heavily utilise [beads](https://github.com/steveyegge/beads) for improved task tracking and persistent agent memory.
-- **Custom agents** to provide more focused and specialised agents such as:
+- **Custom agents** to provide more focused and specialised agents. The following were originally sourced from the [awesome-copilot](https://github.com/github/awesome-copilot/blob/main/docs/README.agents.md) repository:
     - Critical Thinking, see [critical-thinking.agent.md](https://github.com/cturner8/copilot-cli-challenge/blob/main/.github/agents/critical-thinking.agent.md)
     - Go Development Expert, revised from "Go MCP Server Development Expert" to be a generic go agent, see [go-expert.agent.md](https://github.com/cturner8/copilot-cli-challenge/blob/main/.github/agents/go-expert.agent.md)
     - SQLite Database Administrator, revised from "PostgreSQL Database Administrator" agent, see [sqlite-dba.agent.md](https://github.com/cturner8/copilot-cli-challenge/blob/main/.github/agents/sqlite-dba.agent.md)
