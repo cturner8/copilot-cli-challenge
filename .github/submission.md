@@ -1,9 +1,19 @@
+---
+title: binmate - a binary version manager
+---
+
 *This is a submission for the [GitHub Copilot CLI Challenge](https://dev.to/challenges/github-2026-01-21)*
 
 ## What I Built
 <!-- Provide an overview of your application and what it means to you. -->
 
 **[binmate](https://github.com/cturner8/copilot-cli-challenge)** is a CLI/TUI application for managing binary installations from GitHub releases. It provides an easy way to install, manage, and switch between different versions of command-line tools.
+
+### Why I Built It
+
+Depending on which platform you are working with, especially Linux (specifically Ubuntu/Debian), many of the common public package manager repositories (such as `apt`) may be several versions behind the latest available for software you want to install forcing you to install manually instead. This can be particularly problematic in project development when working with different toolchains which may not be available in runtime specific package managers such as `npm`, `go.pkg.dev` or `pypi`. This then leads to having to manually maintain updates to new versions which could get tedious depending on the volume of packages you need to upgrade.
+
+Additionally, inspired by tools such as [nvm](https://github.com/nvm-sh/nvm) for Node.js version management, there is often no straightforward way to switch between different installation versions for troubleshooting or rollback purposes.
 
 ### Key Features
 
@@ -23,10 +33,14 @@
 - Viper
 - SQLite
 
-[GitHub Repository](https://github.com/cturner8/copilot-cli-challenge)
 
 ## Demo
+
 <!-- Share a link to your project and include a video walkthrough or screenshots showing your application in action. -->
+
+Demo and screenshots are available on [GitHub](https://github.com/cturner8/copilot-cli-challenge/blob/main/DEMO.md)
+
+[GitHub Repository](https://github.com/cturner8/copilot-cli-challenge)
 
 ## My Experience with GitHub Copilot CLI
 <!-- Explain how you used GitHub Copilot CLI while building your project and how it impacted your development experience. -->
